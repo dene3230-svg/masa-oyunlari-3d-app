@@ -37,9 +37,22 @@ jobs:
           npx cap add android
       - name: Yerel Android WorkManager Bildirim Servisi ve Cikis Koprusu Ekle
         run: |
-          node -e '
+          MAIN_ACTIVITY=$(find android/app/src/main/java -name "MainActivity.java" | head -n 1)
+          if [ -z "$MAIN_ACTIVITY" ]; then
+            echo "HATA: MainActivity.java bulunamadi!"
+            exit 1
+          fi
+          echo "Bulunan MainActivity.java yolu: $MAIN_ACTIVITY"
+
+          MAIN_ACTIVITY="$MAIN_ACTIVITY" node -e '
             const fs = require("fs");
             const path = require("path");
+
+            const mainActivityPath = process.env.MAIN_ACTIVITY;
+            const javaDir = path.dirname(mainActivityPath);
+            const originalMain = fs.readFileSync(mainActivityPath, "utf8");
+            const pkgMatch = originalMain.match(/^\s*package\s+([a-zA-Z0-9_.]+)\s*;/m);
+            const packageName = pkgMatch ? pkgMatch[1] : "com.masaoyunlari.app";
 
             // 1. android/app/build.gradle -> WorkManager bagimliligini ekle
             const gradlePath = "android/app/build.gradle";
@@ -72,12 +85,8 @@ jobs:
               fs.writeFileSync(manifestPath, manifest, "utf8");
             }
 
-            // 3. Java paket dizinini hazirla
-            const javaDir = "android/app/src/main/java/com/masaoyunlari/app";
-            fs.mkdirSync(javaDir, { recursive: true });
-
-            // 4. UpdateCheckWorker.java olustur
-            const workerCode = `package com.masaoyunlari.app;
+            // 3. UpdateCheckWorker.java olustur
+            const workerCode = `package ${packageName};
 
           import android.Manifest;
           import android.app.NotificationChannel;
@@ -230,19 +239,16 @@ jobs:
           `.replace(/^          /gm, "");
             fs.writeFileSync(path.join(javaDir, "UpdateCheckWorker.java"), workerCode, "utf8");
 
-            // 5. MainActivity.java olustur (Android 13+ bildirim izni, WorkManager 15 dk, AndroidNative.exitApp koprusu)
-            const mainActivityCode = `package com.masaoyunlari.app;
+            // 4. Bulunan gercek MainActivity.java dosyasini dinamik olarak guncelle
+            const mainActivityCode = `package ${packageName};
 
           import android.Manifest;
-          import android.app.Activity;
           import android.content.Context;
           import android.content.SharedPreferences;
           import android.content.pm.PackageManager;
           import android.os.Build;
           import android.os.Bundle;
           import android.webkit.JavascriptInterface;
-          import android.webkit.WebSettings;
-          import android.webkit.WebView;
           import androidx.core.app.ActivityCompat;
           import androidx.core.content.ContextCompat;
           import androidx.work.Constraints;
@@ -261,9 +267,41 @@ jobs:
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
+                  this.bridge.getWebView().getSettings().setJavaScriptEnabled(true);
+                  this.bridge.getWebView().addJavascriptInterface(new Object() {
+                      @JavascriptInterface
+                      public void exitApp() {
+                          runOnUiThread(() -> {
+                              finishAndRemoveTask();
+                              System.exit(0);
+                          });
+                      }
+
+                      @JavascriptInterface
+                      public void syncVersion(String version) {
+                          if (version == null || version.trim().isEmpty()) return;
+                          String cleaned = version.trim();
+                          SharedPreferences prefs = getApplicationContext()
+                                  .getSharedPreferences(UpdateCheckWorker.PREFS_NAME, Context.MODE_PRIVATE);
+                          prefs.edit()
+                                  .putString(UpdateCheckWorker.KEY_LAST_VERSION, cleaned)
+                                  .putString(UpdateCheckWorker.KEY_NOTIFIED_VERSION, cleaned)
+                                  .apply();
+                      }
+
+                      @JavascriptInterface
+                      public void markVersionNotified(String version) {
+                          if (version == null || version.trim().isEmpty()) return;
+                          SharedPreferences prefs = getApplicationContext()
+                                  .getSharedPreferences(UpdateCheckWorker.PREFS_NAME, Context.MODE_PRIVATE);
+                          prefs.edit()
+                                  .putString(UpdateCheckWorker.KEY_NOTIFIED_VERSION, version.trim())
+                                  .apply();
+                      }
+                  }, "AndroidNative");
+
                   requestNotificationPermissionIfNeeded();
                   schedulePeriodicUpdateCheck();
-                  attachNativeJavascriptBridge();
               }
 
               private void requestNotificationPermissionIfNeeded() {
@@ -298,58 +336,14 @@ jobs:
                           updateWorkRequest
                   );
               }
-
-              private void attachNativeJavascriptBridge() {
-                  if (this.bridge != null && this.bridge.getWebView() != null) {
-                      WebView webView = this.bridge.getWebView();
-                      WebSettings webSettings = webView.getSettings();
-                      webSettings.setJavaScriptEnabled(true);
-                      webView.addJavascriptInterface(new WebAppInterface(this), "AndroidNative");
-                  }
-              }
-
-              public static class WebAppInterface {
-                  private final Activity activity;
-
-                  public WebAppInterface(Activity activity) {
-                      this.activity = activity;
-                  }
-
-                  @JavascriptInterface
-                  public void exitApp() {
-                      activity.runOnUiThread(() -> {
-                          activity.finishAffinity();
-                          System.exit(0);
-                      });
-                  }
-
-                  @JavascriptInterface
-                  public void syncVersion(String version) {
-                      if (version == null || version.trim().isEmpty()) return;
-                      String cleaned = version.trim();
-                      SharedPreferences prefs = activity.getApplicationContext()
-                              .getSharedPreferences(UpdateCheckWorker.PREFS_NAME, Context.MODE_PRIVATE);
-                      prefs.edit()
-                              .putString(UpdateCheckWorker.KEY_LAST_VERSION, cleaned)
-                              .putString(UpdateCheckWorker.KEY_NOTIFIED_VERSION, cleaned)
-                              .apply();
-                  }
-
-                  @JavascriptInterface
-                  public void markVersionNotified(String version) {
-                      if (version == null || version.trim().isEmpty()) return;
-                      SharedPreferences prefs = activity.getApplicationContext()
-                              .getSharedPreferences(UpdateCheckWorker.PREFS_NAME, Context.MODE_PRIVATE);
-                      prefs.edit()
-                              .putString(UpdateCheckWorker.KEY_NOTIFIED_VERSION, version.trim())
-                              .apply();
-                  }
-              }
           }
           `.replace(/^          /gm, "");
-            fs.writeFileSync(path.join(javaDir, "MainActivity.java"), mainActivityCode, "utf8");
-            console.log("Android WorkManager + MainActivity AndroidNative koprusu basariyla olusturuldu.");
+            fs.writeFileSync(mainActivityPath, mainActivityCode, "utf8");
           '
+
+          echo "========== MAINACTIVITY.JAVA ICERIGI =========="
+          cat "$MAIN_ACTIVITY"
+          echo "============================================="
       - name: Logo ve Splash Olustur
         run: |
           mkdir -p assets

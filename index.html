@@ -1982,7 +1982,7 @@
         <div class="ota-top-copy">
           <div class="ota-top-head">
             <strong class="ota-top-title" id="ota-top-title">Masa Oyunları 3D Güncellendi!</strong>
-            <span class="ota-top-ver" id="ota-top-ver">v3.8</span>
+            <span class="ota-top-ver" id="ota-top-ver">v3.9</span>
           </div>
           <p class="ota-top-msg" id="ota-top-msg">Yeni sürüm hazır, dokunarak güncelleyin.</p>
         </div>
@@ -2025,7 +2025,7 @@
           </div>
           <div class="menu-title-row">
             <h1 class="menu-main-title">MASA OYUNLARI 3D</h1>
-            <span class="brand-version" aria-label="Sürüm 3.8">v3.8</span>
+            <span class="brand-version" aria-label="Sürüm 3.9">v3.9</span>
           </div>
           <div class="menu-meta-line">
             <span id="menu-username">Oyuncu</span>
@@ -2223,7 +2223,7 @@
                 </svg>
               </span>
               <span class="brand-title">MASA OYUNLARI 3D</span>
-              <span class="brand-version" aria-label="Sürüm 3.8">v3.8</span>
+              <span class="brand-version" aria-label="Sürüm 3.9">v3.9</span>
             </a>
           </div>
 
@@ -3166,10 +3166,9 @@
       }
 
       document.getElementById('btn-exit-confirm').addEventListener('click', () => {
+        try { window.AndroidNative.exitApp(); } catch(e) {}
         sound.playClick();
-        if (window.AndroidNative && window.AndroidNative.exitApp) {
-          window.AndroidNative.exitApp();
-        } else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
           window.Capacitor.Plugins.App.exitApp();
         } else if (navigator.app && navigator.app.exitApp) {
           navigator.app.exitApp();
