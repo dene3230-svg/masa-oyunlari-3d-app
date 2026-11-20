@@ -1143,17 +1143,21 @@
         }
       })();
 
+      const isMobileGpu =
+        /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints > 1 && Math.min(window.innerWidth || 1024, window.innerHeight || 768) <= 1024);
+
       const renderer = new THREE.WebGLRenderer({
-        antialias: !isSoftwareGl,
+        antialias: !isSoftwareGl && !isMobileGpu,
         powerPreference: 'high-performance',
       });
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 0.85;
-      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.shadowMap.enabled = !isSoftwareGl;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.enabled = !isSoftwareGl && !isMobileGpu;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
       canvasWrap.appendChild(renderer.domElement);
 
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
@@ -1187,9 +1191,9 @@
       const mainKeyLight = new THREE.DirectionalLight(0xfff0d4, 0.92);
       mainKeyLight.position.set(-6.8, 12.8, 1.8);
       mainKeyLight.target.position.set(0, 0, 0.6);
-      mainKeyLight.castShadow = !isSoftwareGl;
-      if (!isSoftwareGl) {
-        mainKeyLight.shadow.mapSize.set(2048, 2048);
+      mainKeyLight.castShadow = renderer.shadowMap.enabled;
+      if (mainKeyLight.castShadow) {
+        mainKeyLight.shadow.mapSize.set(1024, 1024);
         mainKeyLight.shadow.camera.near = 2;
         mainKeyLight.shadow.camera.far = 30;
         const d = 10.5;
@@ -1199,7 +1203,6 @@
         mainKeyLight.shadow.camera.bottom = -d;
         mainKeyLight.shadow.bias = -0.0004;
         mainKeyLight.shadow.normalBias = 0.018;
-        mainKeyLight.shadow.radius = 3.5;
       }
       scene.add(mainKeyLight);
       scene.add(mainKeyLight.target);
@@ -3420,8 +3423,10 @@
         return [val, vel];
       }
 
+      let pageHidden = document.hidden;
+
       function tick() {
-        if (contextLost) return;
+        if (contextLost || pageHidden) return;
         const dt = Math.min(clock.getDelta(), 0.05);
         const elapsed = clock.getElapsedTime();
 
@@ -3651,7 +3656,18 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        pageHidden = document.hidden;
+        cancelAnimationFrame(frameId);
+        clearTimeout(frameId);
+        frameId = 0;
+        if (!pageHidden && !contextLost) {
+          clock.getDelta();
+          tick();
+        }
       });
 
       renderer.domElement.addEventListener('webglcontextlost', (e) => {
@@ -3659,11 +3675,13 @@
         contextLost = true;
         cancelAnimationFrame(frameId);
         clearTimeout(frameId);
+        frameId = 0;
       });
 
       renderer.domElement.addEventListener('webglcontextrestored', () => {
         contextLost = false;
-        tick();
+        clock.getDelta();
+        if (!pageHidden) tick();
       });
 
       startNewRound();

@@ -1435,17 +1435,21 @@
         }
       })();
 
+      const isMobileGpu =
+        /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints > 1 && Math.min(window.innerWidth || 1024, window.innerHeight || 768) <= 1024);
+
       const renderer = new THREE.WebGLRenderer({
-        antialias: !isSoftwareGl,
+        antialias: !isSoftwareGl && !isMobileGpu,
         powerPreference: 'high-performance',
       });
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 0.85;
-      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.shadowMap.enabled = !isSoftwareGl;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.enabled = !isSoftwareGl && !isMobileGpu;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
       canvasWrap.appendChild(renderer.domElement);
 
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
@@ -1490,9 +1494,9 @@
       keyLight.position.set(-7.6, 11.4, -3.2);
       keyLight.target.position.set(0.3, 0, 0);
       scene.add(keyLight.target);
-      keyLight.castShadow = !isSoftwareGl;
-      if (!isSoftwareGl) {
-        keyLight.shadow.mapSize.set(2048, 2048);
+      keyLight.castShadow = renderer.shadowMap.enabled;
+      if (keyLight.castShadow) {
+        keyLight.shadow.mapSize.set(1024, 1024);
         keyLight.shadow.camera.near = 2.0;
         keyLight.shadow.camera.far = 30;
         const d = 10.4;
@@ -1502,7 +1506,6 @@
         keyLight.shadow.camera.bottom = -d;
         keyLight.shadow.bias = -0.00035;
         keyLight.shadow.normalBias = 0.016;
-        keyLight.shadow.radius = 3.6;
       }
       scene.add(keyLight);
 
@@ -3558,8 +3561,10 @@
         }
       }
 
+      let pageHidden = document.hidden;
+
       function tick() {
-        if (contextLost) return;
+        if (contextLost || pageHidden) return;
         const dt = Math.min(clock.getDelta(), 0.08);
         const elapsed = clock.getElapsedTime();
 
@@ -3769,7 +3774,18 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        pageHidden = document.hidden;
+        cancelAnimationFrame(frameId);
+        clearTimeout(frameId);
+        frameId = 0;
+        if (!pageHidden && !contextLost) {
+          clock.getDelta();
+          tick();
+        }
       });
 
       renderer.domElement.addEventListener('webglcontextlost', (e) => {
@@ -3777,11 +3793,13 @@
         contextLost = true;
         cancelAnimationFrame(frameId);
         clearTimeout(frameId);
+        frameId = 0;
       });
 
       renderer.domElement.addEventListener('webglcontextrestored', () => {
         contextLost = false;
-        tick();
+        clock.getDelta();
+        if (!pageHidden) tick();
       });
 
       // Boot 3D Tavla!

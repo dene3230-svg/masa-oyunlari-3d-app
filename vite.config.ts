@@ -25,9 +25,11 @@ export default defineConfig(() => {
           if (fs.existsSync(distDir) && fs.existsSync(srcAssets)) {
             fs.cpSync(srcAssets, distAssets, {recursive: true, force: true});
           }
-          const localThree = path.resolve(__dirname, 'three.min.js');
-          if (fs.existsSync(distDir) && fs.existsSync(localThree)) {
-            fs.copyFileSync(localThree, path.resolve(distDir, 'three.min.js'));
+          for (const rootAsset of ['three.min.js', 'version.json', 'sw.js']) {
+            const srcFile = path.resolve(__dirname, rootAsset);
+            if (fs.existsSync(distDir) && fs.existsSync(srcFile)) {
+              fs.copyFileSync(srcFile, path.resolve(distDir, rootAsset));
+            }
           }
         },
       },

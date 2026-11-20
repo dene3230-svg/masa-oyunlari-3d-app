@@ -1498,17 +1498,34 @@
         }
       })();
 
+      const isMobileGpu =
+        /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints > 1 && Math.min(window.innerWidth || 1024, window.innerHeight || 768) <= 1024);
+
+      function getSafeViewportSize() {
+        const w =
+          canvasWrap && canvasWrap.clientWidth > 0
+            ? canvasWrap.clientWidth
+            : window.innerWidth || document.documentElement.clientWidth || 1280;
+        const h =
+          canvasWrap && canvasWrap.clientHeight > 0
+            ? canvasWrap.clientHeight
+            : window.innerHeight || document.documentElement.clientHeight || 720;
+        return { w: Math.max(1, w), h: Math.max(1, h) };
+      }
+
+      const initSize = getSafeViewportSize();
       const renderer = new THREE.WebGLRenderer({
-        antialias: !isSoftwareGl,
+        antialias: false,
         powerPreference: 'high-performance',
       });
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 0.85;
-      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.shadowMap.enabled = !isSoftwareGl;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.setSize(initSize.w, initSize.h);
+      renderer.shadowMap.enabled = !isSoftwareGl && !isMobileGpu;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
       canvasWrap.appendChild(renderer.domElement);
 
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
@@ -1527,7 +1544,7 @@
       disposeEnvScene(roomEnv);
       pmrem.dispose();
 
-      const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 100);
+      const camera = new THREE.PerspectiveCamera(44, initSize.w / initSize.h, 0.1, 100);
       let cameraMode = 'auto'; // 'auto' (turn-aware dynamic) | 'rack' | 'overview'
       let centerFocusTimer = 0;
       const camPosCurrent = new THREE.Vector3(0, 7.6, 10.5);
@@ -1546,9 +1563,9 @@
       const mainKeyLight = new THREE.DirectionalLight(0xfff1d6, 0.9);
       mainKeyLight.position.set(-7.2, 12.6, 2.2);
       mainKeyLight.target.position.set(0, 0, 0.4);
-      mainKeyLight.castShadow = !isSoftwareGl;
-      if (!isSoftwareGl) {
-        mainKeyLight.shadow.mapSize.set(2048, 2048);
+      mainKeyLight.castShadow = renderer.shadowMap.enabled;
+      if (mainKeyLight.castShadow) {
+        mainKeyLight.shadow.mapSize.set(1024, 1024);
         mainKeyLight.shadow.camera.near = 2;
         mainKeyLight.shadow.camera.far = 30;
         const d = 10.5;
@@ -1556,7 +1573,6 @@
         mainKeyLight.shadow.camera.right = d;
         mainKeyLight.shadow.camera.top = d;
         mainKeyLight.shadow.camera.bottom = -d;
-        mainKeyLight.shadow.radius = 3.5;
         mainKeyLight.shadow.bias = -0.0004;
         mainKeyLight.shadow.normalBias = 0.02;
       }
@@ -4423,8 +4439,10 @@
         }
       }
 
+      let pageHidden = document.hidden;
+
       function tick() {
-        if (contextLost) return;
+        if (contextLost || pageHidden) return;
         const dt = Math.min(clock.getDelta(), 0.1);
 
         // 1. Update parabolic flying tile animations
@@ -4609,11 +4627,26 @@
         else frameId = requestAnimationFrame(tick);
       }
 
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+      function syncViewportSize() {
+        const { w, h } = getSafeViewportSize();
+        camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
+        renderer.setSize(w, h);
+      }
+
+      window.addEventListener('resize', syncViewportSize);
+
+      document.addEventListener('visibilitychange', () => {
+        pageHidden = document.hidden;
+        cancelAnimationFrame(frameId);
+        clearTimeout(frameId);
+        frameId = 0;
+        if (!pageHidden && !contextLost) {
+          syncViewportSize();
+          clock.getDelta();
+          tick();
+        }
       });
 
       renderer.domElement.addEventListener('webglcontextlost', (e) => {
@@ -4621,15 +4654,20 @@
         contextLost = true;
         cancelAnimationFrame(frameId);
         clearTimeout(frameId);
+        frameId = 0;
       });
 
       renderer.domElement.addEventListener('webglcontextrestored', () => {
         contextLost = false;
-        tick();
+        syncViewportSize();
+        clock.getDelta();
+        if (!pageHidden) tick();
       });
 
       // Kick off Round 1!
       startNewRound();
+      syncViewportSize();
+      requestAnimationFrame(syncViewportSize);
       if (!isSoftwareGl) renderer.compile(scene, camera);
       tick();
       })();
