@@ -1,0 +1,6 @@
+{
+  "name": "Masa Oyunları 3D",
+  "description": "3D Okey 101, Business Tour, Tavla ve Pis Yedili için interaktif 3D masaüstü oyun platformu ana lobisi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,3459 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Masa Oyunları 3D — Ana Lobi</title>
+    <meta
+      name="description"
+      content="3D Okey 101, Business Tour, Tavla ve Pis Yedili için interaktif 3D masaüstü oyun platformu ana lobisi."
+    />
+    <meta property="og:title" content="Masa Oyunları 3D" />
+    <meta
+      property="og:description"
+      content="3D Okey 101, Business Tour, Tavla ve Pis Yedili için interaktif 3D masaüstü oyun platformu ana lobisi."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <style>
+      :root {
+        --bg-void: #050a18;
+        --bg-navy: #0a142c;
+        --surface-glass: rgba(11, 21, 46, 0.78);
+        --surface-glass-hover: rgba(16, 30, 64, 0.88);
+        --surface-topbar: rgba(7, 13, 29, 0.84);
+        --border-subtle: rgba(212, 175, 55, 0.22);
+        --border-bright: rgba(243, 208, 107, 0.62);
+        --border-cool: rgba(56, 189, 248, 0.3);
+        --gold-primary: #d4af37;
+        --gold-bright: #f3d06b;
+        --gold-deep: #9c7a1f;
+        --neon-cyan: #22d3ee;
+        --text-primary: #f8fafc;
+        --text-secondary: #cbd5e1;
+        --text-muted: #8ea1c0;
+        --danger: #f87171;
+        --success: #34d399;
+        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background-color: var(--bg-void);
+        color: var(--text-primary);
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+        user-select: none;
+      }
+
+      /* Full-viewport WebGL container with rich radial fallback */
+      #canvas-container {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(ellipse 75% 65% at 50% 42%, rgba(22, 42, 88, 0.72) 0%, rgba(7, 13, 30, 0.94) 62%, #050a18 100%);
+        cursor: grab;
+        touch-action: none;
+      }
+
+      #canvas-container:active {
+        cursor: grabbing;
+      }
+
+      #canvas-container canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Atmospheric legibility scrims (top and bottom only, center 100% clear) */
+      .viewport-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(5, 10, 24, 0.72) 0%, rgba(5, 10, 24, 0.08) 24%, rgba(5, 10, 24, 0.04) 52%, rgba(5, 10, 24, 0.76) 100%);
+      }
+
+      /* Main semantic DOM overlay */
+      .lobby-shell {
+        position: relative;
+        z-index: 10;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        pointer-events: none;
+      }
+
+      /* ================= TOP BAR ================= */
+      .topbar {
+        pointer-events: auto;
+        width: 100%;
+        background: linear-gradient(180deg, rgba(6, 12, 27, 0.92) 0%, rgba(8, 16, 36, 0.82) 100%);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 0 8px 30px rgba(2, 6, 18, 0.45);
+      }
+
+      .topbar-inner {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 14px 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: var(--text-primary);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .brand-emblem {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(145deg, rgba(243, 208, 107, 0.2), rgba(212, 175, 55, 0.06));
+        border: 1px solid rgba(243, 208, 107, 0.45);
+        display: grid;
+        place-items: center;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 18px rgba(212, 175, 55, 0.16);
+      }
+
+      .brand-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        background: linear-gradient(90deg, #ffffff 0%, #f3d06b 58%, #d4af37 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .brand-version {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 0.04em;
+        color: #ecfdf5;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.36), rgba(5, 150, 105, 0.24));
+        border: 1px solid rgba(52, 211, 153, 0.7);
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+        vertical-align: middle;
+      }
+
+      /* Profile strip */
+      .profile-bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: nowrap;
+        min-width: 0;
+      }
+
+      .profile-segment {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 10px;
+        background: rgba(14, 26, 56, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .profile-segment.gold-accent {
+        border-color: rgba(212, 175, 55, 0.36);
+        background: linear-gradient(135deg, rgba(28, 38, 68, 0.85), rgba(16, 24, 48, 0.88));
+      }
+
+      .segment-label {
+        font-size: 0.74rem;
+        font-weight: 500;
+        color: var(--text-muted);
+      }
+
+      .segment-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.94rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .segment-value.gold {
+        color: var(--gold-bright);
+      }
+
+      .segment-value.cyan {
+        color: #67e8f9;
+      }
+
+      /* Editable username */
+      .username-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .username-text {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .icon-btn {
+        appearance: none;
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-secondary);
+        width: 30px;
+        height: 30px;
+        border-radius: 7px;
+        display: inline-grid;
+        place-items: center;
+        cursor: pointer;
+        transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out), border-color 160ms var(--ease-out), transform 140ms var(--ease-out);
+      }
+
+      .icon-btn:hover {
+        background: rgba(243, 208, 107, 0.14);
+        border-color: rgba(243, 208, 107, 0.35);
+        color: var(--gold-bright);
+      }
+
+      .icon-btn:active {
+        transform: scale(0.94);
+      }
+
+      .icon-btn:focus-visible,
+      .utility-btn:focus-visible,
+      .stake-btn:focus-visible,
+      .play-btn:focus-visible,
+      .bonus-btn:focus-visible {
+        outline: 2px solid var(--neon-cyan);
+        outline-offset: 2px;
+      }
+
+      .username-editor {
+        display: none;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .username-editor.active {
+        display: flex;
+      }
+
+      .username-input {
+        width: 128px;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(243, 208, 107, 0.55);
+        background: rgba(5, 10, 24, 0.92);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 0.86rem;
+        font-weight: 600;
+        user-select: text;
+      }
+
+      .username-input:focus {
+        outline: none;
+        border-color: var(--neon-cyan);
+      }
+
+      .bonus-btn {
+        appearance: none;
+        height: 26px;
+        padding: 0 9px;
+        border-radius: 6px;
+        border: 1px solid rgba(243, 208, 107, 0.45);
+        background: rgba(212, 175, 55, 0.16);
+        color: var(--gold-bright);
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color 160ms var(--ease-out), transform 140ms var(--ease-out);
+      }
+
+      .bonus-btn:hover {
+        background: rgba(212, 175, 55, 0.3);
+      }
+
+      .bonus-btn:active {
+        transform: scale(0.95);
+      }
+
+      .bonus-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      /* Utility buttons (Sound + Zen Mode) */
+      .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .utility-btn {
+        appearance: none;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(14, 26, 56, 0.74);
+        color: var(--text-secondary);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out), transform 140ms var(--ease-out);
+      }
+
+      .utility-btn:hover {
+        background: rgba(22, 40, 82, 0.88);
+        border-color: rgba(243, 208, 107, 0.42);
+        color: var(--text-primary);
+      }
+
+      .utility-btn.active {
+        border-color: rgba(34, 211, 238, 0.55);
+        color: #67e8f9;
+        background: rgba(14, 42, 68, 0.86);
+      }
+
+      /* ================= HERO TITLE (AIRY, UNOBSTRUCTED CENTER) ================= */
+      .hero-stage {
+        max-width: 1400px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 22px 28px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex: 1 1 auto;
+        transition: opacity 280ms var(--ease-out), transform 280ms var(--ease-out);
+      }
+
+      .hero-copy {
+        max-width: 520px;
+        pointer-events: auto;
+      }
+
+      .hero-kicker {
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--gold-bright);
+        margin-bottom: 6px;
+      }
+
+      .hero-headline {
+        font-family: 'Outfit', sans-serif;
+        font-size: clamp(1.9rem, 3.1vw, 2.85rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+        color: var(--text-primary);
+        text-shadow: 0 6px 26px rgba(2, 6, 20, 0.85);
+      }
+
+      .hero-subtitle {
+        margin-top: 8px;
+        font-size: 0.94rem;
+        line-height: 1.55;
+        color: var(--text-secondary);
+        text-shadow: 0 2px 14px rgba(2, 6, 20, 0.9);
+      }
+
+      .scene-hint {
+        margin-top: 12px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* ================= BOTTOM GAME SELECTION DECK ================= */
+      .games-dock {
+        pointer-events: auto;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 12px 28px 26px;
+        transition: opacity 320ms var(--ease-out), transform 320ms var(--ease-out);
+      }
+
+      .games-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        perspective: 1200px;
+      }
+
+      .game-card {
+        --mx: 50%;
+        --my: 0%;
+        --tilt-x: 0deg;
+        --tilt-y: 0deg;
+        --lift: 0px;
+        --scale: 1;
+        --card-accent: #f3d06b;
+        --card-accent-rgb: 243, 208, 107;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px;
+        border-radius: 16px;
+        background: linear-gradient(160deg, rgba(15, 29, 62, 0.84) 0%, rgba(7, 13, 30, 0.93) 100%);
+        border: 1px solid rgba(212, 175, 55, 0.24);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          0 16px 38px rgba(2, 6, 20, 0.56);
+        cursor: pointer;
+        transform: perspective(1050px) translateY(var(--lift)) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) scale3d(var(--scale), var(--scale), 1);
+        transform-style: preserve-3d;
+        will-change: transform;
+        transition:
+          transform 180ms var(--ease-out),
+          border-color 180ms var(--ease-out),
+          box-shadow 180ms var(--ease-out),
+          background 180ms var(--ease-out);
+        overflow: hidden;
+      }
+
+      .game-card.tilting {
+        transition:
+          transform 75ms linear,
+          border-color 180ms var(--ease-out),
+          box-shadow 180ms var(--ease-out),
+          background 180ms var(--ease-out);
+      }
+
+      /* Cursor-tracking molten-gold glowing rim border */
+      .game-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.5px;
+        background: radial-gradient(
+          280px circle at var(--mx) var(--my),
+          rgba(255, 236, 165, 0.95) 0%,
+          rgba(243, 208, 107, 0.55) 32%,
+          rgba(212, 175, 55, 0.12) 64%,
+          transparent 82%
+        );
+        -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0.35;
+        pointer-events: none;
+        transition: opacity 180ms var(--ease-out);
+        z-index: 3;
+      }
+
+      /* Interactive golden specular sheen across the glass surface */
+      .game-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background:
+          radial-gradient(
+            320px circle at var(--mx) var(--my),
+            rgba(243, 208, 107, 0.16) 0%,
+            rgba(212, 175, 55, 0.05) 38%,
+            transparent 72%
+          ),
+          linear-gradient(
+            125deg,
+            transparent 20%,
+            rgba(255, 240, 185, 0.09) 48%,
+            rgba(243, 208, 107, 0.04) 55%,
+            transparent 76%
+          );
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 190ms var(--ease-out);
+        z-index: 1;
+      }
+
+      .game-card > * {
+        position: relative;
+        z-index: 2;
+      }
+
+      .game-card.is-selected {
+        --lift: -4px;
+        background: linear-gradient(
+          160deg,
+          rgba(var(--card-accent-rgb), 0.14) 0%,
+          rgba(16, 30, 66, 0.9) 38%,
+          rgba(8, 14, 34, 0.95) 100%
+        );
+        border-color: rgba(var(--card-accent-rgb), 0.72);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.24),
+          0 20px 44px rgba(2, 6, 20, 0.68),
+          0 0 0 1px rgba(var(--card-accent-rgb), 0.26),
+          0 0 28px rgba(var(--card-accent-rgb), 0.22);
+      }
+
+      .game-card.is-selected::before {
+        opacity: 0.78;
+      }
+
+      .game-card:focus-visible {
+        outline: 2px solid var(--card-accent);
+        outline-offset: 2px;
+      }
+
+      .game-card:hover {
+        --lift: -8px;
+        --scale: 1.016;
+        background: linear-gradient(
+          160deg,
+          rgba(var(--card-accent-rgb), 0.16) 0%,
+          rgba(22, 41, 86, 0.91) 42%,
+          rgba(10, 18, 42, 0.95) 100%
+        );
+        border-color: rgba(var(--card-accent-rgb), 0.82);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 244, 204, 0.32),
+          0 26px 52px rgba(2, 6, 20, 0.78),
+          0 0 0 1px rgba(var(--card-accent-rgb), 0.32),
+          0 0 36px rgba(var(--card-accent-rgb), 0.28);
+      }
+
+      .game-card:hover::before,
+      .game-card:hover::after {
+        opacity: 1;
+      }
+
+      .card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+        transform: translateZ(16px);
+      }
+
+      .card-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 11px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(6, 13, 30, 0.68);
+        transition: transform 180ms var(--ease-out), border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+      }
+
+      .game-card.is-selected .card-icon-wrap {
+        border-color: rgba(var(--card-accent-rgb), 0.62);
+        box-shadow: 0 0 16px rgba(var(--card-accent-rgb), 0.22);
+      }
+
+      .game-card:hover .card-icon-wrap {
+        transform: translateZ(24px) scale(1.08);
+        border-color: rgba(var(--card-accent-rgb), 0.8);
+        box-shadow: 0 0 18px rgba(var(--card-accent-rgb), 0.28);
+      }
+
+      .card-meta {
+        font-size: 0.74rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .card-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.16rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: var(--text-primary);
+        line-height: 1.2;
+      }
+
+      .card-desc {
+        font-size: 0.84rem;
+        line-height: 1.5;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        min-height: 3.05em;
+      }
+
+      /* Stake selector */
+      .stake-section {
+        margin-bottom: 14px;
+      }
+
+      .stake-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 7px;
+        font-size: 0.74rem;
+      }
+
+      .stake-label {
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .stake-reward {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        color: #67e8f9;
+        font-weight: 600;
+      }
+
+      .stake-group {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        padding: 4px;
+        border-radius: 10px;
+        background: rgba(5, 10, 24, 0.76);
+        border: 1px solid rgba(148, 163, 184, 0.14);
+      }
+
+      .stake-btn {
+        appearance: none;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-secondary);
+        height: 32px;
+        border-radius: 7px;
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color 140ms var(--ease-out), color 140ms var(--ease-out), border-color 140ms var(--ease-out);
+      }
+
+      .stake-btn:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .stake-btn.selected {
+        background: linear-gradient(180deg, rgba(243, 208, 107, 0.24), rgba(212, 175, 55, 0.14));
+        border-color: rgba(243, 208, 107, 0.58);
+        color: var(--gold-bright);
+      }
+
+      .stake-btn.unaffordable {
+        color: rgba(248, 113, 113, 0.75);
+      }
+
+      /* Primary Play Button */
+      .play-btn {
+        appearance: none;
+        width: 100%;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 10px;
+        border: 1px solid rgba(254, 240, 138, 0.5);
+        background: linear-gradient(135deg, #e5bf4b 0%, #c99a24 55%, #b18319 100%);
+        color: #070d1c;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.94rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        white-space: nowrap;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.45),
+          0 6px 20px rgba(212, 175, 55, 0.26);
+        transition: transform 150ms var(--ease-out), filter 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+      }
+
+      .play-btn:hover {
+        filter: brightness(1.09);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.6),
+          0 10px 26px rgba(243, 208, 107, 0.4);
+      }
+
+      .play-btn:active {
+        transform: scale(0.98);
+      }
+
+      .play-btn svg {
+        transition: transform 160ms var(--ease-out);
+      }
+
+      .play-btn:hover svg {
+        transform: translateX(3px);
+      }
+
+      /* Zen / Cinema mode (hides cards so 3D scene is 100% open) */
+      body.zen-mode .hero-stage,
+      body.zen-mode .games-dock {
+        opacity: 0;
+        transform: translateY(28px);
+        pointer-events: none;
+      }
+
+      /* Toast notification */
+      .toast {
+        position: fixed;
+        top: 84px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-14px);
+        z-index: 40;
+        padding: 11px 20px;
+        border-radius: 10px;
+        background: rgba(9, 18, 40, 0.95);
+        border: 1px solid rgba(243, 208, 107, 0.5);
+        color: var(--text-primary);
+        font-size: 0.86rem;
+        font-weight: 600;
+        box-shadow: 0 14px 36px rgba(2, 6, 20, 0.72);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+        white-space: nowrap;
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .toast.error {
+        border-color: rgba(248, 113, 113, 0.65);
+        color: #fecaca;
+      }
+
+      .toast.success {
+        border-color: rgba(52, 211, 153, 0.65);
+        color: #a7f3d0;
+      }
+
+      /* Responsive */
+      @media (max-width: 1180px) {
+        .games-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .topbar-inner {
+          padding: 12px 18px;
+          gap: 12px;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .topbar-inner {
+          flex-wrap: wrap;
+          justify-content: space-between;
+        }
+
+        .profile-bar {
+          order: 3;
+          width: 100%;
+          justify-content: space-between;
+          overflow-x: auto;
+          padding-bottom: 2px;
+        }
+
+        .hero-stage {
+          padding: 16px 18px 8px;
+        }
+
+        .games-dock {
+          padding: 10px 18px 20px;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .games-grid {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+
+        .brand-title {
+          font-size: 1.05rem;
+        }
+
+        .utility-btn span {
+          display: none;
+        }
+
+        .profile-segment {
+          height: 38px;
+          padding: 0 10px;
+          gap: 6px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Dedicated Three.js 3D WebGL Viewport -->
+    <div id="canvas-container" aria-label="3D Masa Oyunları Sahnesi"></div>
+    <div class="viewport-scrim" aria-hidden="true"></div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!-- Lobby Semantic DOM Overlay -->
+    <div class="lobby-shell">
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <div class="topbar-inner">
+          <!-- Brand Wordmark -->
+          <a href="index.html" class="brand-lockup" id="brand-link">
+            <span class="brand-emblem" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2.5L20.5 7.4V16.6L12 21.5L3.5 16.6V7.4L12 2.5Z"
+                  stroke="#F3D06B"
+                  stroke-width="1.8"
+                />
+                <path
+                  d="M12 7L16.2 9.4V14.6L12 17L7.8 14.6V9.4L12 7Z"
+                  fill="rgba(34, 211, 238, 0.25)"
+                  stroke="#22D3EE"
+                  stroke-width="1.4"
+                />
+              </svg>
+            </span>
+            <span class="brand-title">MASA OYUNLARI 3D</span>
+            <span class="brand-version" aria-label="Sürüm 2">v2</span>
+          </a>
+
+          <!-- Shared Player Profile (localStorage Synced) -->
+          <div class="profile-bar" aria-label="Oyuncu Profili">
+            <!-- Editable Username -->
+            <div class="profile-segment">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" aria-hidden="true">
+                <path d="M20 21a8 8 0 0 0-16 0" />
+                <circle cx="12" cy="8" r="4" />
+              </svg>
+
+              <div class="username-display" id="username-display">
+                <span class="username-text" id="username-text">Oyuncu</span>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  id="edit-name-btn"
+                  title="Kullanıcı adını düzenle"
+                  aria-label="Kullanıcı adını düzenle"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                </button>
+              </div>
+
+              <form class="username-editor" id="username-form" autocomplete="off">
+                <input
+                  type="text"
+                  id="username-input"
+                  class="username-input"
+                  maxlength="18"
+                  aria-label="Yeni kullanıcı adı"
+                  placeholder="Oyuncu adı"
+                />
+                <button type="submit" class="icon-btn" title="Kaydet" aria-label="Kaydet">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.4">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </button>
+                <button type="button" class="icon-btn" id="cancel-name-btn" title="İptal" aria-label="İptal">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- Shared Gold/Chip Balance -->
+            <div class="profile-segment gold-accent">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" fill="rgba(243, 208, 107, 0.2)" stroke="#F3D06B" stroke-width="1.8" />
+                <circle cx="12" cy="12" r="5" stroke="#D4AF37" stroke-width="1.4" stroke-dasharray="2.5 2" />
+              </svg>
+              <span class="segment-label">Bakiye</span>
+              <span class="segment-value gold" id="chips-value">10.000</span>
+              <span class="segment-label">Çip</span>
+              <button
+                type="button"
+                class="bonus-btn"
+                id="bonus-btn"
+                title="Günlük bonus çip al"
+              >
+                +2.500
+              </button>
+            </div>
+
+            <!-- Total Wins Counter -->
+            <div class="profile-segment">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="1.9" aria-hidden="true">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                <path d="M4 22h16" />
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+              </svg>
+              <span class="segment-label">Galibiyet</span>
+              <span class="segment-value cyan" id="wins-value">0</span>
+            </div>
+          </div>
+
+          <!-- Utility Controls -->
+          <div class="topbar-actions">
+            <button
+              type="button"
+              class="utility-btn"
+              id="sound-toggle"
+              aria-pressed="true"
+              title="Ses efektlerini aç/kapat"
+            >
+              <svg id="sound-icon-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              </svg>
+              <svg id="sound-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </svg>
+              <span id="sound-label">Ses Açık</span>
+            </button>
+
+            <button
+              type="button"
+              class="utility-btn"
+              id="zen-toggle"
+              aria-pressed="false"
+              title="3D sahneyi tam ekran incele (H)"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <span id="zen-label">3D Sahne</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- AIRY HERO STAGE (Leaves Center 3D Table Open) -->
+      <section class="hero-stage" aria-label="Lobi Girişi">
+        <div class="hero-copy">
+          <p class="hero-kicker">Klasik Masa Oyunları Salonu</p>
+          <h1 class="hero-headline">Masanı Seç, Çiplerini Katla</h1>
+          <p class="hero-subtitle">
+            Ortak çip bakiyenle dört farklı 3D masa oyununa anında katıl. Arka plandaki 3D masayı sürükleyerek inceleyebilirsin.
+          </p>
+          <p class="scene-hint">
+            <span>Sürükle: 3D Masayı Döndür</span>
+            <span aria-hidden="true">·</span>
+            <span>H Tuşu: Kartları Gizle</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- 4 MODERN GLASSMORPHISM GAME SELECTION CARDS -->
+      <main class="games-dock" aria-label="Oyun Seçimi">
+        <div class="games-grid" id="games-grid"></div>
+      </main>
+    </div>
+
+    <script src="./three.min.js"></script>
+    <script>
+      (() => {
+        'use strict';
+
+        function createStudioEnvScene() {
+          const env = new THREE.Scene();
+          const roomMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(28, 18, 28),
+            new THREE.MeshStandardMaterial({
+              color: 0x161d30,
+              roughness: 0.9,
+              metalness: 0.05,
+              side: THREE.BackSide,
+            })
+          );
+          env.add(roomMesh);
+          env.add(new THREE.AmbientLight(0xffffff, 0.72));
+          return env;
+        }
+
+        function disposeEnvScene(env) {
+          env.traverse((obj) => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+              else obj.material.dispose();
+            }
+          });
+        }
+
+      /* =========================================================================
+       * 1. SHARED PLAYER PROFILE (localStorage SYNC)
+       * ========================================================================= */
+      const PROFILE_STORAGE_KEY = 'masa_oyunlari_3d_profile';
+      const DEFAULT_CHIPS = 10000;
+      const BONUS_AMOUNT = 2500;
+      const BONUS_COOLDOWN_MS = 12 * 60 * 60 * 1000;
+
+      const GAMES = [
+        {
+          id: 'okey-101',
+          title: '3D OKEY 101',
+          url: 'okey-101.html',
+          meta: '4 Oyuncu · Strateji',
+          description:
+            '101 barajını aş, per ve çift dizilimlerini kur. Gerçekçi ıstaka dizilimi ve 3D taş fiziğiyle klasik Okey keyfi.',
+          stakes: [500, 1500, 5000],
+          multiplier: 3.6,
+          accent: '#f59e0b',
+          sceneFocus: 'okey',
+          iconSvg: `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="2.5" width="16" height="19" rx="3" fill="rgba(245, 158, 11, 0.14)" stroke="#F3D06B" stroke-width="1.7"/>
+              <text x="12" y="13.5" text-anchor="middle" fill="#F87171" font-family="Outfit, sans-serif" font-size="10" font-weight="800">13</text>
+              <circle cx="12" cy="17.5" r="1.4" fill="#F3D06B"/>
+            </svg>
+          `,
+        },
+        {
+          id: 'business-tour',
+          title: '3D BUSINESS TOUR',
+          url: 'business-tour.html',
+          meta: '2–4 Oyuncu · Ekonomi',
+          description:
+            'Dünya şehirlerini satın al, oteller kur ve rakiplerinden kira topla. Zar atışları ve ticaret hamleleriyle zirveye çık.',
+          stakes: [1000, 2500, 7500],
+          multiplier: 3.5,
+          accent: '#22d3ee',
+          sceneFocus: 'dice',
+          iconSvg: `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" fill="rgba(34, 211, 238, 0.14)" stroke="#22D3EE" stroke-width="1.7"/>
+              <circle cx="8.5" cy="8.5" r="1.5" fill="#F8FAFC"/>
+              <circle cx="15.5" cy="8.5" r="1.5" fill="#F8FAFC"/>
+              <circle cx="12" cy="12" r="1.5" fill="#F3D06B"/>
+              <circle cx="8.5" cy="15.5" r="1.5" fill="#F8FAFC"/>
+              <circle cx="15.5" cy="15.5" r="1.5" fill="#F8FAFC"/>
+            </svg>
+          `,
+        },
+        {
+          id: 'tavla',
+          title: '3D TAVLA',
+          url: 'tavla.html',
+          meta: '2 Oyuncu · Klasik',
+          description:
+            'Ceviz kaplama 3D tavla tahtasında kapı al, açık kır ve mars için yarış. Dengeli zar atışı ve akıcı pul hareketleri.',
+          stakes: [500, 2000, 5000],
+          multiplier: 1.9,
+          accent: '#e2a944',
+          sceneFocus: 'tavla',
+          iconSvg: `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="8.5" fill="rgba(212, 175, 55, 0.16)" stroke="#F3D06B" stroke-width="1.7"/>
+              <circle cx="12" cy="12" r="4.6" stroke="#D4AF37" stroke-width="1.5"/>
+              <circle cx="12" cy="12" r="1.6" fill="#F3D06B"/>
+            </svg>
+          `,
+        },
+        {
+          id: 'pis-yedili',
+          title: '3D PİS YEDİLİ',
+          url: 'pis-yedili.html',
+          meta: '2–4 Oyuncu · Kart',
+          description:
+            'Yedililerle rakiplerine ceza yağdır, yön değiştir ve elindeki tüm kartları ilk bitiren ol. Hızlı tempolu 3D iskambil masası.',
+          stakes: [250, 1000, 3000],
+          multiplier: 3.4,
+          accent: '#f43f5e',
+          sceneFocus: 'cards',
+          iconSvg: `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="4.5" y="2.5" width="15" height="19" rx="2.8" fill="rgba(244, 63, 94, 0.14)" stroke="#FDA4AF" stroke-width="1.6"/>
+              <path d="M12 8.2C12 8.2 8.2 11.4 8.2 13.8C8.2 15.2 9.3 16.1 10.6 16.1C11.3 16.1 11.8 15.8 12 15.4C12.2 15.8 12.7 16.1 13.4 16.1C14.7 16.1 15.8 15.2 15.8 13.8C15.8 11.4 12 8.2 12 8.2Z" fill="#F3D06B"/>
+              <path d="M12 15.2L10.6 18H13.4L12 15.2Z" fill="#F3D06B"/>
+            </svg>
+          `,
+        },
+      ];
+
+      function createDefaultProfile() {
+        return {
+          username: 'Oyuncu',
+          chips: DEFAULT_CHIPS,
+          wins: 0,
+          gamesPlayed: 0,
+          lastBonusAt: 0,
+          soundEnabled: true,
+          selectedStakes: {
+            'okey-101': 500,
+            'business-tour': 1000,
+            tavla: 500,
+            'pis-yedili': 250,
+          },
+          activeGame: null,
+          activeStake: 500,
+        };
+      }
+
+      function loadProfile() {
+        const defaults = createDefaultProfile();
+        try {
+          const sharedChipsRaw = localStorage.getItem('masaOyunlariChips');
+          const sharedChips =
+            sharedChipsRaw !== null && Number.isFinite(Number(sharedChipsRaw))
+              ? Math.max(0, Math.floor(Number(sharedChipsRaw)))
+              : null;
+
+          const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+          if (!raw) {
+            const flatChips = Number(localStorage.getItem('mo3d_chips'));
+            const flatWins = Number(localStorage.getItem('mo3d_wins'));
+            const flatName = localStorage.getItem('mo3d_username');
+            if (sharedChips !== null) {
+              defaults.chips = sharedChips;
+            } else if (!Number.isNaN(flatChips) && localStorage.getItem('mo3d_chips') !== null) {
+              defaults.chips = Math.max(0, Math.floor(flatChips));
+            }
+            if (!Number.isNaN(flatWins) && localStorage.getItem('mo3d_wins') !== null) {
+              defaults.wins = Math.max(0, Math.floor(flatWins));
+            }
+            if (flatName && flatName.trim()) {
+              defaults.username = flatName.trim().slice(0, 18);
+            }
+            saveProfile(defaults);
+            return defaults;
+          }
+          const parsed = JSON.parse(raw);
+          const resolvedChips =
+            sharedChips !== null
+              ? sharedChips
+              : Number.isFinite(Number(parsed.chips))
+                ? Math.max(0, Math.floor(Number(parsed.chips)))
+                : DEFAULT_CHIPS;
+          return {
+            ...defaults,
+            ...parsed,
+            chips: resolvedChips,
+            wins: Number.isFinite(Number(parsed.wins)) ? Math.max(0, Math.floor(Number(parsed.wins))) : 0,
+            selectedStakes: {
+              ...defaults.selectedStakes,
+              ...(parsed.selectedStakes || {}),
+            },
+          };
+        } catch {
+          return defaults;
+        }
+      }
+
+      function saveProfile(profile) {
+        try {
+          localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+          localStorage.setItem('masaOyunlariChips', String(profile.chips));
+          localStorage.setItem('mo3d_chips', String(profile.chips));
+          localStorage.setItem('mo3d_username', profile.username);
+          localStorage.setItem('mo3d_wins', String(profile.wins));
+          localStorage.setItem('mo3d_stake', String(profile.activeStake));
+        } catch {
+          // Ignore storage quota errors in private contexts
+        }
+      }
+
+      let profile = loadProfile();
+
+      /* =========================================================================
+       * 2. PROCEDURAL WEB AUDIO API SOUND ENGINE
+       * ========================================================================= */
+      class ProceduralSoundEngine {
+        constructor() {
+          this.ctx = null;
+          this.enabled = profile.soundEnabled !== false;
+          this.lastHoverAt = 0;
+        }
+
+        ensureContext() {
+          if (!this.enabled) return null;
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return null;
+            this.ctx = new AudioCtx();
+          }
+          if (this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+          return this.ctx;
+        }
+
+        setEnabled(val) {
+          this.enabled = Boolean(val);
+        }
+
+        playHover(index = 0) {
+          const nowMs = performance.now();
+          if (nowMs - this.lastHoverAt < 55) return;
+          this.lastHoverAt = nowMs;
+
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+
+          const now = ctx.currentTime;
+          const notes = [523.25, 587.33, 659.25, 783.99];
+          const freq = notes[index % notes.length];
+
+          const osc = ctx.createOscillator();
+          const harmonic = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          osc.frequency.exponentialRampToValueAtTime(freq * 1.03, now + 0.08);
+
+          harmonic.type = 'triangle';
+          harmonic.frequency.setValueAtTime(freq * 2, now);
+
+          const harmGain = ctx.createGain();
+          harmGain.gain.setValueAtTime(0.014, now);
+          harmGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.045, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
+
+          osc.connect(gain);
+          harmonic.connect(harmGain);
+          harmGain.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          harmonic.start(now);
+          osc.stop(now + 0.12);
+          harmonic.stop(now + 0.12);
+        }
+
+        playClick() {
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(740, now);
+          osc.frequency.exponentialRampToValueAtTime(290, now + 0.055);
+
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.065);
+        }
+
+        playChipSelect() {
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          [2150, 3280].forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.014);
+            osc.frequency.exponentialRampToValueAtTime(freq * 0.94, now + i * 0.014 + 0.075);
+
+            gain.gain.setValueAtTime(0.048 / (i + 1), now + i * 0.014);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.014 + 0.08);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + i * 0.014);
+            osc.stop(now + i * 0.014 + 0.085);
+          });
+        }
+
+        playLaunch() {
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const chord = [523.25, 659.25, 783.99, 1046.5];
+
+          chord.forEach((freq, i) => {
+            const t = now + i * 0.042;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = i === chord.length - 1 ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(freq, t);
+
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.linearRampToValueAtTime(0.065, t + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.3);
+          });
+        }
+
+        playBonus() {
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const notes = [880, 1108.73, 1318.51, 1760, 2093];
+
+          notes.forEach((freq, i) => {
+            const t = now + i * 0.048;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t);
+
+            gain.gain.setValueAtTime(0.055, t);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.24);
+          });
+        }
+
+        playError() {
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          [210, 155].forEach((freq, i) => {
+            const t = now + i * 0.085;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, t);
+
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(520, t);
+
+            gain.gain.setValueAtTime(0.05, t);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.12);
+          });
+        }
+      }
+
+      const sound = new ProceduralSoundEngine();
+
+      /* =========================================================================
+       * 3. UI RENDERING, PROFILE HANDLERS & TOAST SYSTEM
+       * ========================================================================= */
+      const formatNum = (n) => new Intl.NumberFormat('tr-TR').format(Math.floor(n));
+
+      const toastEl = document.getElementById('toast');
+      let toastTimer = null;
+      function showToast(message, variant = 'default') {
+        toastEl.textContent = message;
+        toastEl.className = `toast visible ${variant}`;
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastEl.classList.remove('visible');
+        }, 2800);
+      }
+
+      const usernameTextEl = document.getElementById('username-text');
+      const usernameDisplayEl = document.getElementById('username-display');
+      const usernameFormEl = document.getElementById('username-form');
+      const usernameInputEl = document.getElementById('username-input');
+      const editNameBtn = document.getElementById('edit-name-btn');
+      const cancelNameBtn = document.getElementById('cancel-name-btn');
+      const chipsValueEl = document.getElementById('chips-value');
+      const winsValueEl = document.getElementById('wins-value');
+      const bonusBtn = document.getElementById('bonus-btn');
+      const soundToggleBtn = document.getElementById('sound-toggle');
+      const soundIconOn = document.getElementById('sound-icon-on');
+      const soundIconOff = document.getElementById('sound-icon-off');
+      const soundLabelEl = document.getElementById('sound-label');
+      const zenToggleBtn = document.getElementById('zen-toggle');
+      const zenLabelEl = document.getElementById('zen-label');
+      const gamesGridEl = document.getElementById('games-grid');
+
+      let displayedChips = profile.chips;
+      let chipsAnimRaf = 0;
+
+      function animateChipsTo(target) {
+        if (chipsAnimRaf) cancelAnimationFrame(chipsAnimRaf);
+        const start = displayedChips;
+        const diff = target - start;
+        if (diff === 0) {
+          chipsValueEl.textContent = formatNum(target);
+          return;
+        }
+        const duration = 420;
+        const startTime = performance.now();
+        function step(now) {
+          const p = Math.min(1, (now - startTime) / duration);
+          const eased = 1 - Math.pow(1 - p, 3);
+          displayedChips = Math.round(start + diff * eased);
+          chipsValueEl.textContent = formatNum(displayedChips);
+          if (p < 1) {
+            chipsAnimRaf = requestAnimationFrame(step);
+          } else {
+            displayedChips = target;
+            chipsValueEl.textContent = formatNum(target);
+          }
+        }
+        chipsAnimRaf = requestAnimationFrame(step);
+      }
+
+      function canClaimBonus() {
+        const now = Date.now();
+        return profile.chips < 1500 || now - (profile.lastBonusAt || 0) >= BONUS_COOLDOWN_MS;
+      }
+
+      function renderProfileBar() {
+        usernameTextEl.textContent = profile.username;
+        animateChipsTo(profile.chips);
+        winsValueEl.textContent = formatNum(profile.wins);
+
+        const available = canClaimBonus();
+        bonusBtn.disabled = !available;
+        bonusBtn.textContent = profile.chips < 1500 ? '+2.500 Destek' : '+2.500 Bonus';
+        bonusBtn.title = available
+          ? 'Hesabına 2.500 ücretsiz çip ekle'
+          : 'Günlük bonus zaten alındı (Bakiye 1.500 altına düşerse yeniden açılır)';
+
+        soundToggleBtn.setAttribute('aria-pressed', String(sound.enabled));
+        soundIconOn.style.display = sound.enabled ? 'block' : 'none';
+        soundIconOff.style.display = sound.enabled ? 'none' : 'block';
+        soundLabelEl.textContent = sound.enabled ? 'Ses Açık' : 'Ses Kapalı';
+      }
+
+      editNameBtn.addEventListener('click', () => {
+        sound.playClick();
+        usernameDisplayEl.style.display = 'none';
+        usernameFormEl.classList.add('active');
+        usernameInputEl.value = profile.username;
+        usernameInputEl.focus();
+        usernameInputEl.select();
+      });
+
+      function closeNameEditor() {
+        usernameFormEl.classList.remove('active');
+        usernameDisplayEl.style.display = 'flex';
+      }
+
+      cancelNameBtn.addEventListener('click', () => {
+        sound.playClick();
+        closeNameEditor();
+      });
+
+      usernameInputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          sound.playClick();
+          closeNameEditor();
+        }
+      });
+
+      usernameFormEl.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const cleaned = usernameInputEl.value.trim().replace(/\s+/g, ' ').slice(0, 18);
+        if (!cleaned) {
+          sound.playError();
+          showToast('Kullanıcı adı boş bırakılamaz.', 'error');
+          return;
+        }
+        profile.username = cleaned;
+        saveProfile(profile);
+        renderProfileBar();
+        closeNameEditor();
+        sound.playChipSelect();
+        showToast(`Hoş geldin, ${cleaned}!`, 'success');
+      });
+
+      bonusBtn.addEventListener('click', () => {
+        if (!canClaimBonus()) {
+          sound.playError();
+          showToast('Günlük bonusunu zaten aldın.', 'error');
+          return;
+        }
+        profile.chips += BONUS_AMOUNT;
+        profile.lastBonusAt = Date.now();
+        saveProfile(profile);
+        renderProfileBar();
+        renderGameCards();
+        sound.playBonus();
+        showToast(`+${formatNum(BONUS_AMOUNT)} Çip hesabına eklendi!`, 'success');
+      });
+
+      soundToggleBtn.addEventListener('click', () => {
+        const next = !sound.enabled;
+        sound.setEnabled(next);
+        profile.soundEnabled = next;
+        saveProfile(profile);
+        renderProfileBar();
+        if (next) sound.playClick();
+      });
+
+      let zenMode = false;
+      function toggleZenMode() {
+        zenMode = !zenMode;
+        document.body.classList.toggle('zen-mode', zenMode);
+        zenToggleBtn.classList.toggle('active', zenMode);
+        zenToggleBtn.setAttribute('aria-pressed', String(zenMode));
+        zenLabelEl.textContent = zenMode ? 'Kartları Göster' : '3D Sahne';
+        sound.playClick();
+      }
+
+      zenToggleBtn.addEventListener('click', toggleZenMode);
+
+      window.addEventListener('keydown', (e) => {
+        if (document.activeElement === usernameInputEl) return;
+        if (e.key === 'h' || e.key === 'H') {
+          toggleZenMode();
+        }
+      });
+
+      window.addEventListener('storage', (e) => {
+        if (
+          e.key === PROFILE_STORAGE_KEY ||
+          e.key === 'masaOyunlariChips' ||
+          e.key === 'mo3d_chips' ||
+          e.key === 'mo3d_wins'
+        ) {
+          profile = loadProfile();
+          renderProfileBar();
+          renderGameCards();
+        }
+      });
+
+      /* Scene selection & hover focus bridge */
+      const initialSelectedGame = GAMES.find((g) => g.id === profile.activeGame) || GAMES[0];
+      let selectedGameId = initialSelectedGame ? initialSelectedGame.id : null;
+      let selectedSceneFocus = initialSelectedGame ? initialSelectedGame.sceneFocus : null;
+      let hoveredSceneFocus = null;
+      const prefersReducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      function hexToRgbTriplet(hex) {
+        const clean = String(hex || '#f3d06b').replace('#', '');
+        const num = parseInt(clean.length === 3 ? clean.replace(/(.)/g, '$1$1') : clean, 16);
+        return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+      }
+
+      function selectGameCard(game, playSound = true) {
+        if (!game) return;
+        const changed = selectedGameId !== game.id;
+        selectedGameId = game.id;
+        selectedSceneFocus = game.sceneFocus;
+        profile.activeGame = game.id;
+
+        gamesGridEl.querySelectorAll('.game-card').forEach((cardEl) => {
+          const active = cardEl.dataset.gameId === game.id;
+          cardEl.classList.toggle('is-selected', active);
+          cardEl.setAttribute('aria-selected', String(active));
+        });
+
+        if (changed && playSound) {
+          sound.playClick();
+        }
+      }
+
+      function renderGameCards() {
+        gamesGridEl.innerHTML = '';
+
+        GAMES.forEach((game, idx) => {
+          const selectedStake = profile.selectedStakes[game.id] || game.stakes[0];
+          const estPrize = Math.round(selectedStake * game.multiplier);
+          const isCardSelected = selectedGameId === game.id;
+
+          const card = document.createElement('article');
+          card.className = `game-card${isCardSelected ? ' is-selected' : ''}`;
+          card.dataset.gameId = game.id;
+          card.tabIndex = 0;
+          card.setAttribute('aria-selected', String(isCardSelected));
+          card.style.setProperty('--card-accent', game.accent);
+          card.style.setProperty('--card-accent-rgb', hexToRgbTriplet(game.accent));
+
+          card.innerHTML = `
+            <div>
+              <div class="card-head">
+                <div>
+                  <h2 class="card-title">${game.title}</h2>
+                  <div class="card-meta">${game.meta}</div>
+                </div>
+                <div class="card-icon-wrap" aria-hidden="true">${game.iconSvg}</div>
+              </div>
+              <p class="card-desc">${game.description}</p>
+            </div>
+            <div>
+              <div class="stake-section">
+                <div class="stake-header">
+                  <span class="stake-label">Masa Giriş Ücreti</span>
+                  <span class="stake-reward">Ödül: ${formatNum(estPrize)} Çip</span>
+                </div>
+                <div class="stake-group" role="group" aria-label="${game.title} giriş ücreti">
+                  ${game.stakes
+                    .map((stake) => {
+                      const isSelected = stake === selectedStake;
+                      const unaffordable = profile.chips < stake;
+                      return `
+                        <button
+                          type="button"
+                          class="stake-btn ${isSelected ? 'selected' : ''} ${unaffordable ? 'unaffordable' : ''}"
+                          data-stake="${stake}"
+                          aria-pressed="${isSelected}"
+                        >
+                          ${formatNum(stake)}
+                        </button>
+                      `;
+                    })
+                    .join('')}
+                </div>
+              </div>
+              <button type="button" class="play-btn" data-play="${game.id}">
+                <span>OYNA</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M5 12h14" />
+                  <path d="M13 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          `;
+
+          card.addEventListener('click', () => {
+            selectGameCard(game, true);
+          });
+
+          card.addEventListener('keydown', (e) => {
+            if (e.target === card && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              selectGameCard(game, true);
+            }
+          });
+
+          card.addEventListener('focusin', () => {
+            selectGameCard(game, false);
+          });
+
+          card.addEventListener('pointerenter', () => {
+            sound.playHover(idx);
+            hoveredSceneFocus = game.sceneFocus;
+            if (!prefersReducedMotionQuery.matches) {
+              card.classList.add('tilting');
+            }
+          });
+
+          card.addEventListener('pointermove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const px = (e.clientX - rect.left) / rect.width;
+            const py = (e.clientY - rect.top) / rect.height;
+            card.style.setProperty('--mx', `${(px * 100).toFixed(1)}%`);
+            card.style.setProperty('--my', `${(py * 100).toFixed(1)}%`);
+
+            if (!prefersReducedMotionQuery.matches) {
+              const maxTilt = 7.5;
+              const tiltX = (0.5 - py) * (maxTilt * 2);
+              const tiltY = (px - 0.5) * (maxTilt * 2);
+              card.style.setProperty('--tilt-x', `${tiltX.toFixed(2)}deg`);
+              card.style.setProperty('--tilt-y', `${tiltY.toFixed(2)}deg`);
+            }
+          });
+
+          card.addEventListener('pointerleave', () => {
+            card.classList.remove('tilting');
+            card.style.setProperty('--tilt-x', '0deg');
+            card.style.setProperty('--tilt-y', '0deg');
+            card.style.setProperty('--mx', '50%');
+            card.style.setProperty('--my', '0%');
+            if (hoveredSceneFocus === game.sceneFocus) {
+              hoveredSceneFocus = null;
+            }
+          });
+
+          card.querySelectorAll('.stake-btn').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const stake = Number(btn.dataset.stake);
+              selectedGameId = game.id;
+              selectedSceneFocus = game.sceneFocus;
+              profile.activeGame = game.id;
+              profile.selectedStakes[game.id] = stake;
+              profile.activeStake = stake;
+              saveProfile(profile);
+              sound.playChipSelect();
+              renderGameCards();
+            });
+          });
+
+          const playBtn = card.querySelector('.play-btn');
+          playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectGameCard(game, false);
+            const stake = profile.selectedStakes[game.id] || game.stakes[0];
+            if (profile.chips < stake) {
+              sound.playError();
+              showToast(
+                `Yetersiz bakiye! Bu masa için ${formatNum(stake)} Çip gerekiyor.`,
+                'error'
+              );
+              return;
+            }
+            profile.activeGame = game.id;
+            profile.activeStake = stake;
+            saveProfile(profile);
+            sound.playLaunch();
+            showToast(`${game.title} masasına geçiliyor (${formatNum(stake)} Çip)...`, 'success');
+
+            setTimeout(() => {
+              window.location.href = `${game.url}?stake=${encodeURIComponent(stake)}`;
+            }, 240);
+          });
+
+          gamesGridEl.appendChild(card);
+        });
+      }
+
+      renderProfileBar();
+      renderGameCards();
+
+      /* =========================================================================
+       * 4. THREE.JS 3D PROCEDURAL TABLETOP SCENE
+       * ========================================================================= */
+      const container = document.getElementById('canvas-container');
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Software WebGL detection (used strictly for rendering cost & pacing)
+      const isSoftwareGl = (() => {
+        try {
+          const probeCanvas = document.createElement('canvas');
+          const gl = probeCanvas.getContext('webgl2') || probeCanvas.getContext('webgl');
+          if (!gl) return true;
+          const ext = gl.getExtension('WEBGL_debug_renderer_info');
+          const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
+          const gpu = String(gl.getParameter(param) || '');
+          gl.getExtension('WEBGL_lose_context')?.loseContext();
+          return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
+        } catch {
+          return true;
+        }
+      })();
+
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({
+          antialias: !isSoftwareGl,
+          powerPreference: 'high-performance',
+          alpha: false,
+        });
+      } catch {
+        renderer = null;
+      }
+
+      if (renderer) {
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.85;
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = !isSoftwareGl;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050a18);
+        scene.fog = new THREE.FogExp2(0x050a18, 0.025);
+
+        // Soft, glare-free Luxury Lounge PMREM Environment
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        const envScene = createStudioEnvScene();
+        const addEnvStrip = (colorHex, intensity, pos, rot, scale) => {
+          const panel = new THREE.Mesh(
+            new THREE.PlaneGeometry(1, 1),
+            new THREE.MeshBasicMaterial({
+              color: new THREE.Color(colorHex).multiplyScalar(intensity),
+              side: THREE.DoubleSide,
+              toneMapped: false,
+            })
+          );
+          panel.position.set(pos[0], pos[1], pos[2]);
+          panel.rotation.set(rot[0], rot[1], rot[2]);
+          panel.scale.set(scale[0], scale[1], 1);
+          envScene.add(panel);
+        };
+        addEnvStrip(0xffe7ad, 1.2, [0, 8.5, 0], [Math.PI / 2, 0, 0], [10, 4.5]);
+        addEnvStrip(0xffc966, 1.0, [7.5, 5.2, 5.5], [0, -Math.PI * 0.72, 0], [6.5, 3.2]);
+        addEnvStrip(0x38bdf8, 0.9, [-8.2, 4.2, -4.5], [0, Math.PI * 0.35, 0], [7.5, 2.8]);
+
+        const envRT = pmremGenerator.fromScene(envScene, 0.05);
+        scene.environment = envRT.texture;
+        if ('environmentIntensity' in scene) {
+          scene.environmentIntensity = 0.48;
+        }
+        disposeEnvScene(envScene);
+        pmremGenerator.dispose();
+
+        const camera = new THREE.PerspectiveCamera(
+          42,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          100
+        );
+        camera.position.set(0, 5.6, 12.2);
+        camera.lookAt(0, 0.1, 0);
+
+        /* ------------------ LIGHTING RIG (BALANCED ANTI-GLARE INTERACTIVE AMBIENT + SOFT SHADOWS) ------------------ */
+        const ambientLight = new THREE.AmbientLight(0x1b2d52, 0.45);
+        scene.add(ambientLight);
+
+        const hemiLight = new THREE.HemisphereLight(0x74a9f5, 0x091026, 0.42);
+        scene.add(hemiLight);
+
+        const keyLight = new THREE.DirectionalLight(0xffe8bd, 1.0);
+        keyLight.position.set(6.5, 13.5, 7.5);
+        keyLight.castShadow = !isSoftwareGl;
+        if (!isSoftwareGl) {
+          keyLight.shadow.mapSize.set(2048, 2048);
+          keyLight.shadow.camera.near = 2;
+          keyLight.shadow.camera.far = 30;
+          const d = 7.8;
+          keyLight.shadow.camera.left = -d;
+          keyLight.shadow.camera.right = d;
+          keyLight.shadow.camera.top = d;
+          keyLight.shadow.camera.bottom = -d;
+          keyLight.shadow.radius = 4.2;
+          keyLight.shadow.bias = -0.0004;
+          keyLight.shadow.normalBias = 0.022;
+        }
+        scene.add(keyLight);
+
+        const goldRimLight = new THREE.DirectionalLight(0xffbd4a, 0.65);
+        goldRimLight.position.set(-8.5, 6.2, -7.2);
+        scene.add(goldRimLight);
+
+        const neonAccentLight = new THREE.PointLight(0x22d3ee, 2.6, 19, 1.65);
+        neonAccentLight.position.set(0, 1.85, 3.6);
+        scene.add(neonAccentLight);
+
+        const tableSpot = new THREE.SpotLight(0xffe3a3, 3.5, 25, Math.PI / 4.2, 0.72, 1.35);
+        tableSpot.position.set(0.4, 11.2, 1.4);
+        tableSpot.target.position.set(0, 0, 0);
+        tableSpot.castShadow = !isSoftwareGl;
+        if (!isSoftwareGl) {
+          tableSpot.shadow.mapSize.set(1024, 1024);
+          tableSpot.shadow.camera.near = 3;
+          tableSpot.shadow.camera.far = 22;
+          tableSpot.shadow.radius = 3.8;
+          tableSpot.shadow.bias = -0.00035;
+          tableSpot.shadow.normalBias = 0.018;
+        }
+        scene.add(tableSpot);
+        scene.add(tableSpot.target);
+
+        // Soft studio fill lights (glare-controlled, self-contained without addons)
+        let coolSoftbox = null;
+        if (!isSoftwareGl) {
+          const warmSoftbox = new THREE.PointLight(0xffe4a8, 1.65, 22, 1.5);
+          warmSoftbox.position.set(4.8, 6.8, 4.4);
+          scene.add(warmSoftbox);
+
+          coolSoftbox = new THREE.PointLight(0x4fd1ff, 1.35, 22, 1.5);
+          coolSoftbox.position.set(-5.6, 5.4, -4.2);
+          scene.add(coolSoftbox);
+        }
+
+        /* ------------------ PROCEDURAL CANVAS TEXTURE GENERATORS ------------------ */
+        function configureColorTexture(canvas) {
+          const tex = new THREE.CanvasTexture(canvas);
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.anisotropy = maxAniso;
+          tex.needsUpdate = true;
+          return tex;
+        }
+
+        function createNavyFeltTexture() {
+          const size = 1024;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+
+          // Deep royal navy baize gradient
+          const grad = ctx.createRadialGradient(size / 2, size / 2, 40, size / 2, size / 2, size * 0.54);
+          grad.addColorStop(0, '#132a5c');
+          grad.addColorStop(0.58, '#0c1d44');
+          grad.addColorStop(1, '#07112a');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, size, size);
+
+          // Woven micro-felt grain
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.022)';
+          for (let i = 0; i < 9000; i++) {
+            const x = Math.random() * size;
+            const y = Math.random() * size;
+            ctx.fillRect(x, y, 2, 1);
+          }
+
+          // Luxury Art Deco gold geometric inlaid lines
+          const cx = size / 2;
+          const cy = size / 2;
+          ctx.save();
+          ctx.translate(cx, cy);
+
+          // Outer octagon gold hairline
+          ctx.strokeStyle = 'rgba(243, 208, 107, 0.52)';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4 + Math.PI / 8;
+            const r = size * 0.43;
+            const px = Math.cos(a) * r;
+            const py = Math.sin(a) * r;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.stroke();
+
+          // Inner fine gold octagon
+          ctx.strokeStyle = 'rgba(212, 175, 55, 0.28)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4 + Math.PI / 8;
+            const r = size * 0.39;
+            const px = Math.cos(a) * r;
+            const py = Math.sin(a) * r;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.stroke();
+
+          // Subtle cyan neon inner circle
+          ctx.strokeStyle = 'rgba(34, 211, 238, 0.34)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, size * 0.23, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Center gold medallion rings & compass rays
+          ctx.strokeStyle = 'rgba(243, 208, 107, 0.42)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, size * 0.16, 0, Math.PI * 2);
+          ctx.stroke();
+
+          for (let i = 0; i < 16; i++) {
+            const a = (i * Math.PI) / 8;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * (size * 0.165), Math.sin(a) * (size * 0.165));
+            ctx.lineTo(Math.cos(a) * (size * 0.215), Math.sin(a) * (size * 0.215));
+            ctx.stroke();
+          }
+
+          // Center emblem diamond
+          ctx.fillStyle = 'rgba(243, 208, 107, 0.16)';
+          ctx.beginPath();
+          ctx.moveTo(0, -56);
+          ctx.lineTo(56, 0);
+          ctx.lineTo(0, 56);
+          ctx.lineTo(-56, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(243, 208, 107, 0.65)';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.restore();
+          return configureColorTexture(canvas);
+        }
+
+        function createWalnutWoodTexture() {
+          const canvas = document.createElement('canvas');
+          canvas.width = 512;
+          canvas.height = 512;
+          const ctx = canvas.getContext('2d');
+
+          ctx.fillStyle = '#25150c';
+          ctx.fillRect(0, 0, 512, 512);
+
+          for (let y = 0; y < 512; y += 2) {
+            const wave = Math.sin(y * 0.045) * 14 + Math.cos(y * 0.11) * 6;
+            const shade = 24 + Math.floor(Math.sin((y + wave) * 0.08) * 12);
+            ctx.fillStyle = `rgb(${shade + 22}, ${shade + 7}, ${Math.max(4, shade - 4)})`;
+            ctx.fillRect(0, y, 512, 2);
+          }
+
+          // Subtle dark grain streaks
+          ctx.strokeStyle = 'rgba(12, 5, 2, 0.35)';
+          ctx.lineWidth = 1.2;
+          for (let i = 0; i < 65; i++) {
+            const sy = Math.random() * 512;
+            ctx.beginPath();
+            ctx.moveTo(0, sy);
+            ctx.bezierCurveTo(170, sy + (Math.random() - 0.5) * 24, 340, sy + (Math.random() - 0.5) * 24, 512, sy);
+            ctx.stroke();
+          }
+
+          const tex = configureColorTexture(canvas);
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(2, 2);
+          return tex;
+        }
+
+        function createDiceFaceTexture(value, theme = 'ivory') {
+          const size = 256;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+
+          const isDark = theme === 'obsidian';
+          const bgGrad = ctx.createRadialGradient(size / 2, size / 2, 10, size / 2, size / 2, size * 0.72);
+          if (isDark) {
+            bgGrad.addColorStop(0, '#182442');
+            bgGrad.addColorStop(1, '#091022');
+          } else {
+            bgGrad.addColorStop(0, '#fffdf7');
+            bgGrad.addColorStop(1, '#e8dec5');
+          }
+          ctx.fillStyle = bgGrad;
+          ctx.fillRect(0, 0, size, size);
+
+          // Subtle recessed bezel border
+          ctx.strokeStyle = isDark ? 'rgba(243, 208, 107, 0.45)' : 'rgba(180, 145, 70, 0.35)';
+          ctx.lineWidth = 8;
+          ctx.strokeRect(10, 10, size - 20, size - 20);
+
+          const pipCoords = {
+            1: [[0.5, 0.5]],
+            2: [[0.28, 0.28], [0.72, 0.72]],
+            3: [[0.26, 0.26], [0.5, 0.5], [0.74, 0.74]],
+            4: [[0.28, 0.28], [0.72, 0.28], [0.28, 0.72], [0.72, 0.72]],
+            5: [[0.27, 0.27], [0.73, 0.27], [0.5, 0.5], [0.27, 0.73], [0.73, 0.73]],
+            6: [[0.28, 0.24], [0.72, 0.24], [0.28, 0.5], [0.72, 0.5], [0.28, 0.76], [0.72, 0.76]],
+          };
+
+          const coords = pipCoords[value] || pipCoords[1];
+          const radius = value === 1 ? 26 : 18;
+
+          coords.forEach(([nx, ny]) => {
+            const x = nx * size;
+            const y = ny * size;
+
+            // Recessed shadow halo
+            ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.55)' : 'rgba(80, 60, 30, 0.22)';
+            ctx.beginPath();
+            ctx.arc(x, y + 2, radius + 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pip color
+            const pipGrad = ctx.createRadialGradient(x - 4, y - 4, 2, x, y, radius);
+            if (isDark) {
+              pipGrad.addColorStop(0, '#fde68a');
+              pipGrad.addColorStop(1, '#c89b2b');
+            } else if (value === 1) {
+              pipGrad.addColorStop(0, '#ef4444');
+              pipGrad.addColorStop(1, '#991b1b');
+            } else {
+              pipGrad.addColorStop(0, '#1e293b');
+              pipGrad.addColorStop(1, '#050a18');
+            }
+            ctx.fillStyle = pipGrad;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          return configureColorTexture(canvas);
+        }
+
+        function createOkeyTileTexture(num, colorHex, isJoker = false) {
+          const w = 256;
+          const h = 384;
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+
+          // Warm creamy ivory tile face
+          const grad = ctx.createLinearGradient(0, 0, w, h);
+          grad.addColorStop(0, '#fffdf6');
+          grad.addColorStop(1, '#ede3cc');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, h);
+
+          // Fine inset gold frame
+          ctx.strokeStyle = 'rgba(196, 160, 82, 0.45)';
+          ctx.lineWidth = 6;
+          ctx.strokeRect(14, 14, w - 28, h - 28);
+
+          if (isJoker) {
+            // Ornate Turkish Sahte Okey star emblem
+            ctx.save();
+            ctx.translate(w / 2, h * 0.43);
+            ctx.fillStyle = '#0f2350';
+            ctx.beginPath();
+            ctx.arc(0, 0, 74, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            ctx.fillStyle = '#f3d06b';
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+              const a = (i * Math.PI) / 4;
+              const r = i % 2 === 0 ? 48 : 22;
+              if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+              else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle = '#0f2350';
+            ctx.font = '800 32px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('OKEY', w / 2, h * 0.78);
+          } else {
+            ctx.fillStyle = colorHex;
+            ctx.font = '800 132px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(num), w / 2, h * 0.39);
+
+            // Authentic bottom recessed oval dot
+            const dotGrad = ctx.createRadialGradient(w / 2 - 4, h * 0.74 - 4, 3, w / 2, h * 0.74, 24);
+            dotGrad.addColorStop(0, '#d8c9a8');
+            dotGrad.addColorStop(1, '#b5a27d');
+            ctx.fillStyle = dotGrad;
+            ctx.beginPath();
+            ctx.arc(w / 2, h * 0.74, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = colorHex;
+            ctx.beginPath();
+            ctx.arc(w / 2, h * 0.74, 11, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          return configureColorTexture(canvas);
+        }
+
+        function createPlayingCardFrontTexture(rank, suit, isRed) {
+          const w = 256;
+          const h = 384;
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+
+          // Crisp linen ivory card stock
+          ctx.fillStyle = '#faf8f2';
+          ctx.fillRect(0, 0, w, h);
+
+          // Delicate gold inner border
+          ctx.strokeStyle = 'rgba(202, 162, 68, 0.45)';
+          ctx.lineWidth = 4;
+          ctx.strokeRect(14, 14, w - 28, h - 28);
+
+          const ink = isRed ? '#c81e3a' : '#0f172a';
+          ctx.fillStyle = ink;
+
+          // Top-left corner index
+          ctx.font = '800 44px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(rank, 44, 62);
+          ctx.font = '40px serif';
+          ctx.fillText(suit, 44, 102);
+
+          // Bottom-right rotated corner index
+          ctx.save();
+          ctx.translate(w - 44, h - 62);
+          ctx.rotate(Math.PI);
+          ctx.font = '800 44px Outfit, sans-serif';
+          ctx.fillText(rank, 0, 0);
+          ctx.font = '40px serif';
+          ctx.fillText(suit, 0, 40);
+          ctx.restore();
+
+          // Center grand motif
+          ctx.save();
+          ctx.translate(w / 2, h / 2);
+          ctx.strokeStyle = isRed ? 'rgba(200, 30, 58, 0.2)' : 'rgba(15, 23, 42, 0.16)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, 58, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = ink;
+          ctx.font = '104px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(suit, 0, 4);
+          ctx.restore();
+
+          return configureColorTexture(canvas);
+        }
+
+        function createPlayingCardBackTexture() {
+          const w = 256;
+          const h = 384;
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+
+          ctx.fillStyle = '#0a1738';
+          ctx.fillRect(0, 0, w, h);
+
+          ctx.strokeStyle = '#f3d06b';
+          ctx.lineWidth = 6;
+          ctx.strokeRect(16, 16, w - 32, h - 32);
+
+          ctx.strokeStyle = 'rgba(243, 208, 107, 0.32)';
+          ctx.lineWidth = 2;
+          for (let y = 32; y < h - 32; y += 22) {
+            for (let x = 32; x < w - 32; x += 22) {
+              ctx.beginPath();
+              ctx.moveTo(x, y - 8);
+              ctx.lineTo(x + 8, y);
+              ctx.lineTo(x, y + 8);
+              ctx.lineTo(x - 8, y);
+              ctx.closePath();
+              ctx.stroke();
+            }
+          }
+
+          ctx.fillStyle = '#071028';
+          ctx.beginPath();
+          ctx.arc(w / 2, h / 2, 46, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#22d3ee';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.fillStyle = '#f3d06b';
+          ctx.font = '800 32px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('3D', w / 2, h / 2 + 2);
+
+          return configureColorTexture(canvas);
+        }
+
+        function createCheckerTexture(variant = 'ivory') {
+          const size = 256;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+
+          const isDark = variant === 'ebony';
+          const grad = ctx.createRadialGradient(size * 0.42, size * 0.38, 10, size / 2, size / 2, size * 0.55);
+          if (isDark) {
+            grad.addColorStop(0, '#243563');
+            grad.addColorStop(0.55, '#101a36');
+            grad.addColorStop(1, '#060c1d');
+          } else {
+            grad.addColorStop(0, '#fffdf5');
+            grad.addColorStop(0.6, '#e6d8b9');
+            grad.addColorStop(1, '#bfa980');
+          }
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, size, size);
+
+          // Concentric turned mother-of-pearl / gold rings
+          ctx.strokeStyle = isDark ? 'rgba(243, 208, 107, 0.72)' : 'rgba(186, 145, 58, 0.62)';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, size * 0.37, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = isDark ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255, 255, 255, 0.55)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, size * 0.24, 0, Math.PI * 2);
+          ctx.stroke();
+
+          return configureColorTexture(canvas);
+        }
+
+        function createChipTopTexture(primaryColor, label) {
+          const size = 256;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+
+          ctx.fillStyle = primaryColor;
+          ctx.fillRect(0, 0, size, size);
+
+          // Striped casino edge dashes
+          ctx.save();
+          ctx.translate(size / 2, size / 2);
+          ctx.fillStyle = '#f8fafc';
+          for (let i = 0; i < 8; i++) {
+            ctx.rotate(Math.PI / 4);
+            ctx.fillRect(-10, -size * 0.49, 20, 24);
+          }
+
+          ctx.fillStyle = '#0b142c';
+          ctx.beginPath();
+          ctx.arc(0, 0, size * 0.32, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#f3d06b';
+          ctx.lineWidth = 6;
+          ctx.stroke();
+
+          ctx.fillStyle = '#f3d06b';
+          ctx.font = '800 44px JetBrains Mono, monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, 0, 2);
+          ctx.restore();
+
+          return configureColorTexture(canvas);
+        }
+
+        function createFloorShadowTexture() {
+          const size = 512;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const g = ctx.createRadialGradient(size / 2, size / 2, 18, size / 2, size / 2, size / 2);
+          g.addColorStop(0, 'rgba(0, 0, 0, 0.72)');
+          g.addColorStop(0.48, 'rgba(2, 6, 18, 0.35)');
+          g.addColorStop(1, 'rgba(2, 6, 18, 0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, size, size);
+          return configureColorTexture(canvas);
+        }
+
+        function createGoldenDustTexture() {
+          const size = 128;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const cx = size / 2;
+          const g = ctx.createRadialGradient(cx, cx, 1, cx, cx, cx);
+          g.addColorStop(0, 'rgba(255, 252, 232, 1)');
+          g.addColorStop(0.22, 'rgba(255, 224, 138, 0.92)');
+          g.addColorStop(0.52, 'rgba(212, 175, 55, 0.34)');
+          g.addColorStop(1, 'rgba(212, 175, 55, 0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, size, size);
+          return configureColorTexture(canvas);
+        }
+
+        /* ------------------ SHARED PBR MATERIALS (ANTI-GLARE SATIN FINISH) ------------------ */
+        const goldMaterial = new THREE.MeshPhysicalMaterial({
+          color: 0xdcb44e,
+          metalness: 0.9,
+          roughness: 0.3,
+          clearcoat: 0.2,
+          clearcoatRoughness: 0.24,
+          anisotropy: 0.55,
+          anisotropyRotation: Math.PI / 4,
+          envMapIntensity: 1.05,
+        });
+
+        const walnutMaterial = new THREE.MeshPhysicalMaterial({
+          map: createWalnutWoodTexture(),
+          roughness: 0.68,
+          metalness: 0.04,
+          clearcoat: 0.12,
+          clearcoatRoughness: 0.42,
+          envMapIntensity: 0.5,
+        });
+
+        const feltMaterial = new THREE.MeshPhysicalMaterial({
+          map: createNavyFeltTexture(),
+          roughness: 0.85,
+          metalness: 0.0,
+          clearcoat: 0,
+          sheen: 0.24,
+          sheenRoughness: 0.85,
+          sheenColor: new THREE.Color(0x2f5da8),
+          specularIntensity: 0.18,
+          envMapIntensity: 0.25,
+        });
+
+        const neonCyanMat = new THREE.MeshPhysicalMaterial({
+          color: 0x38bdf8,
+          emissive: 0x22d3ee,
+          emissiveIntensity: 1.25,
+          roughness: 0.35,
+          metalness: 0.1,
+          clearcoat: 0.2,
+          envMapIntensity: 0.65,
+        });
+
+        /* ------------------ 1. COMPOSITE 3D LUXURY OCTAGONAL GAMING TABLE ------------------ */
+        function createOctagonShape(radius) {
+          const shape = new THREE.Shape();
+          for (let i = 0; i < 8; i++) {
+            const angle = (i * Math.PI) / 4 + Math.PI / 8;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            if (i === 0) shape.moveTo(x, y);
+            else shape.lineTo(x, y);
+          }
+          shape.closePath();
+          return shape;
+        }
+
+        function createGameTable() {
+          const tableGroup = new THREE.Group();
+
+          // (1) Sculpted pedestal column (LatheGeometry, bottom pivot at y = -3.4)
+          const lathePoints = [
+            new THREE.Vector2(0.01, -3.4),
+            new THREE.Vector2(2.35, -3.4),
+            new THREE.Vector2(2.3, -3.15),
+            new THREE.Vector2(1.75, -2.92),
+            new THREE.Vector2(1.05, -2.55),
+            new THREE.Vector2(0.78, -1.65),
+            new THREE.Vector2(0.86, -0.95),
+            new THREE.Vector2(1.65, -0.52),
+            new THREE.Vector2(1.65, -0.32),
+            new THREE.Vector2(0.01, -0.32),
+          ];
+          const pedestalGeo = new THREE.LatheGeometry(lathePoints, 32);
+          const pedestalMesh = new THREE.Mesh(pedestalGeo, walnutMaterial);
+          pedestalMesh.castShadow = !isSoftwareGl;
+          pedestalMesh.receiveShadow = !isSoftwareGl;
+          tableGroup.add(pedestalMesh);
+
+          // Brushed gold collar rings around pedestal
+          const baseRing = new THREE.Mesh(new THREE.TorusGeometry(2.22, 0.055, 16, 48), goldMaterial);
+          baseRing.rotation.x = Math.PI / 2;
+          baseRing.position.y = -3.16;
+          tableGroup.add(baseRing);
+
+          const midRing = new THREE.Mesh(new THREE.TorusGeometry(0.84, 0.045, 14, 40), goldMaterial);
+          midRing.rotation.x = Math.PI / 2;
+          midRing.position.y = -1.65;
+          tableGroup.add(midRing);
+
+          // (2) Beveled octagonal outer walnut rail
+          const outerShape = createOctagonShape(4.45);
+          const tableChassisGeo = new THREE.ExtrudeGeometry(outerShape, {
+            depth: 0.34,
+            bevelEnabled: true,
+            bevelSegments: 4,
+            steps: 1,
+            bevelSize: 0.12,
+            bevelThickness: 0.1,
+          });
+          tableChassisGeo.rotateX(-Math.PI / 2);
+          const tableChassis = new THREE.Mesh(tableChassisGeo, walnutMaterial);
+          tableChassis.position.y = -0.38;
+          tableChassis.castShadow = !isSoftwareGl;
+          tableChassis.receiveShadow = !isSoftwareGl;
+          tableGroup.add(tableChassis);
+
+          // (3) Recessed royal navy baize felt surface (offset cleanly above chassis)
+          const feltGeo = new THREE.CylinderGeometry(3.86, 3.86, 0.05, 8);
+          feltGeo.rotateY(Math.PI / 8);
+          const feltMesh = new THREE.Mesh(feltGeo, feltMaterial);
+          feltMesh.position.y = 0.075;
+          feltMesh.receiveShadow = !isSoftwareGl;
+          tableGroup.add(feltMesh);
+
+          // (4) Raised brushed gold octagonal bezel ring framing the felt
+          const bezelOuter = createOctagonShape(4.02);
+          const bezelHole = createOctagonShape(3.82);
+          bezelOuter.holes.push(bezelHole);
+          const bezelGeo = new THREE.ExtrudeGeometry(bezelOuter, {
+            depth: 0.08,
+            bevelEnabled: true,
+            bevelSegments: 2,
+            bevelSize: 0.025,
+            bevelThickness: 0.025,
+          });
+          bezelGeo.rotateX(-Math.PI / 2);
+          const bezelMesh = new THREE.Mesh(bezelGeo, goldMaterial);
+          bezelMesh.position.y = 0.06;
+          bezelMesh.castShadow = !isSoftwareGl;
+          tableGroup.add(bezelMesh);
+
+          // (5) Under-rim luminous neon accent channel
+          const neonOuter = createOctagonShape(4.36);
+          const neonHole = createOctagonShape(4.26);
+          neonOuter.holes.push(neonHole);
+          const neonGeo = new THREE.ExtrudeGeometry(neonOuter, {
+            depth: 0.045,
+            bevelEnabled: false,
+          });
+          neonGeo.rotateX(-Math.PI / 2);
+          const neonMesh = new THREE.Mesh(neonGeo, neonCyanMat);
+          neonMesh.position.y = -0.36;
+          tableGroup.add(neonMesh);
+
+          // (6) 4 Corner brass medallions / chip rest accents
+          for (let i = 0; i < 4; i++) {
+            const angle = (i * Math.PI) / 2 + Math.PI / 4;
+            const cup = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.03, 12, 24), goldMaterial);
+            cup.rotation.x = Math.PI / 2;
+            cup.position.set(Math.cos(angle) * 4.16, 0.11, Math.sin(angle) * 4.16);
+            tableGroup.add(cup);
+          }
+
+          // (7) Decorative stacked casino chips resting directly on the felt edge
+          const chipColors = ['#d4af37', '#1d4ed8', '#be123c'];
+          const chipLabels = ['5K', '1K', '500'];
+          const stackPositions = [
+            { x: -2.45, z: 1.55, count: 4, c: 0 },
+            { x: -2.1, z: 1.9, count: 3, c: 1 },
+            { x: 2.35, z: -1.65, count: 5, c: 2 },
+          ];
+          stackPositions.forEach((st) => {
+            const topTex = createChipTopTexture(chipColors[st.c], chipLabels[st.c]);
+            const sideMat = new THREE.MeshPhysicalMaterial({
+              color: chipColors[st.c],
+              roughness: 0.68,
+              metalness: 0.16,
+              clearcoat: 0,
+              envMapIntensity: 0.38,
+            });
+            const capMat = new THREE.MeshPhysicalMaterial({
+              map: topTex,
+              roughness: 0.72,
+              metalness: 0.08,
+              clearcoat: 0,
+              envMapIntensity: 0.35,
+            });
+            for (let k = 0; k < st.count; k++) {
+              const chip = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.065, 28), [sideMat, capMat, capMat]);
+              chip.position.set(st.x + (k % 2) * 0.015, 0.132 + k * 0.066, st.z);
+              chip.castShadow = !isSoftwareGl;
+              chip.receiveShadow = !isSoftwareGl;
+              tableGroup.add(chip);
+            }
+          });
+
+          return tableGroup;
+        }
+
+        const mainTable = createGameTable();
+        scene.add(mainTable);
+
+        // Grounding floor & soft contact shadow
+        const floorMesh = new THREE.Mesh(
+          new THREE.CircleGeometry(28, 48),
+          new THREE.MeshStandardMaterial({
+            color: 0x050b1c,
+            roughness: 0.85,
+            metalness: 0.12,
+          })
+        );
+        floorMesh.rotation.x = -Math.PI / 2;
+        floorMesh.position.y = -3.42;
+        floorMesh.receiveShadow = !isSoftwareGl;
+        scene.add(floorMesh);
+
+        const contactShadow = new THREE.Mesh(
+          new THREE.PlaneGeometry(11.5, 11.5),
+          new THREE.MeshBasicMaterial({
+            map: createFloorShadowTexture(),
+            transparent: true,
+            depthWrite: false,
+            opacity: 0.72,
+          })
+        );
+        contactShadow.rotation.x = -Math.PI / 2;
+        contactShadow.position.y = -3.4;
+        scene.add(contactShadow);
+
+        // Subtle golden floor ring around pedestal
+        const floorHalo = new THREE.Mesh(
+          new THREE.RingGeometry(4.55, 4.62, 64),
+          new THREE.MeshBasicMaterial({
+            color: 0x22d3ee,
+            transparent: true,
+            opacity: 0.22,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+          })
+        );
+        floorHalo.rotation.x = -Math.PI / 2;
+        floorHalo.position.y = -3.39;
+        scene.add(floorHalo);
+
+        /* ------------------ 2. FLOATING 3D GAME ARTIFACTS ------------------ */
+        const floaters = [];
+
+        // A. Composite 3D Casino Dice (satin anti-glare MeshPhysicalMaterial)
+        function createDie(size = 0.62, theme = 'ivory') {
+          const group = new THREE.Group();
+          const faces = [1, 6, 2, 5, 3, 4].map(
+            (n) =>
+              new THREE.MeshPhysicalMaterial({
+                map: createDiceFaceTexture(n, theme),
+                roughness: 0.66,
+                metalness: theme === 'obsidian' ? 0.18 : 0.04,
+                clearcoat: 0,
+                specularIntensity: 0.32,
+                envMapIntensity: 0.38,
+              })
+          );
+          const body = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), faces);
+          body.castShadow = !isSoftwareGl;
+          body.receiveShadow = !isSoftwareGl;
+          group.add(body);
+
+          // Metallic chamfer wireframe edges
+          const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(size * 1.006, size * 1.006, size * 1.006));
+          const edgeLines = new THREE.LineSegments(
+            edgeGeo,
+            new THREE.LineBasicMaterial({
+              color: theme === 'obsidian' ? 0xffe08a : 0xd4af37,
+              transparent: true,
+              opacity: 0.68,
+            })
+          );
+          group.add(edgeLines);
+
+          return group;
+        }
+
+        // B. Composite 3D Okey 101 Tile (warm satin-ivory anti-glare finish)
+        function createOkeyTile(num, colorHex, isJoker = false) {
+          const group = new THREE.Group();
+          const w = 0.52;
+          const h = 0.74;
+          const d = 0.18;
+
+          const bodyMat = new THREE.MeshPhysicalMaterial({
+            color: 0xf3ebd9,
+            roughness: 0.66,
+            metalness: 0.05,
+            clearcoat: 0,
+            specularIntensity: 0.3,
+            envMapIntensity: 0.32,
+          });
+          const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), bodyMat);
+          body.castShadow = !isSoftwareGl;
+          body.receiveShadow = !isSoftwareGl;
+          group.add(body);
+
+          const faceMat = new THREE.MeshPhysicalMaterial({
+            map: createOkeyTileTexture(num, colorHex, isJoker),
+            roughness: 0.68,
+            metalness: 0.05,
+            clearcoat: 0,
+            specularIntensity: 0.3,
+            envMapIntensity: 0.32,
+          });
+          const frontPlate = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.94, h * 0.94), faceMat);
+          frontPlate.position.z = d / 2 + 0.004;
+          frontPlate.receiveShadow = !isSoftwareGl;
+          group.add(frontPlate);
+
+          // Subtle brushed gold trim strip along tile back bevel
+          const backTrim = new THREE.Mesh(new THREE.BoxGeometry(w * 0.82, 0.035, 0.02), goldMaterial);
+          backTrim.position.set(0, 0, -d / 2 - 0.005);
+          group.add(backTrim);
+
+          return group;
+        }
+
+        // C. Composite 3D Tavla Checker (LatheGeometry concave disc + satin pearl/ebony + brass inlay)
+        function createTavlaChecker(variant = 'ivory') {
+          const group = new THREE.Group();
+          const pts = [
+            new THREE.Vector2(0.01, -0.09),
+            new THREE.Vector2(0.41, -0.09),
+            new THREE.Vector2(0.44, -0.05),
+            new THREE.Vector2(0.44, 0.05),
+            new THREE.Vector2(0.4, 0.09),
+            new THREE.Vector2(0.28, 0.09),
+            new THREE.Vector2(0.18, 0.045),
+            new THREE.Vector2(0.01, 0.035),
+          ];
+          const latheGeo = new THREE.LatheGeometry(pts, 36);
+          const bodyMat = new THREE.MeshPhysicalMaterial({
+            color: variant === 'ebony' ? 0x162242 : 0xf3ebd9,
+            roughness: 0.68,
+            metalness: variant === 'ebony' ? 0.14 : 0.05,
+            clearcoat: 0,
+            iridescence: variant === 'ivory' ? 0.14 : 0.1,
+            iridescenceIOR: 1.36,
+            iridescenceThicknessRange: [150, 360],
+            specularIntensity: 0.3,
+            envMapIntensity: 0.38,
+          });
+          const disc = new THREE.Mesh(latheGeo, bodyMat);
+          disc.castShadow = !isSoftwareGl;
+          disc.receiveShadow = !isSoftwareGl;
+          group.add(disc);
+
+          const topPlate = new THREE.Mesh(
+            new THREE.CircleGeometry(0.37, 32),
+            new THREE.MeshPhysicalMaterial({
+              map: createCheckerTexture(variant),
+              roughness: 0.7,
+              metalness: variant === 'ebony' ? 0.12 : 0.05,
+              clearcoat: 0,
+              iridescence: 0.12,
+              iridescenceIOR: 1.35,
+              specularIntensity: 0.3,
+              envMapIntensity: 0.36,
+            })
+          );
+          topPlate.rotation.x = -Math.PI / 2;
+          topPlate.position.y = 0.092;
+          group.add(topPlate);
+
+          const brassRim = new THREE.Mesh(new THREE.TorusGeometry(0.435, 0.017, 12, 36), goldMaterial);
+          brassRim.rotation.x = Math.PI / 2;
+          group.add(brassRim);
+
+          return group;
+        }
+
+        // D. Composite 3D Playing Card (matte-satin linen MeshPhysicalMaterial + gilded gold edge)
+        const sharedCardBackTex = createPlayingCardBackTexture();
+        const cardEdgeGoldMat = new THREE.MeshPhysicalMaterial({
+          color: 0xdcb44e,
+          metalness: 0.85,
+          roughness: 0.34,
+          clearcoat: 0.15,
+          envMapIntensity: 0.9,
+        });
+        function createPlayingCard(rank, suit, isRed) {
+          const group = new THREE.Group();
+          const w = 0.72;
+          const h = 1.06;
+          const thickness = 0.022;
+
+          const edgeCore = new THREE.Mesh(new THREE.BoxGeometry(w, h, thickness), cardEdgeGoldMat);
+          edgeCore.castShadow = !isSoftwareGl;
+          edgeCore.receiveShadow = !isSoftwareGl;
+          group.add(edgeCore);
+
+          const front = new THREE.Mesh(
+            new THREE.PlaneGeometry(w * 0.985, h * 0.985),
+            new THREE.MeshPhysicalMaterial({
+              map: createPlayingCardFrontTexture(rank, suit, isRed),
+              roughness: 0.72,
+              metalness: 0.03,
+              clearcoat: 0,
+              specularIntensity: 0.28,
+              envMapIntensity: 0.32,
+            })
+          );
+          front.position.z = thickness / 2 + 0.002;
+          front.receiveShadow = !isSoftwareGl;
+          group.add(front);
+
+          const back = new THREE.Mesh(
+            new THREE.PlaneGeometry(w * 0.985, h * 0.985),
+            new THREE.MeshPhysicalMaterial({
+              map: sharedCardBackTex,
+              roughness: 0.68,
+              metalness: 0.12,
+              clearcoat: 0,
+              iridescence: 0.14,
+              iridescenceIOR: 1.38,
+              iridescenceThicknessRange: [180, 380],
+              specularIntensity: 0.3,
+              envMapIntensity: 0.38,
+            })
+          );
+          back.rotation.y = Math.PI;
+          back.position.z = -thickness / 2 - 0.002;
+          group.add(back);
+
+          return group;
+        }
+
+        const floatingGroup = new THREE.Group();
+        scene.add(floatingGroup);
+
+        function registerFloater(mesh, config) {
+          mesh.position.set(config.x, config.y, config.z);
+          if (config.rot) {
+            mesh.rotation.set(config.rot[0], config.rot[1], config.rot[2]);
+          }
+          floatingGroup.add(mesh);
+          floaters.push({
+            mesh,
+            category: config.category,
+            basePos: new THREE.Vector3(config.x, config.y, config.z),
+            phase: config.phase,
+            amp: config.amp || 0.26,
+            speed: config.speed || 0.85,
+            rotVel: config.rotVel || { x: 0.22, y: 0.35, z: 0.14 },
+          });
+        }
+
+        // Register 3D Dice (Business Tour / Tavla)
+        registerFloater(createDie(0.64, 'ivory'), {
+          category: 'dice',
+          x: -1.15,
+          y: 2.35,
+          z: 1.45,
+          phase: 0.2,
+          amp: 0.28,
+          rotVel: { x: 0.38, y: 0.52, z: 0.21 },
+        });
+        registerFloater(createDie(0.58, 'obsidian'), {
+          category: 'dice',
+          x: -0.2,
+          y: 2.85,
+          z: 0.85,
+          phase: 1.7,
+          amp: 0.32,
+          rotVel: { x: -0.31, y: 0.44, z: 0.28 },
+        });
+        registerFloater(createDie(0.48, 'ivory'), {
+          category: 'dice',
+          x: 0.95,
+          y: 2.1,
+          z: 2.15,
+          phase: 3.1,
+          amp: 0.22,
+          rotVel: { x: 0.26, y: -0.4, z: 0.18 },
+        });
+
+        // Register 3D Okey 101 Tiles
+        registerFloater(createOkeyTile(13, '#dc2626', false), {
+          category: 'okey',
+          x: -3.05,
+          y: 2.05,
+          z: 0.9,
+          rot: [0.12, 0.38, -0.08],
+          phase: 0.6,
+          amp: 0.26,
+          rotVel: { x: 0.14, y: 0.32, z: 0.08 },
+        });
+        registerFloater(createOkeyTile(12, '#0284c7', false), {
+          category: 'okey',
+          x: -2.45,
+          y: 1.45,
+          z: 1.95,
+          rot: [-0.1, 0.55, 0.12],
+          phase: 2.1,
+          amp: 0.22,
+          rotVel: { x: 0.1, y: -0.28, z: 0.11 },
+        });
+        registerFloater(createOkeyTile(11, '#0f172a', false), {
+          category: 'okey',
+          x: -3.35,
+          y: 1.55,
+          z: -0.75,
+          rot: [0.18, 0.7, -0.1],
+          phase: 3.8,
+          amp: 0.24,
+          rotVel: { x: -0.12, y: 0.35, z: 0.09 },
+        });
+        registerFloater(createOkeyTile(0, '#d4af37', true), {
+          category: 'okey',
+          x: -1.85,
+          y: 2.6,
+          z: -1.3,
+          rot: [0.08, 0.25, 0.06],
+          phase: 4.9,
+          amp: 0.3,
+          rotVel: { x: 0.15, y: 0.42, z: -0.08 },
+        });
+
+        // Register 3D Tavla Checkers
+        registerFloater(createTavlaChecker('ivory'), {
+          category: 'tavla',
+          x: 1.35,
+          y: 1.55,
+          z: -1.85,
+          rot: [0.55, 0.2, 0.35],
+          phase: 0.9,
+          amp: 0.25,
+          rotVel: { x: 0.28, y: 0.46, z: 0.22 },
+        });
+        registerFloater(createTavlaChecker('ebony'), {
+          category: 'tavla',
+          x: 2.1,
+          y: 2.25,
+          z: -1.1,
+          rot: [0.75, -0.3, 0.2],
+          phase: 2.4,
+          amp: 0.29,
+          rotVel: { x: -0.25, y: 0.5, z: 0.18 },
+        });
+        registerFloater(createTavlaChecker('ivory'), {
+          category: 'tavla',
+          x: 0.65,
+          y: 1.8,
+          z: -2.55,
+          rot: [0.4, 0.45, -0.3],
+          phase: 4.1,
+          amp: 0.23,
+          rotVel: { x: 0.2, y: -0.38, z: 0.26 },
+        });
+        registerFloater(createTavlaChecker('ebony'), {
+          category: 'tavla',
+          x: -0.65,
+          y: 1.45,
+          z: -2.25,
+          rot: [0.62, 0.1, 0.4],
+          phase: 5.3,
+          amp: 0.21,
+          rotVel: { x: 0.32, y: 0.28, z: -0.15 },
+        });
+
+        // Register 3D Playing Cards (Pis Yedili & Classics)
+        registerFloater(createPlayingCard('7', '♠', false), {
+          category: 'cards',
+          x: 2.85,
+          y: 2.15,
+          z: 1.05,
+          rot: [-0.15, -0.45, 0.12],
+          phase: 0.4,
+          amp: 0.3,
+          rotVel: { x: 0.12, y: 0.42, z: 0.08 },
+        });
+        registerFloater(createPlayingCard('A', '♥', true), {
+          category: 'cards',
+          x: 2.25,
+          y: 1.48,
+          z: 1.95,
+          rot: [0.1, -0.65, -0.14],
+          phase: 1.9,
+          amp: 0.25,
+          rotVel: { x: -0.1, y: 0.36, z: 0.1 },
+        });
+        registerFloater(createPlayingCard('K', '♦', true), {
+          category: 'cards',
+          x: 3.35,
+          y: 1.65,
+          z: -0.35,
+          rot: [0.22, -0.25, 0.16],
+          phase: 3.4,
+          amp: 0.27,
+          rotVel: { x: 0.16, y: -0.34, z: 0.09 },
+        });
+        registerFloater(createPlayingCard('7', '♥', true), {
+          category: 'cards',
+          x: 1.75,
+          y: 2.75,
+          z: 0.15,
+          rot: [-0.08, -0.15, -0.09],
+          phase: 4.8,
+          amp: 0.24,
+          rotVel: { x: 0.11, y: 0.45, z: -0.07 },
+        });
+
+        /* ------------------ 3. ATMOSPHERIC FLOATING GOLDEN DUST & BOKEH PARTICLE SYSTEM ------------------ */
+        const dustSpriteTex = createGoldenDustTexture();
+
+        // Layer A: Shimmering fine golden dust particles drifting around the table
+        const particleCount = 220;
+        const pPositions = new Float32Array(particleCount * 3);
+        const pBaseRadii = new Float32Array(particleCount);
+        const pAngles = new Float32Array(particleCount);
+        const pPhases = new Float32Array(particleCount);
+        const pColors = new Float32Array(particleCount * 3);
+        const pSpeeds = new Float32Array(particleCount);
+
+        const champagneGold = new THREE.Color(0xfff0b3);
+        const warmGold = new THREE.Color(0xf3c653);
+        const deepAmber = new THREE.Color(0xd49b2a);
+        const softCyan = new THREE.Color(0x5eead4);
+
+        for (let i = 0; i < particleCount; i++) {
+          const radius = 1.6 + Math.random() * 9.2;
+          const angle = Math.random() * Math.PI * 2;
+          pBaseRadii[i] = radius;
+          pAngles[i] = angle;
+          pPhases[i] = Math.random() * Math.PI * 2;
+          pPositions[i * 3] = Math.cos(angle) * radius;
+          pPositions[i * 3 + 1] = -2.6 + Math.random() * 8.6;
+          pPositions[i * 3 + 2] = Math.sin(angle) * radius;
+          pSpeeds[i] = 0.09 + Math.random() * 0.22;
+
+          const pick = i % 10;
+          const col =
+            pick === 0 ? softCyan : pick < 4 ? champagneGold : pick < 8 ? warmGold : deepAmber;
+          pColors[i * 3] = col.r;
+          pColors[i * 3 + 1] = col.g;
+          pColors[i * 3 + 2] = col.b;
+        }
+
+        const particleGeo = new THREE.BufferGeometry();
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+        particleGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
+
+        const particleMat = new THREE.PointsMaterial({
+          map: dustSpriteTex,
+          size: 0.16,
+          sizeAttenuation: true,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.85,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const dustPoints = new THREE.Points(particleGeo, particleMat);
+        scene.add(dustPoints);
+
+        // Layer B: Soft distant golden bokeh motes for cinematic salon depth
+        const bokehCount = 64;
+        const bPositions = new Float32Array(bokehCount * 3);
+        const bColors = new Float32Array(bokehCount * 3);
+        const bSpeeds = new Float32Array(bokehCount);
+
+        for (let i = 0; i < bokehCount; i++) {
+          const radius = 5.5 + Math.random() * 9.5;
+          const angle = Math.random() * Math.PI * 2;
+          bPositions[i * 3] = Math.cos(angle) * radius;
+          bPositions[i * 3 + 1] = -2.0 + Math.random() * 9.0;
+          bPositions[i * 3 + 2] = Math.sin(angle) * radius;
+          bSpeeds[i] = 0.04 + Math.random() * 0.11;
+
+          const col = i % 2 === 0 ? champagneGold : warmGold;
+          bColors[i * 3] = col.r;
+          bColors[i * 3 + 1] = col.g;
+          bColors[i * 3 + 2] = col.b;
+        }
+
+        const bokehGeo = new THREE.BufferGeometry();
+        bokehGeo.setAttribute('position', new THREE.BufferAttribute(bPositions, 3));
+        bokehGeo.setAttribute('color', new THREE.BufferAttribute(bColors, 3));
+
+        const bokehMat = new THREE.PointsMaterial({
+          map: dustSpriteTex,
+          size: 0.42,
+          sizeAttenuation: true,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.36,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const bokehPoints = new THREE.Points(bokehGeo, bokehMat);
+        scene.add(bokehPoints);
+
+        /* ------------------ 4. CINEMATIC MOUSE PARALLAX & DRAG ORBIT ------------------ */
+        let pointerNdcX = 0;
+        let pointerNdcY = 0;
+        let isDragging = false;
+        let dragLastX = 0;
+        let dragLastY = 0;
+        let userOrbitYaw = 0;
+        let userOrbitPitch = 0;
+
+        window.addEventListener('pointermove', (e) => {
+          pointerNdcX = THREE.MathUtils.clamp((e.clientX / window.innerWidth) * 2 - 1, -1, 1);
+          pointerNdcY = THREE.MathUtils.clamp((e.clientY / window.innerHeight) * 2 - 1, -1, 1);
+
+          if (isDragging) {
+            const dx = e.clientX - dragLastX;
+            const dy = e.clientY - dragLastY;
+            dragLastX = e.clientX;
+            dragLastY = e.clientY;
+            userOrbitYaw += dx * 0.0055;
+            userOrbitPitch = THREE.MathUtils.clamp(userOrbitPitch + dy * 0.004, -0.28, 0.34);
+          }
+        });
+
+        window.addEventListener('pointerleave', () => {
+          pointerNdcX = 0;
+          pointerNdcY = 0;
+        });
+
+        container.addEventListener('pointerdown', (e) => {
+          isDragging = true;
+          dragLastX = e.clientX;
+          dragLastY = e.clientY;
+        });
+
+        window.addEventListener('pointerup', () => {
+          isDragging = false;
+        });
+
+        /* ------------------ 5. ANIMATION LOOP (WITH SOFTWARE-GL PACING) ------------------ */
+        const clock = new THREE.Clock();
+        const _targetCamPos = new THREE.Vector3();
+        const _targetLook = new THREE.Vector3(0, 0.2, 0);
+        const _smoothLook = new THREE.Vector3(0, 0.2, 0);
+        // Pre-allocated per-game ambient & atmospheric lighting themes (zero GC in tick)
+        const AMBIENT_THEMES = {
+          okey: {
+            ambient: new THREE.Color(0x2b2416),
+            hemiSky: new THREE.Color(0x8ec5a8),
+            hemiGround: new THREE.Color(0x1c1409),
+            accent: new THREE.Color(0xf59e0b),
+            sheen: new THREE.Color(0x347864),
+            bg: new THREE.Color(0x061016),
+            softbox: new THREE.Color(0x5eead4),
+          },
+          dice: {
+            ambient: new THREE.Color(0x132b48),
+            hemiSky: new THREE.Color(0x68c6ff),
+            hemiGround: new THREE.Color(0x08132b),
+            accent: new THREE.Color(0x22d3ee),
+            sheen: new THREE.Color(0x2574b8),
+            bg: new THREE.Color(0x040b1d),
+            softbox: new THREE.Color(0x38bdf8),
+          },
+          tavla: {
+            ambient: new THREE.Color(0x332412),
+            hemiSky: new THREE.Color(0xe8c47a),
+            hemiGround: new THREE.Color(0x1e1208),
+            accent: new THREE.Color(0xf3d06b),
+            sheen: new THREE.Color(0x8c6730),
+            bg: new THREE.Color(0x0d0a12),
+            softbox: new THREE.Color(0xf6c96e),
+          },
+          cards: {
+            ambient: new THREE.Color(0x331424),
+            hemiSky: new THREE.Color(0xd884a4),
+            hemiGround: new THREE.Color(0x1c0814),
+            accent: new THREE.Color(0xf43f5e),
+            sheen: new THREE.Color(0x7d2948),
+            bg: new THREE.Color(0x0e0614),
+            softbox: new THREE.Color(0xfb7185),
+          },
+          default: {
+            ambient: new THREE.Color(0x1b2d52),
+            hemiSky: new THREE.Color(0x74a9f5),
+            hemiGround: new THREE.Color(0x091026),
+            accent: new THREE.Color(0x22d3ee),
+            sheen: new THREE.Color(0x2f5da8),
+            bg: new THREE.Color(0x050a18),
+            softbox: new THREE.Color(0x4fd1ff),
+          },
+        };
+        const focusYawOffsets = {
+          okey: -0.34,
+          dice: -0.06,
+          tavla: 0.24,
+          cards: 0.38,
+        };
+
+        // Initialize ambient lighting to the initially selected game card
+        const initialTheme = AMBIENT_THEMES[selectedSceneFocus] || AMBIENT_THEMES.default;
+        ambientLight.color.copy(initialTheme.ambient);
+        hemiLight.color.copy(initialTheme.hemiSky);
+        hemiLight.groundColor.copy(initialTheme.hemiGround);
+        neonAccentLight.color.copy(initialTheme.accent);
+        neonCyanMat.emissive.copy(initialTheme.accent);
+        floorHalo.material.color.copy(initialTheme.accent);
+        feltMaterial.sheenColor.copy(initialTheme.sheen);
+        scene.background.copy(initialTheme.bg);
+        scene.fog.color.copy(initialTheme.bg);
+        if (coolSoftbox) {
+          coolSoftbox.color.copy(initialTheme.softbox);
+        }
+
+        let frameId = 0;
+        let contextLost = false;
+        let smoothYaw = 0;
+        let smoothPitch = 0;
+        let smoothParallaxX = 0;
+        let smoothParallaxY = 0;
+
+        function afterDraw(cb) {
+          const gl = renderer.getContext();
+          if (gl && typeof gl.fenceSync === 'function') {
+            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+            gl.flush();
+            const poll = () => {
+              const state = sync && gl.getSyncParameter(sync, gl.SYNC_STATUS);
+              if (state === gl.UNSIGNALED) {
+                frameId = window.setTimeout(poll, 5);
+              } else {
+                if (sync) gl.deleteSync(sync);
+                frameId = window.setTimeout(cb, 80);
+              }
+            };
+            frameId = window.setTimeout(poll, 5);
+          } else {
+            frameId = window.setTimeout(cb, 80);
+          }
+        }
+
+        function tick() {
+          if (contextLost) return;
+
+          const delta = Math.min(clock.getDelta(), 0.1);
+          const elapsed = clock.getElapsedTime();
+          const motionScale = prefersReducedMotion ? 0.18 : 1.0;
+          const activeFocus = hoveredSceneFocus || selectedSceneFocus;
+
+          // Gently rotate the central 3D gaming table & orbiting artifacts
+          mainTable.rotation.y += delta * 0.14 * motionScale;
+          floatingGroup.rotation.y += delta * 0.085 * motionScale;
+
+          // Subtle shimmer sweep on the warm rim light for lively specular highlights
+          goldRimLight.position.x = -8.2 + Math.sin(elapsed * 0.42 * motionScale) * 1.8;
+          goldRimLight.position.z = -7.0 + Math.cos(elapsed * 0.36 * motionScale) * 1.4;
+
+          // Float and tumble each 3D game piece smoothly
+          for (let i = 0; i < floaters.length; i++) {
+            const f = floaters[i];
+            const isHighlighted = activeFocus && f.category === activeFocus;
+            const liftBoost = isHighlighted ? (hoveredSceneFocus ? 0.48 : 0.28) : 0;
+            const targetY =
+              f.basePos.y + Math.sin(elapsed * f.speed * motionScale + f.phase) * f.amp + liftBoost;
+
+            f.mesh.position.y = THREE.MathUtils.damp(f.mesh.position.y, targetY, 4.5, delta);
+            const targetScale = isHighlighted ? (hoveredSceneFocus ? 1.16 : 1.09) : 1.0;
+            const nextScale = THREE.MathUtils.damp(f.mesh.scale.x, targetScale, 6, delta);
+            f.mesh.scale.setScalar(nextScale);
+
+            const spinBoost = isHighlighted ? (hoveredSceneFocus ? 1.7 : 1.32) : 1.0;
+            f.mesh.rotation.x += delta * f.rotVel.x * motionScale * spinBoost;
+            f.mesh.rotation.y += delta * f.rotVel.y * motionScale * spinBoost;
+            f.mesh.rotation.z += delta * f.rotVel.z * motionScale * spinBoost;
+          }
+
+          // Drift fine golden dust motes upward with gentle helical breeze
+          const posAttr = particleGeo.attributes.position;
+          for (let i = 0; i < particleCount; i++) {
+            let y = posAttr.getY(i) + delta * pSpeeds[i] * motionScale;
+            if (y > 6.0) y = -2.6;
+            const driftAngle = pAngles[i] + elapsed * 0.055 * motionScale + Math.sin(elapsed * 0.4 + pPhases[i]) * 0.08;
+            const r = pBaseRadii[i] + Math.sin(elapsed * 0.55 + pPhases[i]) * 0.22;
+            posAttr.setXYZ(i, Math.cos(driftAngle) * r, y, Math.sin(driftAngle) * r);
+          }
+          posAttr.needsUpdate = true;
+          particleMat.opacity = 0.76 + Math.sin(elapsed * 1.15) * 0.12;
+
+          // Drift background golden bokeh motes slowly
+          const bokehPosAttr = bokehGeo.attributes.position;
+          for (let i = 0; i < bokehCount; i++) {
+            let y = bokehPosAttr.getY(i) + delta * bSpeeds[i] * motionScale;
+            if (y > 7.0) y = -2.0;
+            bokehPosAttr.setY(i, y);
+          }
+          bokehPosAttr.needsUpdate = true;
+          bokehPoints.rotation.y -= delta * 0.018 * motionScale;
+
+          // Smoothly shift ambient, hemisphere, atmosphere, felt sheen, and accent lighting per selected/hovered game card
+          const targetTheme = AMBIENT_THEMES[activeFocus] || AMBIENT_THEMES.default;
+          const ambientLerp = 1 - Math.exp(-3.2 * delta);
+          const accentLerp = 1 - Math.exp(-4.0 * delta);
+
+          ambientLight.color.lerp(targetTheme.ambient, ambientLerp);
+          ambientLight.intensity = 0.45 + Math.sin(elapsed * 0.85 * motionScale) * 0.03;
+          hemiLight.color.lerp(targetTheme.hemiSky, ambientLerp);
+          hemiLight.groundColor.lerp(targetTheme.hemiGround, ambientLerp);
+          scene.background.lerp(targetTheme.bg, ambientLerp);
+          scene.fog.color.lerp(targetTheme.bg, ambientLerp);
+          feltMaterial.sheenColor.lerp(targetTheme.sheen, ambientLerp);
+          neonAccentLight.color.lerp(targetTheme.accent, accentLerp);
+          neonCyanMat.emissive.lerp(targetTheme.accent, accentLerp);
+          floorHalo.material.color.lerp(targetTheme.accent, accentLerp);
+          if (coolSoftbox) {
+            coolSoftbox.color.lerp(targetTheme.softbox, ambientLerp);
+          }
+
+          // Cinematic mouse-reactive camera parallax + gentle breathing + user drag + card focus
+          const focusYaw = activeFocus ? (focusYawOffsets[activeFocus] || 0) * (hoveredSceneFocus ? 1.0 : 0.65) : 0;
+          smoothParallaxX = THREE.MathUtils.damp(smoothParallaxX, pointerNdcX * motionScale, 3.2, delta);
+          smoothParallaxY = THREE.MathUtils.damp(smoothParallaxY, pointerNdcY * motionScale, 3.2, delta);
+
+          const cinematicSwayYaw = Math.sin(elapsed * 0.24 * motionScale) * 0.045;
+          const cinematicSwayElev = Math.cos(elapsed * 0.31 * motionScale) * 0.14;
+
+          const desiredYaw = userOrbitYaw + smoothParallaxX * 0.24 + focusYaw + cinematicSwayYaw;
+          const desiredPitch = userOrbitPitch - smoothParallaxY * 0.12;
+
+          smoothYaw = THREE.MathUtils.damp(smoothYaw, desiredYaw, 3.6, delta);
+          smoothPitch = THREE.MathUtils.damp(smoothPitch, desiredPitch, 3.6, delta);
+
+          const camRadius = (window.innerWidth < 768 ? 14.2 : 12.1) - Math.abs(smoothParallaxX) * 0.35;
+          const baseElevation = 5.45 + cinematicSwayElev;
+          _targetCamPos.set(
+            Math.sin(smoothYaw) * camRadius + smoothParallaxX * 0.45,
+            baseElevation + smoothPitch * 3.6,
+            Math.cos(smoothYaw) * camRadius
+          );
+          camera.position.lerp(_targetCamPos, 1 - Math.exp(-4.6 * delta));
+
+          _targetLook.set(
+            smoothParallaxX * 0.55,
+            0.22 - smoothParallaxY * 0.28,
+            0
+          );
+          _smoothLook.lerp(_targetLook, 1 - Math.exp(-4.2 * delta));
+          camera.lookAt(_smoothLook);
+
+          renderer.render(scene, camera);
+
+          if (isSoftwareGl) {
+            afterDraw(tick);
+          } else {
+            frameId = requestAnimationFrame(tick);
+          }
+        }
+
+        if (!isSoftwareGl) {
+          renderer.compile(scene, camera);
+        }
+        tick();
+
+        /* ------------------ RESIZE & WEBGL CONTEXT RESILIENCE ------------------ */
+        window.addEventListener('resize', () => {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+          renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+        });
+
+        renderer.domElement.addEventListener('webglcontextlost', (e) => {
+          e.preventDefault();
+          contextLost = true;
+          cancelAnimationFrame(frameId);
+          clearTimeout(frameId);
+        });
+
+        renderer.domElement.addEventListener('webglcontextrestored', () => {
+          contextLost = false;
+          tick();
+        });
+      }
+      })();
+    </script>
+    <script>
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
+        window.addEventListener('load', () => {
+          let refreshing = false;
+
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+          });
+
+          navigator.serviceWorker
+            .register('./sw.js', { updateViaCache: 'none' })
+            .then((registration) => {
+              // Uygulama açıldığında arka planda güncelleme kontrolü yap
+              registration.update().catch(() => {});
+
+              // Yeni sürüm tespit edildiğinde etkinleştirmeyi tetikle
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (!newWorker) return;
+
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                });
+              });
+
+              // Uygulamaya geri dönüldüğünde ve periyodik olarak güncelleme kontrolü yap
+              document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                  registration.update().catch(() => {});
+                }
+              });
+
+              setInterval(() => {
+                registration.update().catch(() => {});
+              }, 30 * 60 * 1000);
+            })
+            .catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>

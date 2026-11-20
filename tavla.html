@@ -1,0 +1,3795 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>3D Tavla — Masa Oyunları 3D</title>
+    <meta
+      name="description"
+      content="Klasik Türk Tavlası kuralları, prosedürel 3D ceviz tavla tahtası, fiziksel zar animasyonu ve akıllı AI rakip ile 3D Tavla."
+    />
+    <style>
+      :root {
+        --bg-void: #08070d;
+        --panel-bg: rgba(14, 15, 26, 0.9);
+        --panel-soft: rgba(22, 24, 40, 0.84);
+        --border-gold: rgba(212, 175, 55, 0.36);
+        --border-subtle: rgba(148, 163, 184, 0.22);
+        --gold: #f3d06b;
+        --gold-deep: #c59524;
+        --emerald: #34d399;
+        --crimson: #f43f5e;
+        --cyan: #38bdf8;
+        --text-main: #f8fafc;
+        --text-dim: #cbd5e1;
+        --text-muted: #94a3b8;
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg-void);
+        color: var(--text-main);
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        user-select: none;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #canvas-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background: radial-gradient(ellipse 80% 70% at 50% 45%, #231814 0%, #100c14 58%, #07060b 100%);
+        touch-action: none;
+      }
+
+      #canvas-wrap canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ================= TOP HUD BAR ================= */
+      .hud-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        padding: 10px 18px;
+        background: linear-gradient(180deg, rgba(10, 10, 18, 0.94) 0%, rgba(14, 15, 26, 0.82) 100%);
+        border-bottom: 1px solid var(--border-gold);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .hud-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-shrink: 0;
+      }
+
+      .brand-col {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+
+      .brand-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.08rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: var(--gold);
+        white-space: nowrap;
+      }
+
+      .brand-sub {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Scoreboard counters: Human vs Bot */
+      .versus-strip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .side-stat {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 5px 12px;
+        border-radius: 10px;
+        background: rgba(20, 22, 36, 0.82);
+        border: 1px solid var(--border-subtle);
+        white-space: nowrap;
+        transition: border-color 180ms var(--ease), background-color 180ms var(--ease);
+      }
+
+      .side-stat.active {
+        border-color: var(--gold);
+        background: rgba(42, 36, 28, 0.9);
+        box-shadow: 0 0 14px rgba(243, 208, 107, 0.2);
+      }
+
+      .checker-swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .checker-swatch.white {
+        background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e7dbc1 72%, #b59e72 100%);
+        border: 1.5px solid #d4af37;
+      }
+
+      .checker-swatch.black {
+        background: radial-gradient(circle at 35% 30%, #7f1d1d 0%, #2b090e 55%, #090609 100%);
+        border: 1.5px solid #d4af37;
+      }
+
+      .stat-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .stat-meta {
+        font-size: 0.74rem;
+        color: var(--text-dim);
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .stat-bar-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #fda4af;
+        margin-left: 2px;
+      }
+
+      /* Right controls */
+      .hud-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .chip-box {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 9px;
+        background: rgba(26, 24, 34, 0.88);
+        border: 1px solid var(--border-gold);
+        white-space: nowrap;
+      }
+
+      .chip-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+
+      .chip-unit {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+      }
+
+      .hud-btn {
+        appearance: none;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 9px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(20, 22, 36, 0.85);
+        color: var(--text-dim);
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease), transform 120ms var(--ease);
+      }
+
+      .hud-btn:hover {
+        background: rgba(36, 38, 58, 0.94);
+        border-color: rgba(243, 208, 107, 0.5);
+        color: var(--text-main);
+      }
+
+      .hud-btn:active {
+        transform: scale(0.96);
+      }
+
+      .hud-btn.lobby-link {
+        border-color: rgba(243, 208, 107, 0.5);
+        color: var(--gold);
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(20, 22, 36, 0.92));
+      }
+
+      .hud-btn.lobby-link:hover {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.28), rgba(32, 34, 52, 0.96));
+      }
+
+      /* ================= STATUS BANNER & TOAST ================= */
+      .turn-banner {
+        position: fixed;
+        top: 66px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 18;
+        padding: 6px 16px;
+        border-radius: 9px;
+        background: rgba(12, 13, 22, 0.86);
+        border: 1px solid rgba(243, 208, 107, 0.34);
+        color: var(--text-main);
+        font-size: 0.82rem;
+        font-weight: 600;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      }
+
+      .turn-banner.highlight {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+
+      .toast {
+        position: fixed;
+        top: 106px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-10px);
+        z-index: 35;
+        padding: 9px 18px;
+        border-radius: 9px;
+        background: rgba(12, 14, 24, 0.96);
+        border: 1px solid var(--border-gold);
+        color: var(--text-main);
+        font-size: 0.83rem;
+        font-weight: 600;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+        transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .toast.error {
+        border-color: rgba(244, 63, 94, 0.72);
+        color: #fecdd3;
+      }
+
+      .toast.success {
+        border-color: rgba(52, 211, 153, 0.72);
+        color: #a7f3d0;
+      }
+
+      /* ================= BOTTOM CONTROL DOCK ================= */
+      .control-dock {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        max-width: min(880px, 96vw);
+        padding: 8px 14px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(16, 17, 30, 0.92) 0%, rgba(10, 11, 20, 0.96) 100%);
+        border: 1px solid var(--border-gold);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+      }
+
+      .dice-hud {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding-right: 4px;
+      }
+
+      .die-2d {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: linear-gradient(155deg, #fffdf7 0%, #e5d9bf 100%);
+        border: 1.5px solid #c9a145;
+        display: grid;
+        place-items: center;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #18141a;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+        transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+      }
+
+      .die-2d.used {
+        opacity: 0.3;
+        transform: scale(0.9);
+      }
+
+      .die-2d.empty {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(148, 163, 184, 0.26);
+        color: var(--text-muted);
+      }
+
+      .dock-sep {
+        width: 1px;
+        height: 26px;
+        background: rgba(148, 163, 184, 0.22);
+        flex-shrink: 0;
+      }
+
+      .act-btn {
+        appearance: none;
+        height: 40px;
+        padding: 0 16px;
+        border-radius: 9px;
+        border: 1px solid rgba(148, 163, 184, 0.26);
+        background: rgba(28, 30, 48, 0.88);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background-color 150ms var(--ease), border-color 150ms var(--ease), transform 120ms var(--ease), opacity 150ms var(--ease);
+      }
+
+      .act-btn:hover:not(:disabled) {
+        background: rgba(42, 46, 72, 0.96);
+        border-color: rgba(243, 208, 107, 0.55);
+      }
+
+      .act-btn:active:not(:disabled) {
+        transform: scale(0.96);
+      }
+
+      .act-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .act-btn.primary {
+        background: linear-gradient(135deg, #e5bf4b 0%, #c19220 100%);
+        border-color: rgba(254, 240, 138, 0.6);
+        color: #0b0a10;
+      }
+
+      .act-btn.primary:hover:not(:disabled) {
+        filter: brightness(1.08);
+      }
+
+      .act-btn.emerald {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(6, 78, 59, 0.76));
+        border-color: rgba(52, 211, 153, 0.65);
+        color: #a7f3d0;
+      }
+
+      /* ================= GAME OVER / MARS MODAL ================= */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(5, 6, 12, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: 100%;
+        max-width: 470px;
+        padding: 26px;
+        border-radius: 16px;
+        background: linear-gradient(160deg, rgba(28, 24, 34, 0.97) 0%, rgba(12, 12, 20, 0.99) 100%);
+        border: 1px solid var(--border-gold);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.78);
+      }
+
+      .modal-kicker {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 4px;
+      }
+
+      .modal-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 8px;
+      }
+
+      .modal-desc {
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: var(--text-dim);
+        margin-bottom: 18px;
+      }
+
+      .result-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .result-cell {
+        padding: 12px;
+        border-radius: 10px;
+        background: rgba(10, 10, 18, 0.78);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+      }
+
+      .result-label {
+        font-size: 0.74rem;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+
+      .result-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .reward-bar {
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(10, 10, 18, 0.82);
+        border: 1px solid rgba(243, 208, 107, 0.32);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+      }
+
+      .reward-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+
+      .reward-val.pos {
+        color: var(--emerald);
+      }
+
+      .reward-val.neg {
+        color: var(--crimson);
+      }
+
+      .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      @media (max-width: 1080px) {
+        .hud-top {
+          flex-wrap: wrap;
+          padding: 8px 12px;
+          gap: 8px;
+        }
+        .versus-strip {
+          order: 3;
+          width: 100%;
+          justify-content: center;
+        }
+        .turn-banner {
+          top: 104px;
+        }
+        .toast {
+          top: 142px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hud-btn span {
+          display: none;
+        }
+        .hud-btn.lobby-link span {
+          display: inline;
+        }
+        .act-btn {
+          height: 36px;
+          padding: 0 11px;
+          font-size: 0.76rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap" aria-label="3D Tavla Tahtası"></div>
+
+    <!-- TOP HUD -->
+    <header class="hud-top">
+      <div class="hud-left">
+        <div class="brand-col">
+          <div class="brand-title">3D TAVLA</div>
+          <div class="brand-sub" id="hud-stake">Masa: 500 Çip · Mars 2×</div>
+        </div>
+      </div>
+
+      <!-- Remaining Checkers Counters -->
+      <div class="versus-strip" aria-label="Kalan Pul Sayaçları">
+        <div class="side-stat" id="stat-human">
+          <span class="checker-swatch white" aria-hidden="true"></span>
+          <span class="stat-name" id="name-human">Sen</span>
+          <span class="stat-meta" id="meta-human">Kalan: 15 · Pip: 167</span>
+        </div>
+        <div class="side-stat" id="stat-bot">
+          <span class="checker-swatch black" aria-hidden="true"></span>
+          <span class="stat-name">Usta Bot</span>
+          <span class="stat-meta" id="meta-bot">Kalan: 15 · Pip: 167</span>
+        </div>
+      </div>
+
+      <!-- Chips, Camera, Sound, Return to Lobby -->
+      <div class="hud-right">
+        <div class="chip-box" title="Ortak Platform Çip Bakiyesi">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="rgba(243,208,107,0.18)" stroke="#F3D06B" stroke-width="1.8" />
+            <circle cx="12" cy="12" r="4.8" stroke="#D4AF37" stroke-width="1.4" stroke-dasharray="2.5 2" />
+          </svg>
+          <span class="chip-val" id="hud-chips">10.000</span>
+          <span class="chip-unit">Çip</span>
+        </div>
+
+        <button type="button" class="hud-btn" id="btn-cam" title="Kamera açısını değiştir (V)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+          <span id="cam-label">Kuşbakışı</span>
+        </button>
+
+        <button type="button" class="hud-btn" id="btn-sound" title="Ses efektlerini aç/kapat">
+          <svg id="ico-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          </svg>
+          <svg id="ico-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+          <span id="sound-label">Ses</span>
+        </button>
+
+        <a href="index.html" class="hud-btn lobby-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+            <path d="M3 12h18" />
+            <path d="M9 6l-6 6 6 6" />
+          </svg>
+          <span>Ana Lobiye Dön</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Turn Banner & Toast -->
+    <div class="turn-banner" id="turn-banner">Zar atarak oyuna başla!</div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- BOTTOM CONTROL DOCK -->
+    <nav class="control-dock" aria-label="Tavla Kontrolleri">
+      <div class="dice-hud" id="dice-hud" aria-label="Atılan Zarlar">
+        <div class="die-2d empty">-</div>
+        <div class="die-2d empty">-</div>
+      </div>
+
+      <div class="dock-sep" aria-hidden="true"></div>
+
+      <button type="button" class="act-btn primary" id="btn-roll">Zar At</button>
+      <button type="button" class="act-btn" id="btn-undo">Hamleyi Geri Al</button>
+      <button type="button" class="act-btn emerald" id="btn-confirm">Turu Tamamla</button>
+    </nav>
+
+    <!-- END-OF-GAME MODAL -->
+    <div class="modal-backdrop" id="end-modal" role="dialog" aria-modal="true" aria-labelledby="end-title">
+      <div class="modal-card">
+        <div class="modal-kicker" id="end-kicker">OYUN SONU</div>
+        <h2 class="modal-title" id="end-title">Tebrikler!</h2>
+        <p class="modal-desc" id="end-desc">Tüm pullarını başarıyla topladın.</p>
+        <div class="result-grid">
+          <div class="result-cell">
+            <div class="result-label">Senin Toplanan Pulun</div>
+            <div class="result-val" id="res-human">15 / 15</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-label">Usta Bot Toplanan</div>
+            <div class="result-val" id="res-bot">0 / 15</div>
+          </div>
+        </div>
+        <div class="reward-bar">
+          <span id="reward-label">Ödül Sonucu</span>
+          <span class="reward-val" id="reward-val">+0 Çip</span>
+        </div>
+        <div class="modal-actions">
+          <a href="index.html" class="hud-btn lobby-link">Ana Lobiye Dön</a>
+          <button type="button" class="act-btn primary" id="btn-rematch">Yeni Oyun</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./three.min.js"></script>
+    <script>
+      (() => {
+        'use strict';
+
+        function createStudioEnvScene() {
+          const env = new THREE.Scene();
+          env.add(
+            new THREE.Mesh(
+              new THREE.BoxGeometry(28, 18, 28),
+              new THREE.MeshStandardMaterial({
+                color: 0x1a1822,
+                roughness: 0.9,
+                metalness: 0.05,
+                side: THREE.BackSide,
+              })
+            )
+          );
+          env.add(new THREE.AmbientLight(0xffffff, 0.7));
+          const addPanel = (hex, intensity, pos, rot, w, h) => {
+            const p = new THREE.Mesh(
+              new THREE.PlaneGeometry(w, h),
+              new THREE.MeshBasicMaterial({
+                color: new THREE.Color(hex).multiplyScalar(intensity),
+                side: THREE.DoubleSide,
+                toneMapped: false,
+              })
+            );
+            p.position.set(pos[0], pos[1], pos[2]);
+            p.rotation.set(rot[0], rot[1], rot[2]);
+            env.add(p);
+          };
+          addPanel(0xfff2d6, 1.25, [0, 8.6, 0], [Math.PI / 2, 0, 0], 11, 7);
+          addPanel(0xffdda0, 0.95, [11, 4.5, 6], [0, -Math.PI * 0.65, 0], 8, 4.5);
+          addPanel(0xa2c4f8, 0.8, [-11, 4.2, -6], [0, Math.PI * 0.35, 0], 8, 4.5);
+          return env;
+        }
+
+        function disposeEnvScene(env) {
+          env.traverse((obj) => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+              else obj.material.dispose();
+            }
+          });
+        }
+
+        class OrbitControls {
+          constructor(camera, domElement) {
+            this.object = camera;
+            this.domElement = domElement;
+            this.enabled = true;
+            this.target = new THREE.Vector3();
+            this.enableDamping = false;
+            this.dampingFactor = 0.06;
+            this.enablePan = true;
+            this.minDistance = 2;
+            this.maxDistance = 100;
+            this.minPolarAngle = 0.05;
+            this.maxPolarAngle = Math.PI - 0.05;
+            this.rotateSpeed = 0.85;
+            this.zoomSpeed = 1.0;
+            this.panSpeed = 0.85;
+
+            this._listeners = {};
+            this._spherical = new THREE.Spherical();
+            this._sphericalDelta = new THREE.Spherical();
+            this._panOffset = new THREE.Vector3();
+            this._offset = new THREE.Vector3();
+            this._scale = 1;
+            this._pointers = new Map();
+            this._prevPinchDist = 0;
+            this._prevMid = { x: 0, y: 0 };
+            this._dragButton = -1;
+
+            this._onPointerDown = (e) => {
+              if (!this.enabled) return;
+              this._pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+              if (this._pointers.size === 1) {
+                this._dragButton = e.button;
+                this._dispatch('start');
+              } else if (this._pointers.size === 2) {
+                const pts = Array.from(this._pointers.values());
+                this._prevPinchDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+                this._prevMid = { x: (pts[0].x + pts[1].x) * 0.5, y: (pts[0].y + pts[1].y) * 0.5 };
+                this._dispatch('start');
+              }
+            };
+
+            this._onPointerMove = (e) => {
+              if (!this.enabled || !this._pointers.has(e.pointerId)) return;
+              const prev = this._pointers.get(e.pointerId);
+              const dx = e.clientX - prev.x;
+              const dy = e.clientY - prev.y;
+              this._pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+              const rect = this.domElement.getBoundingClientRect();
+              const h = Math.max(rect.height, 1);
+
+              if (this._pointers.size === 1) {
+                if (this._dragButton === 2 && this.enablePan) {
+                  this._pan(dx, dy, h);
+                } else {
+                  this._sphericalDelta.theta -= (2 * Math.PI * dx * this.rotateSpeed) / h;
+                  this._sphericalDelta.phi -= (2 * Math.PI * dy * this.rotateSpeed) / h;
+                }
+              } else if (this._pointers.size === 2) {
+                const pts = Array.from(this._pointers.values());
+                const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+                const mid = { x: (pts[0].x + pts[1].x) * 0.5, y: (pts[0].y + pts[1].y) * 0.5 };
+                if (this._prevPinchDist > 1 && dist > 1) {
+                  this._scale *= Math.pow(this._prevPinchDist / dist, this.zoomSpeed);
+                }
+                if (this.enablePan) {
+                  this._pan(mid.x - this._prevMid.x, mid.y - this._prevMid.y, h);
+                }
+                this._prevPinchDist = dist;
+                this._prevMid = mid;
+              }
+            };
+
+            this._onPointerUp = (e) => {
+              this._pointers.delete(e.pointerId);
+              if (this._pointers.size < 2) this._prevPinchDist = 0;
+              if (this._pointers.size === 0) this._dragButton = -1;
+            };
+
+            this._onWheel = (e) => {
+              if (!this.enabled) return;
+              e.preventDefault();
+              this._dispatch('start');
+              const factor = Math.pow(0.95, this.zoomSpeed);
+              if (e.deltaY < 0) this._scale *= factor;
+              else if (e.deltaY > 0) this._scale /= factor;
+            };
+
+            this._onContextMenu = (e) => {
+              if (this.enablePan) e.preventDefault();
+            };
+
+            domElement.style.touchAction = 'none';
+            domElement.addEventListener('pointerdown', this._onPointerDown);
+            window.addEventListener('pointermove', this._onPointerMove);
+            window.addEventListener('pointerup', this._onPointerUp);
+            window.addEventListener('pointercancel', this._onPointerUp);
+            domElement.addEventListener('wheel', this._onWheel, { passive: false });
+            domElement.addEventListener('contextmenu', this._onContextMenu);
+          }
+
+          _pan(deltaX, deltaY, clientHeight) {
+            const dist = this.object.position.distanceTo(this.target);
+            const fovRad = (this.object.fov * Math.PI) / 180;
+            const targetDist = dist * Math.tan(fovRad * 0.5);
+            const panX = (2 * deltaX * targetDist * this.panSpeed) / clientHeight;
+            const panY = (2 * deltaY * targetDist * this.panSpeed) / clientHeight;
+            const right = new THREE.Vector3().setFromMatrixColumn(this.object.matrix, 0).multiplyScalar(-panX);
+            const up = new THREE.Vector3().setFromMatrixColumn(this.object.matrix, 1).multiplyScalar(panY);
+            this._panOffset.add(right).add(up);
+          }
+
+          addEventListener(type, fn) {
+            if (!this._listeners[type]) this._listeners[type] = [];
+            this._listeners[type].push(fn);
+          }
+
+          removeEventListener(type, fn) {
+            if (!this._listeners[type]) return;
+            this._listeners[type] = this._listeners[type].filter((f) => f !== fn);
+          }
+
+          _dispatch(type) {
+            const list = this._listeners[type];
+            if (list) list.forEach((fn) => fn({ type, target: this }));
+          }
+
+          update() {
+            this._offset.copy(this.object.position).sub(this.target);
+            this._spherical.setFromVector3(this._offset);
+
+            if (this.enableDamping) {
+              this._spherical.theta += this._sphericalDelta.theta * this.dampingFactor;
+              this._spherical.phi += this._sphericalDelta.phi * this.dampingFactor;
+              this._sphericalDelta.theta *= 1 - this.dampingFactor;
+              this._sphericalDelta.phi *= 1 - this.dampingFactor;
+            } else {
+              this._spherical.theta += this._sphericalDelta.theta;
+              this._spherical.phi += this._sphericalDelta.phi;
+              this._sphericalDelta.set(0, 0, 0);
+            }
+
+            this._spherical.phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, this._spherical.phi));
+            this._spherical.makeSafe();
+
+            this._spherical.radius *= this._scale;
+            this._spherical.radius = Math.max(this.minDistance, Math.min(this.maxDistance, this._spherical.radius));
+            this._scale = 1;
+
+            if (this.enableDamping) {
+              this.target.addScaledVector(this._panOffset, this.dampingFactor);
+              this._panOffset.multiplyScalar(1 - this.dampingFactor);
+            } else {
+              this.target.add(this._panOffset);
+              this._panOffset.set(0, 0, 0);
+            }
+
+            this._offset.setFromSpherical(this._spherical);
+            this.object.position.copy(this.target).add(this._offset);
+            this.object.lookAt(this.target);
+            return true;
+          }
+        }
+
+      /* =========================================================================
+       * 1. SHARED LOCALSTORAGE CHIPS & PROFILE SYNC (masaOyunlariChips)
+       * ========================================================================= */
+      const CHIPS_KEY = 'masaOyunlariChips';
+      const PROFILE_KEY = 'masa_oyunlari_3d_profile';
+      const DEFAULT_CHIPS = 10000;
+      const fmt = (n) => new Intl.NumberFormat('tr-TR').format(Math.floor(n));
+
+      function readChips() {
+        try {
+          const direct = localStorage.getItem(CHIPS_KEY);
+          if (direct !== null && Number.isFinite(Number(direct))) {
+            return Math.max(0, Math.floor(Number(direct)));
+          }
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+          if (prof && Number.isFinite(Number(prof.chips))) {
+            const c = Math.max(0, Math.floor(Number(prof.chips)));
+            localStorage.setItem(CHIPS_KEY, String(c));
+            return c;
+          }
+        } catch {}
+        localStorage.setItem(CHIPS_KEY, String(DEFAULT_CHIPS));
+        return DEFAULT_CHIPS;
+      }
+
+      function readPlayerName() {
+        try {
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+          if (prof && prof.username && String(prof.username).trim()) {
+            return String(prof.username).trim().slice(0, 14);
+          }
+        } catch {}
+        return 'Sen';
+      }
+
+      function writeChips(newChips, won = false) {
+        const val = Math.max(0, Math.floor(newChips));
+        try {
+          localStorage.setItem(CHIPS_KEY, String(val));
+          localStorage.setItem('mo3d_chips', String(val));
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+          prof.chips = val;
+          if (!prof.username) prof.username = readPlayerName();
+          if (won) {
+            prof.wins = (Number(prof.wins) || 0) + 1;
+            localStorage.setItem('mo3d_wins', String(prof.wins));
+          }
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(prof));
+        } catch {}
+        document.getElementById('hud-chips').textContent = fmt(val);
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const tableStake = Math.max(
+        100,
+        Number(params.get('stake')) || Number(localStorage.getItem('mo3d_stake')) || 500
+      );
+      let playerChips = readChips();
+      const humanName = readPlayerName();
+      document.getElementById('hud-chips').textContent = fmt(playerChips);
+      document.getElementById('name-human').textContent = humanName;
+      document.getElementById('hud-stake').textContent = `Masa: ${fmt(tableStake)} Çip · Mars 2×`;
+
+      /* =========================================================================
+       * 2. PROCEDURAL WEB AUDIO API SOUND ENGINE
+       * ========================================================================= */
+      class TavlaSound {
+        constructor() {
+          this.ctx = null;
+          this.enabled = true;
+          try {
+            const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+            if (p.soundEnabled === false) this.enabled = false;
+          } catch {}
+        }
+
+        ensure() {
+          if (!this.enabled) return null;
+          if (!this.ctx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return null;
+            this.ctx = new Ctx();
+          }
+          if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+          return this.ctx;
+        }
+
+        playDiceBounce(strength = 1.0) {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const gainAmt = Math.min(0.32, 0.24 * strength);
+
+          // Crisp bone-on-wood rattle transient
+          const len = Math.floor(ctx.sampleRate * 0.026);
+          const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.18));
+          }
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+
+          const bp = ctx.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.setValueAtTime(1950 + Math.random() * 750, now);
+          bp.Q.setValueAtTime(2.4, now);
+
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(gainAmt, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.028);
+
+          src.connect(bp);
+          bp.connect(g);
+          g.connect(ctx.destination);
+          src.start(now);
+
+          // Hollow walnut box resonance
+          const osc = ctx.createOscillator();
+          const og = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520 + Math.random() * 180, now);
+          osc.frequency.exponentialRampToValueAtTime(190, now + 0.038);
+          og.gain.setValueAtTime(gainAmt * 0.5, now);
+          og.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.connect(og);
+          og.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.042);
+        }
+
+        // Classic Turkish backgammon wooden "şak" checker slam
+        playCheckerClack(pitch = 1.0) {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          const len = Math.floor(ctx.sampleRate * 0.034);
+          const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) {
+            d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.14));
+          }
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+
+          const bp = ctx.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.setValueAtTime(2600 * pitch, now);
+          bp.Q.setValueAtTime(1.8, now);
+
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.36, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.036);
+
+          src.connect(bp);
+          bp.connect(g);
+          g.connect(ctx.destination);
+          src.start(now);
+
+          const osc = ctx.createOscillator();
+          const og = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(760 * pitch, now);
+          osc.frequency.exponentialRampToValueAtTime(210 * pitch, now + 0.055);
+          og.gain.setValueAtTime(0.24, now);
+          og.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+          osc.connect(og);
+          og.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.065);
+        }
+
+        playHit() {
+          this.playCheckerClack(0.84);
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(340, now + 0.02);
+          osc.frequency.exponentialRampToValueAtTime(95, now + 0.18);
+
+          const lp = ctx.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.setValueAtTime(620, now);
+
+          g.gain.setValueAtTime(0.14, now + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.19);
+          osc.connect(lp);
+          lp.connect(g);
+          g.connect(ctx.destination);
+          osc.start(now + 0.02);
+          osc.stop(now + 0.2);
+        }
+
+        playBearOff() {
+          this.playCheckerClack(1.22);
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, now + 0.03);
+          osc.frequency.exponentialRampToValueAtTime(1320, now + 0.16);
+          g.gain.setValueAtTime(0.075, now + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(now + 0.03);
+          osc.stop(now + 0.2);
+        }
+
+        playVictory(isMars = false) {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const notes = isMars
+            ? [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98]
+            : [523.25, 659.25, 783.99, 1046.5];
+          notes.forEach((f, i) => {
+            const t = now + i * 0.075;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = i >= 3 ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.001, t);
+            g.gain.linearRampToValueAtTime(0.095, t + 0.015);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.42);
+          });
+        }
+
+        playError() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [200, 150].forEach((f, i) => {
+            const t = now + i * 0.08;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.08, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.11);
+          });
+        }
+      }
+
+      const sound = new TavlaSound();
+
+      /* =========================================================================
+       * 3. CLASSIC TURKISH BACKGAMMON ENGINE & SMART AI
+       *    Human = +1 (White, moves 23 -> 0, home 0..5, bears off to -1)
+       *    Bot   = -1 (Black, moves 0 -> 23, home 18..23, bears off to 24)
+       * ========================================================================= */
+      const HUMAN = 1;
+      const BOT = -1;
+
+      function createInitialBoardState() {
+        const points = new Array(24).fill(0);
+        // Human (+1): 2 on 24(23), 5 on 13(12), 3 on 8(7), 5 on 6(5)
+        points[23] = 2;
+        points[12] = 5;
+        points[7] = 3;
+        points[5] = 5;
+        // Bot (-1): 2 on 1(0), 5 on 12(11), 3 on 17(16), 5 on 19(18)
+        points[0] = -2;
+        points[11] = -5;
+        points[16] = -3;
+        points[18] = -5;
+        return {
+          points,
+          bar: { [HUMAN]: 0, [BOT]: 0 },
+          off: { [HUMAN]: 0, [BOT]: 0 },
+        };
+      }
+
+      function cloneState(st) {
+        return {
+          points: st.points.slice(),
+          bar: { [HUMAN]: st.bar[HUMAN], [BOT]: st.bar[BOT] },
+          off: { [HUMAN]: st.off[HUMAN], [BOT]: st.off[BOT] },
+        };
+      }
+
+      function allCheckersInHome(st, player) {
+        if (st.bar[player] > 0) return false;
+        if (player === HUMAN) {
+          for (let i = 6; i < 24; i++) {
+            if (st.points[i] > 0) return false;
+          }
+          return true;
+        } else {
+          for (let i = 0; i < 18; i++) {
+            if (st.points[i] < 0) return false;
+          }
+          return true;
+        }
+      }
+
+      function getSingleDieMoves(st, player, die) {
+        const moves = [];
+
+        // 1. Must re-enter from bar first
+        if (st.bar[player] > 0) {
+          const target = player === HUMAN ? 24 - die : die - 1;
+          const oppCount = st.points[target] * -player;
+          if (oppCount <= 1) {
+            moves.push({ from: 'bar', to: target, die, isHit: oppCount === 1 });
+          }
+          return moves;
+        }
+
+        const canBearOff = allCheckersInHome(st, player);
+        let furthestHomeDist = 0;
+        if (canBearOff) {
+          if (player === HUMAN) {
+            for (let p = 5; p >= 0; p--) {
+              if (st.points[p] > 0) {
+                furthestHomeDist = p + 1;
+                break;
+              }
+            }
+          } else {
+            for (let p = 18; p <= 23; p++) {
+              if (st.points[p] < 0) {
+                furthestHomeDist = 24 - p;
+                break;
+              }
+            }
+          }
+        }
+
+        for (let p = 0; p < 24; p++) {
+          if (st.points[p] * player <= 0) continue;
+
+          const dest = player === HUMAN ? p - die : p + die;
+          if (dest >= 0 && dest <= 23) {
+            const oppCount = st.points[dest] * -player;
+            if (oppCount <= 1) {
+              moves.push({ from: p, to: dest, die, isHit: oppCount === 1 });
+            }
+          } else if (canBearOff) {
+            const distFromOff = player === HUMAN ? p + 1 : 24 - p;
+            if (distFromOff === die || (die > furthestHomeDist && distFromOff === furthestHomeDist)) {
+              moves.push({ from: p, to: 'off', die, isHit: false });
+            }
+          }
+        }
+
+        return moves;
+      }
+
+      function applyMoveToState(st, player, move) {
+        const next = cloneState(st);
+        if (move.from === 'bar') {
+          next.bar[player]--;
+        } else {
+          next.points[move.from] -= player;
+        }
+
+        if (move.to === 'off') {
+          next.off[player]++;
+        } else {
+          if (next.points[move.to] * -player === 1) {
+            next.points[move.to] = 0;
+            next.bar[-player]++;
+          }
+          next.points[move.to] += player;
+        }
+        return next;
+      }
+
+      /**
+       * Generates all maximal-dice-count legal move sequences for a turn,
+       * enforcing the official Backgammon maximum-dice & higher-die rules.
+       */
+      function getMaxLegalSequences(st, player, diceList) {
+        const results = [];
+        let maxLen = 0;
+        let maxSingleDieUsed = 0;
+        const visited = new Set();
+
+        function dfs(curState, remDice, seq) {
+          const stateKey = `${curState.points.join(',')}|${curState.bar[HUMAN]},${curState.bar[BOT]}|${remDice.slice().sort().join(',')}`;
+          if (visited.has(stateKey)) return;
+          visited.add(stateKey);
+
+          let extended = false;
+          const uniqueDice = Array.from(new Set(remDice));
+
+          for (const d of uniqueDice) {
+            const singleMoves = getSingleDieMoves(curState, player, d);
+            if (singleMoves.length === 0) continue;
+
+            const dIdx = remDice.indexOf(d);
+            const nextDice = remDice.slice();
+            nextDice.splice(dIdx, 1);
+
+            for (const m of singleMoves) {
+              extended = true;
+              const nextState = applyMoveToState(curState, player, m);
+              seq.push(m);
+              dfs(nextState, nextDice, seq);
+              seq.pop();
+            }
+          }
+
+          if (!extended) {
+            if (seq.length > maxLen) {
+              maxLen = seq.length;
+              results.length = 0;
+              maxSingleDieUsed = seq.length === 1 ? seq[0].die : 0;
+              results.push({ seq: seq.slice(), finalState: curState });
+            } else if (seq.length === maxLen && seq.length > 0) {
+              if (seq.length === 1) {
+                if (seq[0].die > maxSingleDieUsed) {
+                  maxSingleDieUsed = seq[0].die;
+                  results.length = 0;
+                  results.push({ seq: seq.slice(), finalState: curState });
+                } else if (seq[0].die === maxSingleDieUsed) {
+                  results.push({ seq: seq.slice(), finalState: curState });
+                }
+              } else {
+                results.push({ seq: seq.slice(), finalState: curState });
+              }
+            }
+          }
+        }
+
+        dfs(st, diceList.slice(), []);
+        return results;
+      }
+
+      /**
+       * Returns all valid immediate first moves from current state & remaining dice
+       * that still permit achieving the maximum possible dice usage.
+       */
+      function getValidImmediateMoves(st, player, remDice) {
+        if (remDice.length === 0) return [];
+        const seqs = getMaxLegalSequences(st, player, remDice);
+        const byKey = new Map();
+        for (const item of seqs) {
+          const first = item.seq[0];
+          const key = `${first.from}->${first.to}:${first.die}`;
+          if (!byKey.has(key)) byKey.set(key, first);
+        }
+        return Array.from(byKey.values());
+      }
+
+      /**
+       * Smart Turkish Tavla AI Board Evaluator (for Bot = -1)
+       */
+      function evaluateBotPosition(st) {
+        let score = 0;
+        // Bearing off & bar control
+        score += st.off[BOT] * 42;
+        score -= st.bar[BOT] * 48;
+        score += st.bar[HUMAN] * 38;
+
+        let consecutivePrime = 0;
+        for (let p = 0; p < 24; p++) {
+          const val = st.points[p];
+          if (val < 0) {
+            const count = -val;
+            // Advancement toward Bot home (18..23)
+            score += count * (p * 0.65);
+
+            if (count >= 2) {
+              // Kapı (made point)
+              score += 22;
+              if (p >= 18) score += 12; // Home board kapı
+              if (p >= 15 && p <= 20) score += 7; // Key prime zone
+              consecutivePrime++;
+              if (consecutivePrime >= 3) score += consecutivePrime * 6;
+            } else {
+              // Single blot penalty — heavier if Human can reach it!
+              consecutivePrime = 0;
+              let danger = 0;
+              if (st.bar[HUMAN] > 0 && p >= 18) danger += 1.4;
+              for (let dist = 1; dist <= 6; dist++) {
+                if (p + dist < 24 && st.points[p + dist] > 0) danger += 1.0;
+              }
+              score -= 14 + danger * 13 + (p > 12 ? 6 : 0);
+            }
+          } else {
+            consecutivePrime = 0;
+          }
+        }
+
+        // Extra reward if all checkers safely in home board
+        if (allCheckersInHome(st, BOT)) score += 35;
+        return score;
+      }
+
+      function chooseBestBotSequence(st, diceList) {
+        const seqs = getMaxLegalSequences(st, BOT, diceList);
+        if (seqs.length === 0) return [];
+        let best = seqs[0].seq;
+        let bestScore = -Infinity;
+
+        for (const cand of seqs) {
+          // Small tie-breaking jitter so bot feels organic across games
+          const s = evaluateBotPosition(cand.finalState) + Math.random() * 1.2;
+          if (s > bestScore) {
+            bestScore = s;
+            best = cand.seq;
+          }
+        }
+        return best;
+      }
+
+      function computePipCount(st, player) {
+        let pip = st.bar[player] * 25;
+        for (let p = 0; p < 24; p++) {
+          const c = st.points[p] * player;
+          if (c > 0) {
+            pip += c * (player === HUMAN ? p + 1 : 24 - p);
+          }
+        }
+        return pip;
+      }
+
+      /* =========================================================================
+       * 4. THREE.JS 3D BACKGAMMON BOARD, CARVED CHECKERS & PHYSICS DICE
+       * ========================================================================= */
+      const canvasWrap = document.getElementById('canvas-wrap');
+
+      const isSoftwareGl = (() => {
+        try {
+          const probe = document.createElement('canvas');
+          const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+          if (!gl) return true;
+          const ext = gl.getExtension('WEBGL_debug_renderer_info');
+          const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
+          const gpu = String(gl.getParameter(param) || '');
+          gl.getExtension('WEBGL_lose_context')?.loseContext();
+          return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
+        } catch {
+          return true;
+        }
+      })();
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: !isSoftwareGl,
+        powerPreference: 'high-performance',
+      });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 0.85;
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = !isSoftwareGl;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      canvasWrap.appendChild(renderer.domElement);
+
+      const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x09080f);
+      scene.fog = new THREE.FogExp2(0x09080f, 0.018);
+
+      // Soft, glare-free studio PMREM environment for brass trim & satin wood depth
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const roomEnv = createStudioEnvScene();
+      scene.environment = pmrem.fromScene(roomEnv, 0.05).texture;
+      if ('environmentIntensity' in scene) {
+        scene.environmentIntensity = 0.42;
+      }
+      disposeEnvScene(roomEnv);
+      pmrem.dispose();
+
+      const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 12.2, 10.6);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = !isSoftwareGl;
+      controls.dampingFactor = 0.06;
+      controls.enablePan = false;
+      controls.minDistance = 9.5;
+      controls.maxDistance = 24;
+      controls.minPolarAngle = 0.08;
+      controls.maxPolarAngle = Math.PI / 2.3;
+      controls.target.set(0.3, 0, 0.2);
+      controls.update();
+
+      // Balanced Anti-Glare Lighting Rig with realistic PCFSoftShadowMap box shadows
+      const ambientLight = new THREE.AmbientLight(0xfff5e4, 0.42);
+      scene.add(ambientLight);
+
+      const hemi = new THREE.HemisphereLight(0x9bb8e4, 0x20120a, 0.28);
+      scene.add(hemi);
+
+      const keyLight = new THREE.DirectionalLight(0xffe7bd, 0.95);
+      // Angled warm salon key light so the walnut frame walls cast rich soft shadows without direct glare
+      keyLight.position.set(-7.6, 11.4, -3.2);
+      keyLight.target.position.set(0.3, 0, 0);
+      scene.add(keyLight.target);
+      keyLight.castShadow = !isSoftwareGl;
+      if (!isSoftwareGl) {
+        keyLight.shadow.mapSize.set(2048, 2048);
+        keyLight.shadow.camera.near = 2.0;
+        keyLight.shadow.camera.far = 30;
+        const d = 10.4;
+        keyLight.shadow.camera.left = -d;
+        keyLight.shadow.camera.right = d;
+        keyLight.shadow.camera.top = d;
+        keyLight.shadow.camera.bottom = -d;
+        keyLight.shadow.bias = -0.00035;
+        keyLight.shadow.normalBias = 0.016;
+        keyLight.shadow.radius = 3.6;
+      }
+      scene.add(keyLight);
+
+      const rimLight = new THREE.DirectionalLight(0xffcf94, 0.34);
+      rimLight.position.set(8.8, 7.6, 6.2);
+      scene.add(rimLight);
+
+      const fillBounce = new THREE.PointLight(0xffcf88, 0.55, 22, 1.6);
+      fillBounce.position.set(-2.5, 4.8, 5.2);
+      scene.add(fillBounce);
+
+      /* ------------------ PROCEDURAL PBR TEXTURES (ALBEDO + BUMP + ROUGHNESS) ------------------ */
+      function makeTex(canvas) {
+        const t = new THREE.CanvasTexture(canvas);
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = maxAniso;
+        t.needsUpdate = true;
+        return t;
+      }
+
+      function makeDataTex(canvas, repeat = false) {
+        const t = new THREE.CanvasTexture(canvas);
+        t.colorSpace = THREE.NoColorSpace;
+        t.anisotropy = maxAniso;
+        if (repeat) {
+          t.wrapS = THREE.RepeatWrapping;
+          t.wrapT = THREE.RepeatWrapping;
+        }
+        t.needsUpdate = true;
+        return t;
+      }
+
+      /**
+       * Generates paired 1024x1024 Mahogany / Walnut wood albedo, bumpMap, and roughnessMap.
+       */
+      function createWoodPBRSet(baseR = 76, baseG = 36, baseB = 19, warmShift = 1.0) {
+        const S = 1024;
+        const cCol = document.createElement('canvas');
+        const cBmp = document.createElement('canvas');
+        const cRgh = document.createElement('canvas');
+        cCol.width = cBmp.width = cRgh.width = S;
+        cCol.height = cBmp.height = cRgh.height = S;
+
+        const gCol = cCol.getContext('2d');
+        const gBmp = cBmp.getContext('2d');
+        const gRgh = cRgh.getContext('2d');
+
+        gCol.fillStyle = `rgb(${baseR},${baseG},${baseB})`;
+        gCol.fillRect(0, 0, S, S);
+        gBmp.fillStyle = 'rgb(132,132,132)';
+        gBmp.fillRect(0, 0, S, S);
+        // Satin-gloss lacquered mahogany base roughness (~0.34 -> 88)
+        gRgh.fillStyle = 'rgb(88,88,88)';
+        gRgh.fillRect(0, 0, S, S);
+
+        // Cathedral wood grain bands + matching pore relief & roughness breakup
+        for (let y = 0; y < S; y += 2) {
+          const wave = Math.sin(y * 0.017) * 26 + Math.cos(y * 0.049) * 9 + Math.sin(y * 0.115) * 3;
+          const ring = Math.sin((y + wave) * 0.046);
+          const fine = Math.sin(y * 0.24 + wave * 0.07) * 0.35;
+          const v = ring * 0.72 + fine;
+
+          const dr = Math.round(v * 20 * warmShift);
+          const dg = Math.round(v * 11);
+          const db = Math.round(v * 6);
+          gCol.fillStyle = `rgb(${Math.max(12, Math.min(255, baseR + dr))},${Math.max(6, Math.min(255, baseG + dg))},${Math.max(4, Math.min(255, baseB + db))})`;
+          gCol.fillRect(0, y, S, 2);
+
+          const bv = Math.max(48, Math.min(220, Math.round(132 + v * 36)));
+          gBmp.fillStyle = `rgb(${bv},${bv},${bv})`;
+          gBmp.fillRect(0, y, S, 2);
+
+          // Darker grain veins slightly rougher; lighter heartwood smoother
+          const rv = Math.max(58, Math.min(158, Math.round(92 - v * 22)));
+          gRgh.fillStyle = `rgb(${rv},${rv},${rv})`;
+          gRgh.fillRect(0, y, S, 2);
+        }
+
+        // Flowing dark wood fibers & fine open pores
+        for (let i = 0; i < 160; i++) {
+          const sy = Math.random() * S;
+          const amp = (Math.random() - 0.5) * 38;
+          const lw = 0.8 + Math.random() * 1.9;
+
+          gCol.strokeStyle = i % 3 === 0 ? 'rgba(18, 6, 3, 0.34)' : 'rgba(130, 74, 38, 0.14)';
+          gCol.lineWidth = lw;
+          gCol.beginPath();
+          gCol.moveTo(0, sy);
+          gCol.bezierCurveTo(S * 0.33, sy + amp, S * 0.66, sy - amp * 0.8, S, sy);
+          gCol.stroke();
+
+          gBmp.strokeStyle = i % 3 === 0 ? 'rgba(42, 42, 42, 0.42)' : 'rgba(198, 198, 198, 0.18)';
+          gBmp.lineWidth = lw;
+          gBmp.beginPath();
+          gBmp.moveTo(0, sy);
+          gBmp.bezierCurveTo(S * 0.33, sy + amp, S * 0.66, sy - amp * 0.8, S, sy);
+          gBmp.stroke();
+
+          gRgh.strokeStyle = i % 3 === 0 ? 'rgba(175, 175, 175, 0.35)' : 'rgba(65, 65, 65, 0.2)';
+          gRgh.lineWidth = lw;
+          gRgh.beginPath();
+          gRgh.moveTo(0, sy);
+          gRgh.bezierCurveTo(S * 0.33, sy + amp, S * 0.66, sy - amp * 0.8, S, sy);
+          gRgh.stroke();
+        }
+
+        // Micro wood pores (horizontal tiny dashes)
+        for (let i = 0; i < 950; i++) {
+          const px = Math.random() * S;
+          const py = Math.random() * S;
+          const pw = 6 + Math.random() * 24;
+          gCol.fillStyle = 'rgba(16, 6, 2, 0.22)';
+          gCol.fillRect(px, py, pw, 1.3);
+          gBmp.fillStyle = 'rgba(30, 30, 30, 0.48)';
+          gBmp.fillRect(px, py, pw, 1.4);
+          gRgh.fillStyle = 'rgba(190, 190, 190, 0.42)';
+          gRgh.fillRect(px, py, pw, 1.4);
+        }
+
+        const map = makeTex(cCol);
+        map.wrapS = THREE.RepeatWrapping;
+        map.wrapT = THREE.RepeatWrapping;
+        const bumpMap = makeDataTex(cBmp, true);
+        const roughnessMap = makeDataTex(cRgh, true);
+        return { map, bumpMap, roughnessMap };
+      }
+
+      /**
+       * Generates paired 1024x1024 Turkish Sedefli Tavla wing textures:
+       * Burled walnut bed + Mother-of-Pearl (Sedef) & Ebony inlaid triangles + Ottoman marquetry border
+       */
+      function createBoardWingPBRSet() {
+        const w = 1024;
+        const h = 1024;
+        const cCol = document.createElement('canvas');
+        const cBmp = document.createElement('canvas');
+        const cRgh = document.createElement('canvas');
+        cCol.width = cBmp.width = cRgh.width = w;
+        cCol.height = cBmp.height = cRgh.height = h;
+
+        const gCol = cCol.getContext('2d');
+        const gBmp = cBmp.getContext('2d');
+        const gRgh = cRgh.getContext('2d');
+
+        // 1. Warm burled walnut playing bed
+        const bg = gCol.createLinearGradient(0, 0, w, h);
+        bg.addColorStop(0, '#9c6c41');
+        bg.addColorStop(0.45, '#865732');
+        bg.addColorStop(1, '#734726');
+        gCol.fillStyle = bg;
+        gCol.fillRect(0, 0, w, h);
+
+        gBmp.fillStyle = 'rgb(124,124,124)';
+        gBmp.fillRect(0, 0, w, h);
+        // Satin varnished wood playing bed (~0.44 -> 112)
+        gRgh.fillStyle = 'rgb(112,112,112)';
+        gRgh.fillRect(0, 0, w, h);
+
+        // Rich figured wood grain on playing bed
+        for (let y = 0; y < h; y += 2) {
+          const wv = Math.sin(y * 0.022) * 18 + Math.cos(y * 0.064) * 6;
+          const d = Math.sin((y + wv) * 0.055);
+          gCol.fillStyle = d > 0 ? `rgba(218, 174, 118, ${d * 0.1})` : `rgba(42, 18, 7, ${-d * 0.14})`;
+          gCol.fillRect(0, y, w, 2);
+          const bv = Math.round(124 + d * 18);
+          gBmp.fillStyle = `rgb(${bv},${bv},${bv})`;
+          gBmp.fillRect(0, y, w, 2);
+          const rv = Math.round(112 - d * 14);
+          gRgh.fillStyle = `rgb(${rv},${rv},${rv})`;
+          gRgh.fillRect(0, y, w, 2);
+        }
+
+        // Helper to paint iridescent mother-of-pearl (sedef) fill inside current clipped path
+        function fillMotherOfPearl(ctx, x0, y0, x1, y1, seed) {
+          const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+          grad.addColorStop(0, '#fdfbf3');
+          grad.addColorStop(0.28, '#e8f1ee');
+          grad.addColorStop(0.55, '#f8eedc');
+          grad.addColorStop(0.78, '#ede6f3');
+          grad.addColorStop(1, '#e7dbc2');
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Opalescent organic nacre shimmer ribbons
+          for (let k = 0; k < 14; k++) {
+            const t = k / 14;
+            const sy = y0 + (y1 - y0) * t;
+            const hueCol =
+              k % 3 === 0
+                ? 'rgba(176, 232, 224, 0.24)'
+                : k % 3 === 1
+                  ? 'rgba(246, 206, 226, 0.2)'
+                  : 'rgba(255, 246, 214, 0.34)';
+            ctx.strokeStyle = hueCol;
+            ctx.lineWidth = 10 + ((k * 7 + seed) % 12);
+            ctx.beginPath();
+            ctx.moveTo(x0 - 20, sy);
+            ctx.bezierCurveTo(
+              x0 + (x1 - x0) * 0.35,
+              sy + Math.sin(k + seed) * 26,
+              x0 + (x1 - x0) * 0.65,
+              sy - Math.cos(k + seed) * 24,
+              x1 + 20,
+              sy + Math.sin(k * 1.4) * 14
+            );
+            ctx.stroke();
+          }
+        }
+
+        const colW = w / 6;
+        const triH = h * 0.425;
+
+        function drawPointTriangle(col, isBottom, isDark) {
+          const x0 = col * colW;
+          const xMid = x0 + colW / 2;
+          const x1 = x0 + colW;
+          const yBase = isBottom ? h - 10 : 10;
+          const yTip = isBottom ? h - triH : triH;
+          const dir = isBottom ? -1 : 1;
+
+          const tracePath = (ctx, inset = 0) => {
+            ctx.beginPath();
+            ctx.moveTo(x0 + 6 + inset, yBase);
+            ctx.lineTo(xMid, yTip - dir * inset * 2.2);
+            ctx.lineTo(x1 - 6 - inset, yBase);
+            ctx.closePath();
+          };
+
+          // --- ALBEDO ---
+          gCol.save();
+          tracePath(gCol, 0);
+          gCol.clip();
+          if (isDark) {
+            const dg = gCol.createLinearGradient(x0, yBase, x1, yTip);
+            dg.addColorStop(0, '#2a120b');
+            dg.addColorStop(0.5, '#3f1c11');
+            dg.addColorStop(1, '#1d0b07');
+            gCol.fillStyle = dg;
+            gCol.fill();
+            // Subtle dark mahogany striations inside dark point
+            gCol.strokeStyle = 'rgba(128, 66, 36, 0.18)';
+            gCol.lineWidth = 2;
+            for (let s = -4; s <= 4; s++) {
+              gCol.beginPath();
+              gCol.moveTo(xMid + s * 16, yBase);
+              gCol.lineTo(xMid + s * 4, yTip);
+              gCol.stroke();
+            }
+          } else {
+            fillMotherOfPearl(gCol, x0, Math.min(yBase, yTip), x1, Math.max(yBase, yTip), col * 3 + (isBottom ? 1 : 7));
+          }
+
+          // Inner fine Ottoman brass/sedef fillet line
+          tracePath(gCol, 9);
+          gCol.strokeStyle = isDark ? 'rgba(238, 212, 146, 0.65)' : 'rgba(138, 92, 38, 0.42)';
+          gCol.lineWidth = 2.2;
+          gCol.stroke();
+
+          // Inlaid mother-of-pearl / gold geometric diamond lozenge near point base
+          const dY = yBase + dir * 74;
+          const dRx = 19;
+          const dRy = 34;
+          gCol.beginPath();
+          gCol.moveTo(xMid, dY - dRy);
+          gCol.lineTo(xMid + dRx, dY);
+          gCol.lineTo(xMid, dY + dRy);
+          gCol.lineTo(xMid - dRx, dY);
+          gCol.closePath();
+          gCol.fillStyle = isDark ? '#f6efe0' : '#4a2113';
+          gCol.fill();
+          gCol.strokeStyle = '#d4af37';
+          gCol.lineWidth = 2.4;
+          gCol.stroke();
+
+          // Tiny pearl star pip near triangle tip
+          const pY = yBase + dir * (triH * 0.54);
+          gCol.beginPath();
+          gCol.arc(xMid, pY, 5.5, 0, Math.PI * 2);
+          gCol.fillStyle = isDark ? '#f3e5c3' : '#b8862b';
+          gCol.fill();
+          gCol.restore();
+
+          // Outer brass/marquetry inlay wire border
+          tracePath(gCol, 0);
+          gCol.strokeStyle = isDark ? '#d8b454' : '#7e5525';
+          gCol.lineWidth = 4;
+          gCol.stroke();
+
+          // --- BUMP MAP (engraved inlay seam + slight raised sedef medallion) ---
+          gBmp.save();
+          tracePath(gBmp, 0);
+          gBmp.fillStyle = isDark ? 'rgb(138,138,138)' : 'rgb(154,154,154)';
+          gBmp.fill();
+          // Recessed seam groove where wood meets inlay
+          gBmp.strokeStyle = 'rgb(40,40,40)';
+          gBmp.lineWidth = 5;
+          gBmp.stroke();
+          // Raised diamond medallion relief
+          gBmp.beginPath();
+          gBmp.moveTo(xMid, dY - dRy);
+          gBmp.lineTo(xMid + dRx, dY);
+          gBmp.lineTo(xMid, dY + dRy);
+          gBmp.lineTo(xMid - dRx, dY);
+          gBmp.closePath();
+          gBmp.fillStyle = 'rgb(186,186,186)';
+          gBmp.fill();
+          gBmp.strokeStyle = 'rgb(52,52,52)';
+          gBmp.lineWidth = 2.5;
+          gBmp.stroke();
+          gBmp.restore();
+
+          // --- ROUGHNESS MAP (glossy nacre pearl = low roughness 52, satin ebony = 96, seams = 195) ---
+          gRgh.save();
+          tracePath(gRgh, 0);
+          gRgh.fillStyle = isDark ? 'rgb(96,96,96)' : 'rgb(54,54,54)';
+          gRgh.fill();
+          gRgh.strokeStyle = 'rgb(185,185,185)';
+          gRgh.lineWidth = 4.5;
+          gRgh.stroke();
+          // Glossy pearl lozenge
+          gRgh.beginPath();
+          gRgh.moveTo(xMid, dY - dRy);
+          gRgh.lineTo(xMid + dRx, dY);
+          gRgh.lineTo(xMid, dY + dRy);
+          gRgh.lineTo(xMid - dRx, dY);
+          gRgh.closePath();
+          gRgh.fillStyle = isDark ? 'rgb(44,44,44)' : 'rgb(84,84,84)';
+          gRgh.fill();
+          gRgh.restore();
+        }
+
+        for (let col = 0; col < 6; col++) {
+          drawPointTriangle(col, true, col % 2 === 1);
+          drawPointTriangle(col, false, col % 2 === 0);
+        }
+
+        // Ottoman Hatemkari (checkered pearl & gold) marquetry frame border around the wing
+        const bw = 12;
+        gCol.strokeStyle = '#d4af37';
+        gCol.lineWidth = 4;
+        gCol.strokeRect(bw / 2, bw / 2, w - bw, h - bw);
+
+        for (let i = 0; i < w; i += 16) {
+          const isPearl = (i / 16) % 2 === 0;
+          gCol.fillStyle = isPearl ? '#f4ead2' : '#2c140b';
+          gCol.fillRect(i, 2, 12, 8);
+          gCol.fillRect(i, h - 10, 12, 8);
+          gCol.fillRect(2, i, 8, 12);
+          gCol.fillRect(w - 10, i, 8, 12);
+        }
+        gBmp.strokeStyle = 'rgb(45,45,45)';
+        gBmp.lineWidth = 5;
+        gBmp.strokeRect(10, 10, w - 20, h - 20);
+
+        // Subtle recessed inner ambient-occlusion shading along box frame perimeter
+        const aoDepth = 42;
+        const aoEdges = [
+          [0, 0, 0, aoDepth, 0, 0, w, aoDepth],
+          [0, h, 0, h - aoDepth, 0, h - aoDepth, w, aoDepth],
+          [0, 0, aoDepth, 0, 0, 0, aoDepth, h],
+          [w, 0, w - aoDepth, 0, w - aoDepth, 0, aoDepth, h],
+        ];
+        aoEdges.forEach(([gx0, gy0, gx1, gy1, rx, ry, rw, rh]) => {
+          const g = gCol.createLinearGradient(gx0, gy0, gx1, gy1);
+          g.addColorStop(0, 'rgba(12, 5, 2, 0.42)');
+          g.addColorStop(1, 'rgba(12, 5, 2, 0)');
+          gCol.fillStyle = g;
+          gCol.fillRect(rx, ry, rw, rh);
+        });
+
+        return {
+          map: makeTex(cCol),
+          bumpMap: makeDataTex(cBmp, false),
+          roughnessMap: makeDataTex(cRgh, false),
+        };
+      }
+
+      /**
+       * Generates paired 512x512 Carved Mother-of-Pearl (Sedef) or Lustrous Ebony (Abanoz) checker top maps.
+       */
+      function createCheckerPBRSet(isWhite) {
+        const s = 512;
+        const cCol = document.createElement('canvas');
+        const cBmp = document.createElement('canvas');
+        const cRgh = document.createElement('canvas');
+        cCol.width = cBmp.width = cRgh.width = s;
+        cCol.height = cBmp.height = cRgh.height = s;
+
+        const gCol = cCol.getContext('2d');
+        const gBmp = cBmp.getContext('2d');
+        const gRgh = cRgh.getContext('2d');
+
+        // Base radial gradient
+        const g = gCol.createRadialGradient(s * 0.38, s * 0.34, 18, s / 2, s / 2, s * 0.56);
+        if (isWhite) {
+          g.addColorStop(0, '#ffffff');
+          g.addColorStop(0.35, '#f6f2e9');
+          g.addColorStop(0.68, '#e8e0cf');
+          g.addColorStop(1, '#c8b694');
+        } else {
+          g.addColorStop(0, '#3a1a1d');
+          g.addColorStop(0.36, '#1c0b0e');
+          g.addColorStop(0.75, '#0d070a');
+          g.addColorStop(1, '#050406');
+        }
+        gCol.fillStyle = g;
+        gCol.fillRect(0, 0, s, s);
+
+        // Mother-of-pearl iridescent swirls (White) or subtle deep ebony figure (Black)
+        for (let i = 0; i < 18; i++) {
+          const y = (i / 18) * s;
+          gCol.strokeStyle = isWhite
+            ? i % 3 === 0
+              ? 'rgba(178, 232, 224, 0.22)'
+              : i % 3 === 1
+                ? 'rgba(244, 206, 224, 0.18)'
+                : 'rgba(255, 248, 226, 0.32)'
+            : i % 2 === 0
+              ? 'rgba(92, 34, 24, 0.16)'
+              : 'rgba(28, 12, 16, 0.28)';
+          gCol.lineWidth = 14 + (i % 4) * 6;
+          gCol.beginPath();
+          gCol.moveTo(-20, y);
+          gCol.bezierCurveTo(s * 0.35, y + Math.sin(i * 1.3) * 44, s * 0.65, y - Math.cos(i * 1.1) * 44, s + 20, y);
+          gCol.stroke();
+        }
+
+        // Bump & roughness bases
+        gBmp.fillStyle = 'rgb(145,145,145)';
+        gBmp.fillRect(0, 0, s, s);
+        gRgh.fillStyle = isWhite ? 'rgb(44,44,44)' : 'rgb(38,38,38)';
+        gRgh.fillRect(0, 0, s, s);
+
+        // Concave turned finger-dish gradient in bump map
+        const dishBmp = gBmp.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s * 0.44);
+        dishBmp.addColorStop(0, 'rgb(88,88,88)');
+        dishBmp.addColorStop(0.62, 'rgb(118,118,118)');
+        dishBmp.addColorStop(0.84, 'rgb(198,198,198)');
+        dishBmp.addColorStop(1, 'rgb(140,140,140)');
+        gBmp.fillStyle = dishBmp;
+        gBmp.beginPath();
+        gBmp.arc(s / 2, s / 2, s * 0.48, 0, Math.PI * 2);
+        gBmp.fill();
+
+        // Carved scalloped outer rim flutes (24 subtle notches)
+        for (let k = 0; k < 24; k++) {
+          const a = (k / 24) * Math.PI * 2;
+          const rIn = s * 0.405;
+          const rOut = s * 0.47;
+          gCol.strokeStyle = isWhite ? 'rgba(164, 134, 78, 0.32)' : 'rgba(212, 175, 55, 0.28)';
+          gCol.lineWidth = 3;
+          gCol.beginPath();
+          gCol.moveTo(s / 2 + Math.cos(a) * rIn, s / 2 + Math.sin(a) * rIn);
+          gCol.lineTo(s / 2 + Math.cos(a) * rOut, s / 2 + Math.sin(a) * rOut);
+          gCol.stroke();
+
+          gBmp.strokeStyle = 'rgb(64,64,64)';
+          gBmp.lineWidth = 4;
+          gBmp.beginPath();
+          gBmp.moveTo(s / 2 + Math.cos(a) * rIn, s / 2 + Math.sin(a) * rIn);
+          gBmp.lineTo(s / 2 + Math.cos(a) * rOut, s / 2 + Math.sin(a) * rOut);
+          gBmp.stroke();
+        }
+
+        // Turned concentric engraved gold & pearl rings
+        const rings = [
+          { r: s * 0.39, w: 8, col: isWhite ? 'rgba(186, 146, 62, 0.72)' : 'rgba(226, 186, 86, 0.72)' },
+          { r: s * 0.33, w: 3.5, col: isWhite ? 'rgba(255, 255, 255, 0.8)' : 'rgba(165, 58, 66, 0.45)' },
+          { r: s * 0.21, w: 4, col: isWhite ? 'rgba(186, 146, 62, 0.52)' : 'rgba(243, 208, 107, 0.55)' },
+        ];
+        rings.forEach(({ r, w, col }) => {
+          gCol.strokeStyle = col;
+          gCol.lineWidth = w;
+          gCol.beginPath();
+          gCol.arc(s / 2, s / 2, r, 0, Math.PI * 2);
+          gCol.stroke();
+
+          gBmp.strokeStyle = 'rgb(42,42,42)';
+          gBmp.lineWidth = w + 2;
+          gBmp.beginPath();
+          gBmp.arc(s / 2, s / 2, r, 0, Math.PI * 2);
+          gBmp.stroke();
+
+          gRgh.strokeStyle = 'rgb(142,142,142)';
+          gRgh.lineWidth = w + 1;
+          gRgh.beginPath();
+          gRgh.arc(s / 2, s / 2, r, 0, Math.PI * 2);
+          gRgh.stroke();
+        });
+
+        // Subtle central 8-point sedef/gold rosette
+        gCol.save();
+        gCol.translate(s / 2, s / 2);
+        gCol.fillStyle = isWhite ? 'rgba(196, 158, 72, 0.55)' : 'rgba(232, 194, 96, 0.62)';
+        for (let p = 0; p < 8; p++) {
+          gCol.rotate(Math.PI / 4);
+          gCol.beginPath();
+          gCol.moveTo(0, -34);
+          gCol.lineTo(7, -10);
+          gCol.lineTo(0, 0);
+          gCol.lineTo(-7, -10);
+          gCol.closePath();
+          gCol.fill();
+        }
+        gCol.restore();
+
+        return {
+          map: makeTex(cCol),
+          bumpMap: makeDataTex(cBmp, false),
+          roughnessMap: makeDataTex(cRgh, false),
+        };
+      }
+
+      /**
+       * Generates high-res 512x512 bone/ivory die face with recessed concave pips (albedo + bump + roughness)
+       */
+      function createDieFacePBR(val) {
+        const s = 512;
+        const cCol = document.createElement('canvas');
+        const cBmp = document.createElement('canvas');
+        const cRgh = document.createElement('canvas');
+        cCol.width = cBmp.width = cRgh.width = s;
+        cCol.height = cBmp.height = cRgh.height = s;
+
+        const gCol = cCol.getContext('2d');
+        const gBmp = cBmp.getContext('2d');
+        const gRgh = cRgh.getContext('2d');
+
+        // Warm polished bone gradient
+        const bg = gCol.createRadialGradient(s * 0.44, s * 0.42, 24, s / 2, s / 2, s * 0.72);
+        bg.addColorStop(0, '#fffef9');
+        bg.addColorStop(0.68, '#f3e9d3');
+        bg.addColorStop(1, '#d8c7a3');
+        gCol.fillStyle = bg;
+        gCol.fillRect(0, 0, s, s);
+
+        // Soft chamfered edge shading + bump bevel so cube edges gleam realistically
+        gBmp.fillStyle = 'rgb(210,210,210)';
+        gBmp.fillRect(0, 0, s, s);
+        const edgeGradW = 34;
+        gBmp.strokeStyle = 'rgb(115,115,115)';
+        gBmp.lineWidth = edgeGradW;
+        gBmp.strokeRect(edgeGradW / 2, edgeGradW / 2, s - edgeGradW, s - edgeGradW);
+
+        gRgh.fillStyle = 'rgb(44,44,44)';
+        gRgh.fillRect(0, 0, s, s);
+
+        // Subtle gold inner border hairline
+        gCol.strokeStyle = 'rgba(182, 146, 78, 0.35)';
+        gCol.lineWidth = 6;
+        gCol.strokeRect(26, 26, s - 52, s - 52);
+
+        const pips = {
+          1: [[0.5, 0.5]],
+          2: [[0.27, 0.27], [0.73, 0.73]],
+          3: [[0.26, 0.26], [0.5, 0.5], [0.74, 0.74]],
+          4: [[0.28, 0.28], [0.72, 0.28], [0.28, 0.72], [0.72, 0.72]],
+          5: [[0.27, 0.27], [0.73, 0.27], [0.5, 0.5], [0.27, 0.73], [0.73, 0.73]],
+          6: [[0.28, 0.23], [0.72, 0.23], [0.28, 0.5], [0.72, 0.5], [0.28, 0.77], [0.72, 0.77]],
+        }[val];
+
+        const r = val === 1 ? 56 : 40;
+        pips.forEach(([nx, ny]) => {
+          const x = nx * s;
+          const y = ny * s;
+
+          // Deep concave pip bowl in albedo
+          const pg = gCol.createRadialGradient(x - r * 0.2, y - r * 0.2, r * 0.12, x, y, r);
+          if (val === 1) {
+            pg.addColorStop(0, '#dc2626');
+            pg.addColorStop(0.7, '#991b1b');
+            pg.addColorStop(1, '#5c0c0c');
+          } else {
+            pg.addColorStop(0, '#2c2530');
+            pg.addColorStop(0.7, '#151118');
+            pg.addColorStop(1, '#070508');
+          }
+          gCol.fillStyle = pg;
+          gCol.beginPath();
+          gCol.arc(x, y, r, 0, Math.PI * 2);
+          gCol.fill();
+
+          // Subtle rim highlight around drilled pip
+          gCol.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+          gCol.lineWidth = 3;
+          gCol.beginPath();
+          gCol.arc(x, y, r + 1.5, 0.15 * Math.PI, 0.85 * Math.PI);
+          gCol.stroke();
+
+          // Concave depression in bumpMap
+          const bgPip = gBmp.createRadialGradient(x, y, 2, x, y, r + 4);
+          bgPip.addColorStop(0, 'rgb(20,20,20)');
+          bgPip.addColorStop(0.78, 'rgb(76,76,76)');
+          bgPip.addColorStop(1, 'rgb(210,210,210)');
+          gBmp.fillStyle = bgPip;
+          gBmp.beginPath();
+          gBmp.arc(x, y, r + 4, 0, Math.PI * 2);
+          gBmp.fill();
+
+          // Painted pip interior slightly rougher than bone exterior
+          gRgh.fillStyle = 'rgb(148,148,148)';
+          gRgh.beginPath();
+          gRgh.arc(x, y, r, 0, Math.PI * 2);
+          gRgh.fill();
+        });
+
+        return {
+          map: makeTex(cCol),
+          bumpMap: makeDataTex(cBmp, false),
+          roughnessMap: makeDataTex(cRgh, false),
+        };
+      }
+
+      const stackBadgeTexCache = new Map();
+      function getStackBadgeTex(count) {
+        if (stackBadgeTexCache.has(count)) return stackBadgeTexCache.get(count);
+        const s = 128;
+        const c = document.createElement('canvas');
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, s, s);
+
+        ctx.fillStyle = '#0c1020';
+        ctx.beginPath();
+        ctx.arc(64, 64, 52, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f3d06b';
+        ctx.lineWidth = 8;
+        ctx.stroke();
+
+        ctx.fillStyle = '#f3d06b';
+        ctx.font = '800 58px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(count), 64, 67);
+
+        const t = makeTex(c);
+        stackBadgeTexCache.set(count, t);
+        return t;
+      }
+
+      /* ------------------ BUILD LUXURY HINGED 3D MAHOGANY & SEDEF BACKGAMMON BOX ------------------ */
+      const WING_W = 5.64; // 6 columns * 0.94
+      const COL_W = WING_W / 6;
+      const BOARD_D = 8.9;
+      const BAR_W = 0.96;
+      const TRAY_W = 1.24;
+      const FRAME_T = 0.54;
+      const FRAME_H = 0.88; // Tall sculpted walnut box walls (top at y = 0.56) for rich interior shadows
+
+      // Exact X centers of left wing, center bar, right wing, bear-off tray
+      const LEFT_WING_CX = -(BAR_W / 2 + WING_W / 2);
+      const RIGHT_WING_CX = +(BAR_W / 2 + WING_W / 2);
+      const TRAY_CX = BAR_W / 2 + WING_W + FRAME_T * 0.55 + TRAY_W / 2;
+
+      const walnutPBR = createWoodPBRSet(82, 42, 21, 1.0);
+      const mahoganyPBR = createWoodPBRSet(64, 24, 15, 1.22);
+      const wingPBR = createBoardWingPBRSet();
+
+      const walnutMat = new THREE.MeshStandardMaterial({
+        map: walnutPBR.map,
+        bumpMap: walnutPBR.bumpMap,
+        bumpScale: 0.026,
+        roughness: 0.74,
+        metalness: 0.04,
+        envMapIntensity: 0.38,
+      });
+      const mahoganyMat = new THREE.MeshStandardMaterial({
+        map: mahoganyPBR.map,
+        bumpMap: mahoganyPBR.bumpMap,
+        bumpScale: 0.024,
+        roughness: 0.72,
+        metalness: 0.05,
+        envMapIntensity: 0.38,
+      });
+      const wingMat = new THREE.MeshStandardMaterial({
+        map: wingPBR.map,
+        bumpMap: wingPBR.bumpMap,
+        bumpScale: 0.022,
+        roughness: 0.76,
+        metalness: 0.05,
+        envMapIntensity: 0.32,
+      });
+      const brassMat = new THREE.MeshStandardMaterial({
+        color: 0xdab34c,
+        metalness: 0.9,
+        roughness: 0.34,
+        envMapIntensity: 0.95,
+      });
+      const darkBrassMat = new THREE.MeshStandardMaterial({
+        color: 0x8a6723,
+        metalness: 0.84,
+        roughness: 0.44,
+        envMapIntensity: 0.85,
+      });
+
+      const boardGroup = new THREE.Group();
+      scene.add(boardGroup);
+
+      // Left & Right Sedef-inlaid playing beds (surface top at y = 0)
+      const leftBed = new THREE.Mesh(new THREE.BoxGeometry(WING_W, 0.32, BOARD_D), wingMat);
+      leftBed.position.set(LEFT_WING_CX, -0.16, 0);
+      leftBed.receiveShadow = !isSoftwareGl;
+      boardGroup.add(leftBed);
+
+      const rightBed = new THREE.Mesh(new THREE.BoxGeometry(WING_W, 0.32, BOARD_D), wingMat);
+      rightBed.position.set(RIGHT_WING_CX, -0.16, 0);
+      rightBed.receiveShadow = !isSoftwareGl;
+      boardGroup.add(rightBed);
+
+      // Raised Central Mahogany Bar (top surface at y = 0.34 for hit checkers)
+      const BAR_H = 0.66;
+      const BAR_TOP_Y = BAR_H - 0.32; // 0.34
+      const centerBar = new THREE.Mesh(new THREE.BoxGeometry(BAR_W, BAR_H, BOARD_D), mahoganyMat);
+      centerBar.position.set(0, BAR_H / 2 - 0.32, 0);
+      centerBar.castShadow = !isSoftwareGl;
+      centerBar.receiveShadow = !isSoftwareGl;
+      boardGroup.add(centerBar);
+
+      // Subtle central fold seam groove & fine brass inlay lines along the bar
+      const foldSeam = new THREE.Mesh(
+        new THREE.BoxGeometry(0.03, 0.015, BOARD_D - 0.1),
+        new THREE.MeshStandardMaterial({ color: 0x160906, roughness: 0.85 })
+      );
+      foldSeam.position.set(0, BAR_TOP_Y + 0.002, 0);
+      boardGroup.add(foldSeam);
+
+      [-BAR_W / 2 + 0.06, BAR_W / 2 - 0.06].forEach((bx) => {
+        const inlayStrip = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.012, BOARD_D - 0.16), brassMat);
+        inlayStrip.position.set(bx, BAR_TOP_Y + 0.003, 0);
+        boardGroup.add(inlayStrip);
+      });
+
+      // 2 Ornate Multi-Part Brass Hinges along the center bar spine
+      function buildOrnateBrassHinge(hz) {
+        const hg = new THREE.Group();
+        hg.position.set(0, BAR_TOP_Y, hz);
+
+        // Left & right beveled brass leaves
+        [-0.2, 0.2].forEach((lx) => {
+          const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.032, 0.88), brassMat);
+          leaf.position.set(lx, 0.016, 0);
+          leaf.castShadow = !isSoftwareGl;
+          leaf.receiveShadow = !isSoftwareGl;
+          hg.add(leaf);
+
+          // 2 countersunk brass screws per leaf
+          [-0.25, 0.25].forEach((sz) => {
+            const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.016, 12), darkBrassMat);
+            screw.position.set(lx + (lx > 0 ? 0.04 : -0.04), 0.035, sz);
+            hg.add(screw);
+          });
+        });
+
+        // 5-knuckle cylindrical hinge barrel + end finials
+        for (let k = -2; k <= 2; k++) {
+          const knuckle = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.056, 0.056, 0.155, 16),
+            k % 2 === 0 ? brassMat : darkBrassMat
+          );
+          knuckle.rotation.x = Math.PI / 2;
+          knuckle.position.set(0, 0.044, k * 0.175);
+          knuckle.castShadow = !isSoftwareGl;
+          hg.add(knuckle);
+        }
+        [-0.47, 0.47].forEach((fz) => {
+          const finial = new THREE.Mesh(new THREE.SphereGeometry(0.052, 12, 10), brassMat);
+          finial.position.set(0, 0.044, fz);
+          hg.add(finial);
+        });
+
+        return hg;
+      }
+
+      [-BOARD_D / 2 + 0.92, BOARD_D / 2 - 0.92].forEach((hz) => {
+        boardGroup.add(buildOrnateBrassHinge(hz));
+      });
+
+      // Right-Side Bear-Off Trays (Bottom = Human White, Top = Bot Black)
+      const trayFloor = new THREE.Mesh(new THREE.BoxGeometry(TRAY_W, 0.3, BOARD_D), mahoganyMat);
+      trayFloor.position.set(TRAY_CX, -0.17, 0);
+      trayFloor.receiveShadow = !isSoftwareGl;
+      boardGroup.add(trayFloor);
+
+      // Divider separating Right Wing from Bear-Off Tray
+      const trayDivider = new THREE.Mesh(
+        new THREE.BoxGeometry(FRAME_T * 0.55, FRAME_H - 0.12, BOARD_D),
+        walnutMat
+      );
+      trayDivider.position.set(BAR_W / 2 + WING_W + FRAME_T * 0.275, (FRAME_H - 0.12) / 2 - 0.32, 0);
+      trayDivider.castShadow = !isSoftwareGl;
+      trayDivider.receiveShadow = !isSoftwareGl;
+      boardGroup.add(trayDivider);
+
+      // Center horizontal divider splitting Human vs Bot Bear-Off Tray
+      const trayMidSplit = new THREE.Mesh(new THREE.BoxGeometry(TRAY_W, 0.38, 0.24), walnutMat);
+      trayMidSplit.position.set(TRAY_CX, 0.1, 0);
+      trayMidSplit.castShadow = !isSoftwareGl;
+      trayMidSplit.receiveShadow = !isSoftwareGl;
+      boardGroup.add(trayMidSplit);
+
+      // Outer Walnut Box Frame Walls (tall walls for authentic interior shadows)
+      const leftEdgeX = LEFT_WING_CX - WING_W / 2 - FRAME_T / 2;
+      const rightEdgeX = TRAY_CX + TRAY_W / 2 + FRAME_T / 2;
+      const totalSpanX = rightEdgeX - leftEdgeX + FRAME_T;
+      const centerSpanX = (leftEdgeX + rightEdgeX) / 2;
+      const wallTopY = FRAME_H - 0.32;
+
+      const walls = [
+        [totalSpanX, FRAME_H, FRAME_T, centerSpanX, FRAME_H / 2 - 0.32, -BOARD_D / 2 - FRAME_T / 2],
+        [totalSpanX, FRAME_H, FRAME_T, centerSpanX, FRAME_H / 2 - 0.32, BOARD_D / 2 + FRAME_T / 2],
+        [FRAME_T, FRAME_H, BOARD_D, leftEdgeX, FRAME_H / 2 - 0.32, 0],
+        [FRAME_T, FRAME_H, BOARD_D, rightEdgeX, FRAME_H / 2 - 0.32, 0],
+      ];
+      walls.forEach(([w, h, d, x, y, z]) => {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), walnutMat);
+        m.position.set(x, y, z);
+        m.castShadow = !isSoftwareGl;
+        m.receiveShadow = !isSoftwareGl;
+        boardGroup.add(m);
+      });
+
+      // Fine brass top-rim marquetry inlay running along the top of the walnut frame
+      const trimTopBars = [
+        [totalSpanX - 0.36, 0.014, 0.045, centerSpanX, wallTopY + 0.004, -BOARD_D / 2 - FRAME_T / 2],
+        [totalSpanX - 0.36, 0.014, 0.045, centerSpanX, wallTopY + 0.004, BOARD_D / 2 + FRAME_T / 2],
+        [0.045, 0.014, BOARD_D + FRAME_T - 0.36, leftEdgeX, wallTopY + 0.004, 0],
+        [0.045, 0.014, BOARD_D + FRAME_T - 0.36, rightEdgeX, wallTopY + 0.004, 0],
+      ];
+      trimTopBars.forEach(([w, h, d, x, y, z]) => {
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), brassMat);
+        strip.position.set(x, y, z);
+        boardGroup.add(strip);
+      });
+
+      // Brass corner brackets on all 4 corners of the walnut box
+      const cornerCoords = [
+        [leftEdgeX - FRAME_T / 2, -BOARD_D / 2 - FRAME_T],
+        [rightEdgeX + FRAME_T / 2, -BOARD_D / 2 - FRAME_T],
+        [leftEdgeX - FRAME_T / 2, BOARD_D / 2 + FRAME_T],
+        [rightEdgeX + FRAME_T / 2, BOARD_D / 2 + FRAME_T],
+      ];
+      cornerCoords.forEach(([cx, cz]) => {
+        const sx = cx < 0 ? 1 : -1;
+        const sz = cz < 0 ? 1 : -1;
+        const capA = new THREE.Mesh(new THREE.BoxGeometry(0.62, FRAME_H + 0.02, 0.06), brassMat);
+        capA.position.set(cx + sx * 0.28, FRAME_H / 2 - 0.32, cz + sz * 0.01);
+        boardGroup.add(capA);
+        const capB = new THREE.Mesh(new THREE.BoxGeometry(0.06, FRAME_H + 0.02, 0.62), brassMat);
+        capB.position.set(cx + sx * 0.01, FRAME_H / 2 - 0.32, cz + sz * 0.28);
+        boardGroup.add(capB);
+      });
+
+      // Decorative brass clasps on front rail
+      [-3.1, 3.1].forEach((cx) => {
+        const claspBase = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.28, 0.06), darkBrassMat);
+        claspBase.position.set(cx, 0.14, BOARD_D / 2 + FRAME_T + 0.02);
+        boardGroup.add(claspBase);
+        const claspLatch = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.36, 0.09), brassMat);
+        claspLatch.position.set(cx, 0.16, BOARD_D / 2 + FRAME_T + 0.05);
+        boardGroup.add(claspLatch);
+      });
+
+      // Dark wood lounge table plane beneath the backgammon box + soft grounded contact shadow
+      const tableUnder = new THREE.Mesh(
+        new THREE.PlaneGeometry(54, 54),
+        new THREE.MeshStandardMaterial({ color: 0x0b0910, roughness: 0.86, metalness: 0.06 })
+      );
+      tableUnder.rotation.x = -Math.PI / 2;
+      tableUnder.position.y = -0.34;
+      tableUnder.receiveShadow = !isSoftwareGl;
+      scene.add(tableUnder);
+
+      const contactShadowTex = (() => {
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 256;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(128, 128, 48, 128, 128, 128);
+        g.addColorStop(0, 'rgba(0,0,0,0.68)');
+        g.addColorStop(0.68, 'rgba(0,0,0,0.34)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 256, 256);
+        return makeTex(c);
+      })();
+      const boxContactShadow = new THREE.Mesh(
+        new THREE.PlaneGeometry(totalSpanX + 3.8, BOARD_D + FRAME_T * 2 + 3.4),
+        new THREE.MeshBasicMaterial({ map: contactShadowTex, transparent: true, depthWrite: false, opacity: 0.72 })
+      );
+      boxContactShadow.rotation.x = -Math.PI / 2;
+      boxContactShadow.position.set(centerSpanX, -0.325, 0);
+      scene.add(boxContactShadow);
+
+      /* ------------------ POINT & TRAY 3D COORDINATE MAPPING ------------------ */
+      const CHECKER_R = 0.4;
+      const CHECKER_H = 0.16;
+
+      function getPointGeometryInfo(pointIdx) {
+        // 0..5: Bottom-Right (right -> left)
+        // 6..11: Bottom-Left (right -> left)
+        // 12..17: Top-Left (left -> right)
+        // 18..23: Top-Right (left -> right)
+        if (pointIdx <= 5) {
+          const colFromRight = pointIdx;
+          const x = RIGHT_WING_CX + WING_W / 2 - (colFromRight + 0.5) * COL_W;
+          return { x, baseZ: BOARD_D / 2 - 0.46, dirZ: -1 };
+        }
+        if (pointIdx <= 11) {
+          const colFromRight = pointIdx - 6;
+          const x = LEFT_WING_CX + WING_W / 2 - (colFromRight + 0.5) * COL_W;
+          return { x, baseZ: BOARD_D / 2 - 0.46, dirZ: -1 };
+        }
+        if (pointIdx <= 17) {
+          const colFromLeft = pointIdx - 12;
+          const x = LEFT_WING_CX - WING_W / 2 + (colFromLeft + 0.5) * COL_W;
+          return { x, baseZ: -BOARD_D / 2 + 0.46, dirZ: 1 };
+        }
+        const colFromLeft = pointIdx - 18;
+        const x = RIGHT_WING_CX - WING_W / 2 + (colFromLeft + 0.5) * COL_W;
+        return { x, baseZ: -BOARD_D / 2 + 0.46, dirZ: 1 };
+      }
+
+      function getCheckerWorldPos(location, stackIndex, player) {
+        if (location === 'bar') {
+          const signZ = player === HUMAN ? 1 : -1;
+          const z = signZ * (0.95 + Math.min(stackIndex, 3) * 0.72);
+          const y = BAR_TOP_Y + CHECKER_H / 2 + (stackIndex >= 4 ? (stackIndex - 3) * CHECKER_H : 0);
+          return new THREE.Vector3(0, y, z);
+        }
+        if (location === 'off') {
+          // Neatly stacked flat/layered in right bear-off tray
+          const isHuman = player === HUMAN;
+          const baseZ = isHuman ? 0.55 : -0.55;
+          const dir = isHuman ? 1 : -1;
+          const slot = stackIndex % 15;
+          const z = baseZ + dir * (slot * 0.24);
+          return new THREE.Vector3(TRAY_CX, 0.04 + CHECKER_R * 0.85, z);
+        }
+
+        const info = getPointGeometryInfo(location);
+        // Cap visible row length at 5 checkers so triangles stay super clean!
+        const rowSlot = Math.min(stackIndex, 4);
+        const layer = stackIndex >= 5 ? Math.min(stackIndex - 4, 2) : 0;
+        const x = info.x;
+        const z = info.baseZ + info.dirZ * (rowSlot * 0.79);
+        const y = 0.005 + CHECKER_H / 2 + layer * (CHECKER_H * 0.82);
+        return new THREE.Vector3(x, y, z);
+      }
+
+      /* ------------------ CARVED SEDEF & ABANOZ 3D CHECKER FACTORY (LATHE) ------------------ */
+      // Sculpted Ottoman checker profile with grooved outer grip rim and recessed concave finger dish
+      const checkerProfile = [
+        new THREE.Vector2(0.01, -CHECKER_H / 2),
+        new THREE.Vector2(CHECKER_R * 0.92, -CHECKER_H / 2),
+        new THREE.Vector2(CHECKER_R * 0.99, -CHECKER_H * 0.36),
+        new THREE.Vector2(CHECKER_R * 0.95, -CHECKER_H * 0.12),
+        new THREE.Vector2(CHECKER_R, CHECKER_H * 0.08),
+        new THREE.Vector2(CHECKER_R * 0.98, CHECKER_H * 0.36),
+        new THREE.Vector2(CHECKER_R * 0.88, CHECKER_H * 0.5),
+        new THREE.Vector2(CHECKER_R * 0.72, CHECKER_H * 0.5),
+        new THREE.Vector2(CHECKER_R * 0.6, CHECKER_H * 0.34),
+        new THREE.Vector2(CHECKER_R * 0.35, CHECKER_H * 0.18),
+        new THREE.Vector2(0.01, CHECKER_H * 0.14),
+      ];
+      const checkerGeo = new THREE.LatheGeometry(checkerProfile, 44);
+      const checkerTopGeo = new THREE.CircleGeometry(CHECKER_R * 0.89, 36);
+      const checkerRimRingGeo = new THREE.TorusGeometry(CHECKER_R * 0.975, 0.012, 8, 36);
+
+      const whiteCheckerPBR = createCheckerPBRSet(true);
+      const blackCheckerPBR = createCheckerPBRSet(false);
+
+      const whiteBodyMat = new THREE.MeshPhysicalMaterial({
+        color: 0xf3ebd9,
+        roughness: 0.68,
+        metalness: 0.05,
+        clearcoat: 0,
+        iridescence: 0.12,
+        iridescenceIOR: 1.35,
+        iridescenceThicknessRange: [180, 400],
+        specularIntensity: 0.3,
+        envMapIntensity: 0.32,
+      });
+      const whiteTopMat = new THREE.MeshPhysicalMaterial({
+        map: whiteCheckerPBR.map,
+        bumpMap: whiteCheckerPBR.bumpMap,
+        bumpScale: 0.02,
+        roughness: 0.68,
+        metalness: 0.05,
+        clearcoat: 0,
+        iridescence: 0.14,
+        iridescenceIOR: 1.36,
+        iridescenceThicknessRange: [200, 420],
+        specularIntensity: 0.3,
+        envMapIntensity: 0.32,
+      });
+
+      const blackBodyMat = new THREE.MeshPhysicalMaterial({
+        color: 0x1a0c10,
+        roughness: 0.68,
+        metalness: 0.08,
+        clearcoat: 0,
+        specularIntensity: 0.32,
+        envMapIntensity: 0.35,
+      });
+      const blackTopMat = new THREE.MeshPhysicalMaterial({
+        map: blackCheckerPBR.map,
+        bumpMap: blackCheckerPBR.bumpMap,
+        bumpScale: 0.022,
+        roughness: 0.68,
+        metalness: 0.08,
+        clearcoat: 0,
+        specularIntensity: 0.32,
+        envMapIntensity: 0.35,
+      });
+
+      function createCheckerMesh(player) {
+        const isWhite = player === HUMAN;
+        const g = new THREE.Group();
+
+        const body = new THREE.Mesh(checkerGeo, isWhite ? whiteBodyMat : blackBodyMat);
+        body.castShadow = !isSoftwareGl;
+        body.receiveShadow = !isSoftwareGl;
+        g.add(body);
+
+        // Carved inlaid brass equatorial accent bead around checker rim
+        const rimBead = new THREE.Mesh(checkerRimRingGeo, isWhite ? brassMat : darkBrassMat);
+        rimBead.rotation.x = Math.PI / 2;
+        rimBead.position.y = -CHECKER_H * 0.12;
+        g.add(rimBead);
+
+        const cap = new THREE.Mesh(checkerTopGeo, isWhite ? whiteTopMat : blackTopMat);
+        cap.rotation.x = -Math.PI / 2;
+        cap.position.y = CHECKER_H * 0.495;
+        cap.receiveShadow = !isSoftwareGl;
+        g.add(cap);
+
+        // Playable/Selected glowing halo ring around checker base
+        const halo = new THREE.Mesh(
+          new THREE.RingGeometry(CHECKER_R * 1.02, CHECKER_R * 1.19, 32),
+          new THREE.MeshBasicMaterial({
+            color: 0xf3d06b,
+            transparent: true,
+            opacity: 0,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+          })
+        );
+        halo.rotation.x = -Math.PI / 2;
+        halo.position.y = -CHECKER_H / 2 + 0.012;
+        g.add(halo);
+        g.userData.halo = halo;
+        g.userData.player = player;
+
+        return g;
+      }
+
+      /* ------------------ INTERACTIVE HIT TARGETS & DESTINATION RINGS ------------------ */
+      const pointHitMeshes = [];
+      const pointTargetRings = [];
+
+      for (let p = 0; p < 24; p++) {
+        const info = getPointGeometryInfo(p);
+        const midZ = info.baseZ + info.dirZ * 1.65;
+
+        // Invisible clickable column covering the whole triangle
+        const hit = new THREE.Mesh(
+          new THREE.PlaneGeometry(COL_W * 0.94, 3.85),
+          new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hit.rotation.x = -Math.PI / 2;
+        hit.position.set(info.x, 0.08, midZ);
+        hit.userData = { kind: 'point', point: p };
+        scene.add(hit);
+        pointHitMeshes.push(hit);
+
+        // Luminous destination highlight ring
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(0.32, 0.47, 32),
+          new THREE.MeshBasicMaterial({
+            color: 0x34d399,
+            transparent: true,
+            opacity: 0,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+          })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(info.x, 0.04, info.baseZ);
+        ring.userData = { kind: 'point', point: p };
+        scene.add(ring);
+        pointTargetRings.push(ring);
+      }
+
+      // Clickable Bar target for Human
+      const barHitMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(BAR_W * 1.1, BOARD_D * 0.45),
+        new THREE.MeshBasicMaterial({ visible: false })
+      );
+      barHitMesh.rotation.x = -Math.PI / 2;
+      barHitMesh.position.set(0, 0.42, BOARD_D * 0.22);
+      barHitMesh.userData = { kind: 'bar' };
+      scene.add(barHitMesh);
+
+      // Clickable Bear-Off target & highlight ring for Human (Bottom-Right tray)
+      const bearOffHitMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(TRAY_W * 1.1, BOARD_D * 0.46),
+        new THREE.MeshBasicMaterial({ visible: false })
+      );
+      bearOffHitMesh.rotation.x = -Math.PI / 2;
+      bearOffHitMesh.position.set(TRAY_CX, 0.25, BOARD_D * 0.24);
+      bearOffHitMesh.userData = { kind: 'off' };
+      scene.add(bearOffHitMesh);
+
+      const bearOffGlow = new THREE.Mesh(
+        new THREE.RingGeometry(0.38, 0.56, 32),
+        new THREE.MeshBasicMaterial({
+          color: 0xf3d06b,
+          transparent: true,
+          opacity: 0,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        })
+      );
+      bearOffGlow.rotation.x = -Math.PI / 2;
+      bearOffGlow.position.set(TRAY_CX, 0.16, 2.2);
+      scene.add(bearOffGlow);
+
+      /* ------------------ 3D DICE WITH EDGE-LAUNCH DAMPED-BOUNCE PHYSICS ------------------ */
+      // Face indices: +X:3, -X:4, +Y:1, -Y:6, +Z:2, -Z:5
+      const DIE_SIZE = 0.58;
+      const dieMaterials = [3, 4, 1, 6, 2, 5].map((v) => {
+        const pbr = createDieFacePBR(v);
+        return new THREE.MeshPhysicalMaterial({
+          map: pbr.map,
+          bumpMap: pbr.bumpMap,
+          bumpScale: 0.024,
+          roughness: 0.68,
+          metalness: 0.04,
+          clearcoat: 0,
+          specularIntensity: 0.3,
+          envMapIntensity: 0.32,
+        });
+      });
+
+      function getFaceUpQuaternion(value, yawAngle) {
+        const qFace = new THREE.Quaternion();
+        const euler = new THREE.Euler();
+        switch (value) {
+          case 1:
+            euler.set(0, 0, 0);
+            break;
+          case 6:
+            euler.set(Math.PI, 0, 0);
+            break;
+          case 2:
+            euler.set(-Math.PI / 2, 0, 0);
+            break;
+          case 5:
+            euler.set(Math.PI / 2, 0, 0);
+            break;
+          case 3:
+            euler.set(0, 0, Math.PI / 2);
+            break;
+          case 4:
+            euler.set(0, 0, -Math.PI / 2);
+            break;
+        }
+        qFace.setFromEuler(euler);
+        const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawAngle);
+        return qYaw.multiply(qFace);
+      }
+
+      const diceMeshes = [0, 1].map(() => {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(DIE_SIZE, DIE_SIZE, DIE_SIZE), dieMaterials);
+        mesh.castShadow = !isSoftwareGl;
+        mesh.receiveShadow = !isSoftwareGl;
+        mesh.visible = false;
+        scene.add(mesh);
+        return mesh;
+      });
+
+      const diceAnim = {
+        active: false,
+        elapsed: 0,
+        duration: 1.08,
+        onDone: null,
+        items: [],
+      };
+
+      function launch3DDice(d1, d2, forPlayer, onDone) {
+        const isHuman = forPlayer === HUMAN;
+        const wingX = isHuman ? RIGHT_WING_CX : LEFT_WING_CX;
+        // Launch dynamically from the outer wooden box rail inward across the playing field
+        const railX = isHuman
+          ? RIGHT_WING_CX + WING_W / 2 + 0.32
+          : LEFT_WING_CX - WING_W / 2 - 0.32;
+        const vals = [d1, d2];
+
+        diceAnim.active = true;
+        diceAnim.elapsed = 0;
+        diceAnim.duration = 1.08;
+        diceAnim.onDone = onDone;
+        diceAnim.items = vals.map((val, idx) => {
+          const mesh = diceMeshes[idx];
+          mesh.visible = true;
+          const startPos = new THREE.Vector3(
+            railX + (isHuman ? 0.25 : -0.25) * idx,
+            wallTopY + 1.55 + idx * 0.38,
+            (isHuman ? 2.55 : -2.55) + (idx === 0 ? -0.65 : 0.72)
+          );
+          const endPos = new THREE.Vector3(
+            wingX + (idx === 0 ? -0.82 : 0.84) + (Math.random() - 0.5) * 0.34,
+            DIE_SIZE / 2 + 0.006,
+            (idx === 0 ? -0.44 : 0.46) + (Math.random() - 0.5) * 0.32
+          );
+          // Slight curved mid-bounce waypoint to emulate glancing roll across the wood
+          const midPos = new THREE.Vector3(
+            THREE.MathUtils.lerp(startPos.x, endPos.x, 0.58) + (isHuman ? -0.35 : 0.35),
+            DIE_SIZE / 2 + 0.006,
+            THREE.MathUtils.lerp(startPos.z, endPos.z, 0.52) + (idx === 0 ? -0.45 : 0.45)
+          );
+          const endQuat = getFaceUpQuaternion(val, (Math.random() - 0.5) * 1.15);
+          const spinAxis = new THREE.Vector3(
+            (isHuman ? -1 : 1) * (0.65 + Math.random() * 0.55),
+            0.35 + Math.random() * 0.5,
+            (Math.random() > 0.5 ? 1 : -1) * (0.55 + Math.random() * 0.6)
+          ).normalize();
+          return {
+            mesh,
+            startPos,
+            midPos,
+            endPos,
+            endQuat,
+            spinAxis,
+            totalSpins: Math.PI * (5.2 + idx * 1.3 + Math.random() * 1.4),
+            delay: idx * 0.065,
+            bouncesHit: [false, false, false, false],
+          };
+        });
+      }
+
+      /* ------------------ IMPACT SHOCKWAVE RINGS & SPARK FX ------------------ */
+      const impactFXList = [];
+      const impactRingGeo = new THREE.RingGeometry(0.28, 0.48, 36);
+      const impactOuterRingGeo = new THREE.RingGeometry(0.42, 0.5, 36);
+      const impactSparkGeo = new THREE.SphereGeometry(0.042, 8, 6);
+
+      function spawnImpactRing(worldPos, colorHex = 0xf43f5e, scaleBoost = 1.0, heavyBurst = false, surfaceY = null) {
+        const group = new THREE.Group();
+        const ringY = surfaceY !== null ? surfaceY : Math.max(0.022, worldPos.y - CHECKER_H * 0.36);
+        group.position.set(worldPos.x, ringY, worldPos.z);
+
+        const coreMat = new THREE.MeshBasicMaterial({
+          color: colorHex,
+          transparent: true,
+          opacity: heavyBurst ? 0.96 : 0.72,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        const coreRing = new THREE.Mesh(impactRingGeo, coreMat);
+        coreRing.rotation.x = -Math.PI / 2;
+        group.add(coreRing);
+
+        let outerRing = null;
+        let outerMat = null;
+        if (heavyBurst) {
+          outerMat = new THREE.MeshBasicMaterial({
+            color: 0xff9eae,
+            transparent: true,
+            opacity: 0.85,
+            blending: THREE.AdditiveBlending,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+          });
+          outerRing = new THREE.Mesh(impactOuterRingGeo, outerMat);
+          outerRing.rotation.x = -Math.PI / 2;
+          outerRing.position.y = 0.015;
+          group.add(outerRing);
+        }
+
+        const sparkCount = heavyBurst ? 14 : 6;
+        const sparks = [];
+        for (let i = 0; i < sparkCount; i++) {
+          const sMat = new THREE.MeshBasicMaterial({
+            color: heavyBurst && i % 2 === 0 ? 0xffb3c1 : colorHex,
+            transparent: true,
+            opacity: heavyBurst ? 0.95 : 0.65,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          const sp = new THREE.Mesh(impactSparkGeo, sMat);
+          const ang = (i / sparkCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
+          const spd = (heavyBurst ? 1.8 : 0.95) * (0.7 + Math.random() * 0.65) * scaleBoost;
+          sp.position.set(Math.cos(ang) * 0.18, 0.04, Math.sin(ang) * 0.18);
+          group.add(sp);
+          sparks.push({
+            mesh: sp,
+            mat: sMat,
+            vx: Math.cos(ang) * spd,
+            vy: (heavyBurst ? 2.1 : 1.05) + Math.random() * (heavyBurst ? 1.4 : 0.55),
+            vz: Math.sin(ang) * spd,
+          });
+        }
+
+        scene.add(group);
+        impactFXList.push({
+          group,
+          coreRing,
+          coreMat,
+          outerRing,
+          outerMat,
+          sparks,
+          scaleBoost,
+          heavyBurst,
+          elapsed: 0,
+          duration: heavyBurst ? 0.64 : 0.42,
+        });
+      }
+
+      /* ------------------ CHECKERS SCENE POOL, HIGH-ARC FLIGHTS & SPRING BOUNCES ------------------ */
+      const checkersContainer = new THREE.Group();
+      scene.add(checkersContainer);
+
+      const badgesContainer = new THREE.Group();
+      scene.add(badgesContainer);
+
+      const activeArcs = []; // { mesh, start, end, elapsed, duration, arcHeight, isBearOff, isHitLaunch, spinAxis, onLand }
+      const landingBounces = []; // { loc, player, elapsed, duration, amp }
+      const flyingBarHidden = { [HUMAN]: 0, [BOT]: 0 };
+      let boardCheckerVisuals = []; // { mesh, loc, player, isTop, baseY }
+
+      function clearFlightFX() {
+        while (activeArcs.length > 0) {
+          const a = activeArcs.pop();
+          scene.remove(a.mesh);
+        }
+        landingBounces.length = 0;
+        flyingBarHidden[HUMAN] = 0;
+        flyingBarHidden[BOT] = 0;
+      }
+
+      function triggerLandingBounce(loc, player, amp = 0.24) {
+        landingBounces.push({ loc, player, elapsed: 0, duration: 0.28, amp });
+      }
+
+      function rebuildCheckers3D() {
+        // Clear static checkers & badges
+        while (checkersContainer.children.length > 0) {
+          checkersContainer.remove(checkersContainer.children[0]);
+        }
+        while (badgesContainer.children.length > 0) {
+          badgesContainer.remove(badgesContainer.children[0]);
+        }
+        boardCheckerVisuals = [];
+
+        const st = match.state;
+
+        // 24 points
+        for (let p = 0; p < 24; p++) {
+          const val = st.points[p];
+          if (val === 0) continue;
+          const player = val > 0 ? HUMAN : BOT;
+          const count = Math.abs(val);
+          const renderCount = Math.min(count, 5);
+
+          for (let i = 0; i < renderCount; i++) {
+            const mesh = createCheckerMesh(player);
+            const pos = getCheckerWorldPos(p, i, player);
+            mesh.position.copy(pos);
+            mesh.userData.loc = p;
+            mesh.userData.isTop = i === renderCount - 1;
+            checkersContainer.add(mesh);
+            boardCheckerVisuals.push({ mesh, loc: p, player, isTop: i === renderCount - 1, baseY: pos.y });
+          }
+
+          // Numeric stack count badge when > 5 checkers occupy the same point
+          if (count > 5) {
+            const topPos = getCheckerWorldPos(p, 4, player);
+            const badge = new THREE.Mesh(
+              new THREE.PlaneGeometry(0.48, 0.48),
+              new THREE.MeshBasicMaterial({
+                map: getStackBadgeTex(count),
+                transparent: true,
+                depthWrite: false,
+              })
+            );
+            badge.rotation.x = -Math.PI / 2;
+            badge.position.set(topPos.x, topPos.y + CHECKER_H / 2 + 0.03, topPos.z);
+            badgesContainer.add(badge);
+          }
+        }
+
+        // Bar checkers (subtract any victim checker currently spinning mid-air toward the bar)
+        [HUMAN, BOT].forEach((player) => {
+          const visibleBarCount = Math.max(0, st.bar[player] - flyingBarHidden[player]);
+          for (let i = 0; i < visibleBarCount; i++) {
+            const mesh = createCheckerMesh(player);
+            const pos = getCheckerWorldPos('bar', i, player);
+            mesh.position.copy(pos);
+            mesh.userData.loc = 'bar';
+            mesh.userData.isTop = i === visibleBarCount - 1;
+            checkersContainer.add(mesh);
+            boardCheckerVisuals.push({ mesh, loc: 'bar', player, isTop: i === visibleBarCount - 1, baseY: pos.y });
+          }
+        });
+
+        // Borne-off checkers stacked neatly on edge inside right tray
+        [HUMAN, BOT].forEach((player) => {
+          const count = st.off[player];
+          for (let i = 0; i < count; i++) {
+            const mesh = createCheckerMesh(player);
+            const pos = getCheckerWorldPos('off', i, player);
+            mesh.position.copy(pos);
+            mesh.rotation.x = Math.PI / 2; // Standing cleanly on edge inside tray!
+            mesh.userData.loc = 'off';
+            checkersContainer.add(mesh);
+            boardCheckerVisuals.push({ mesh, loc: 'off', player, isTop: i === count - 1, baseY: pos.y });
+          }
+        });
+
+        updateSelectionHighlights();
+      }
+
+      /**
+       * Launches a hit opponent checker spinning high into the air toward the central Bar
+       * with red impact rings on strike and on bar touchdown.
+       */
+      function launchHitVictimToBar(victimPlayer, hitPointIdx, barSlotIdx) {
+        const startPos = getCheckerWorldPos(hitPointIdx, 0, victimPlayer);
+        const endPos = getCheckerWorldPos('bar', barSlotIdx, victimPlayer);
+
+        // Crimson shockwave ring at the struck point
+        spawnImpactRing(startPos, 0xf43f5e, 1.4, true);
+
+        flyingBarHidden[victimPlayer]++;
+        const victimMesh = createCheckerMesh(victimPlayer);
+        victimMesh.position.copy(startPos);
+        scene.add(victimMesh);
+
+        activeArcs.push({
+          mesh: victimMesh,
+          start: startPos,
+          end: endPos,
+          elapsed: 0,
+          duration: 0.56,
+          arcHeight: 3.15,
+          isBearOff: false,
+          isHitLaunch: true,
+          spinAxis: new THREE.Vector3(0.7, 0.9, 0.55).normalize(),
+          onLand: () => {
+            scene.remove(victimMesh);
+            flyingBarHidden[victimPlayer] = Math.max(0, flyingBarHidden[victimPlayer] - 1);
+            sound.playCheckerClack(0.76);
+            spawnImpactRing(endPos, 0xf43f5e, 1.05, true);
+            rebuildCheckers3D();
+            triggerLandingBounce('bar', victimPlayer, 0.28);
+          },
+        });
+      }
+
+      function animateCheckerMove(player, move, stateBefore, onComplete) {
+        const fromStackIdx =
+          move.from === 'bar'
+            ? Math.max(0, stateBefore.bar[player] - 1)
+            : Math.max(0, Math.min(Math.abs(stateBefore.points[move.from]) - 1, 4));
+
+        const destCountAfter =
+          move.to === 'off'
+            ? stateBefore.off[player]
+            : move.isHit
+              ? 0
+              : Math.min(Math.abs(stateBefore.points[move.to]), 4);
+
+        const startPos = getCheckerWorldPos(move.from, fromStackIdx, player);
+        const endPos = getCheckerWorldPos(move.to, destCountAfter, player);
+        const dist = startPos.distanceTo(endPos);
+
+        const flying = createCheckerMesh(player);
+        flying.position.copy(startPos);
+        scene.add(flying);
+
+        activeArcs.push({
+          mesh: flying,
+          start: startPos,
+          end: endPos,
+          elapsed: 0,
+          duration: Math.min(0.46, Math.max(0.32, 0.28 + dist * 0.022)),
+          arcHeight: Math.min(2.65, 1.55 + dist * 0.14),
+          isBearOff: move.to === 'off',
+          isHitLaunch: false,
+          spinAxis: null,
+          onLand: () => {
+            scene.remove(flying);
+            if (move.to === 'off') {
+              sound.playBearOff();
+              spawnImpactRing(endPos, 0xf3d06b, 0.85, false);
+            } else if (move.isHit) {
+              sound.playHit();
+              const victim = -player;
+              launchHitVictimToBar(victim, move.to, stateBefore.bar[victim]);
+            } else {
+              sound.playCheckerClack(player === HUMAN ? 1.04 : 0.92);
+              spawnImpactRing(endPos, 0xf3d06b, 0.68, false);
+            }
+            onComplete();
+            triggerLandingBounce(move.to, player, move.isHit ? 0.3 : 0.22);
+          },
+        });
+      }
+
+      /* =========================================================================
+       * 5. MATCH FLOW, HUMAN INTERACTION, UNDO & BOT TURN EXECUTION
+       * ========================================================================= */
+      const match = {
+        state: createInitialBoardState(),
+        turnStartState: null,
+        turn: HUMAN, // HUMAN | BOT
+        phase: 'roll', // 'roll' | 'rolling' | 'move' | 'animating' | 'bot' | 'ended'
+        rolledDice: [],
+        remainingDice: [],
+        moveHistory: [],
+        selectedFrom: null, // point index (0..23) or 'bar'
+        legalMoves: [],
+      };
+
+      const toastEl = document.getElementById('toast');
+      let toastTimer = null;
+      function showToast(msg, kind = 'default') {
+        toastEl.textContent = msg;
+        toastEl.className = `toast visible ${kind}`;
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2500);
+      }
+
+      function startNewGame() {
+        document.getElementById('end-modal').classList.remove('open');
+        clearFlightFX();
+        match.state = createInitialBoardState();
+        match.turnStartState = null;
+        match.turn = HUMAN;
+        match.phase = 'roll';
+        match.rolledDice = [];
+        match.remainingDice = [];
+        match.moveHistory = [];
+        match.selectedFrom = null;
+        match.legalMoves = [];
+        diceMeshes.forEach((m) => (m.visible = false));
+
+        rebuildCheckers3D();
+        updateHUD();
+        showToast('Yeni tavla oyunu başladı! Zar atabilirsin.', 'success');
+      }
+
+      function rollDiceFor(player) {
+        const d1 = 1 + Math.floor(Math.random() * 6);
+        const d2 = 1 + Math.floor(Math.random() * 6);
+        const fullDice = d1 === d2 ? [d1, d1, d1, d1] : [d1, d2];
+
+        match.rolledDice = fullDice.slice();
+        match.remainingDice = fullDice.slice();
+        match.turnStartState = cloneState(match.state);
+        match.moveHistory = [];
+        match.selectedFrom = null;
+        match.phase = 'rolling';
+        updateHUD();
+
+        launch3DDice(d1, d2, player, () => {
+          const isDouble = d1 === d2;
+          if (player === HUMAN) {
+            match.legalMoves = getValidImmediateMoves(match.state, HUMAN, match.remainingDice);
+            if (match.legalMoves.length === 0) {
+              match.phase = 'move';
+              updateHUD();
+              showToast(`${d1}-${d2} geldi, oynanacak hamle yok. Sıra Bota geçiyor.`, 'error');
+              setTimeout(() => beginBotTurn(), 1150);
+              return;
+            }
+            match.phase = 'move';
+            if (match.state.bar[HUMAN] > 0) {
+              match.selectedFrom = 'bar';
+            }
+            updateHUD();
+            updateSelectionHighlights();
+            if (isDouble) showToast(`Çift ${d1}-${d1}! 4 hamle hakkın var.`, 'success');
+          } else {
+            runBotMovesSequence(d1, d2);
+          }
+        });
+      }
+
+      function executeHumanMove(move) {
+        const before = cloneState(match.state);
+        match.moveHistory.push({ stateBefore: before, dieUsed: move.die, move });
+
+        const dIdx = match.remainingDice.indexOf(move.die);
+        if (dIdx !== -1) match.remainingDice.splice(dIdx, 1);
+
+        match.selectedFrom = null;
+        match.phase = 'animating';
+
+        // Temporarily decrement source visually before flight
+        const midState = cloneState(before);
+        if (move.from === 'bar') midState.bar[HUMAN]--;
+        else midState.points[move.from] -= HUMAN;
+        match.state = midState;
+        rebuildCheckers3D();
+        updateHUD();
+
+        const finalState = applyMoveToState(before, HUMAN, move);
+        animateCheckerMove(HUMAN, move, before, () => {
+          match.state = finalState;
+          rebuildCheckers3D();
+
+          if (match.state.off[HUMAN] === 15) {
+            finishGame(HUMAN);
+            return;
+          }
+
+          match.legalMoves = getValidImmediateMoves(match.state, HUMAN, match.remainingDice);
+          match.phase = 'move';
+          if (match.state.bar[HUMAN] > 0 && match.legalMoves.length > 0) {
+            match.selectedFrom = 'bar';
+          }
+          updateHUD();
+          updateSelectionHighlights();
+
+          if (match.remainingDice.length > 0 && match.legalMoves.length === 0) {
+            showToast('Kalan zar için geçerli hamle yok. Turu tamamlayabilirsin.');
+          }
+        });
+      }
+
+      function undoHumanMove() {
+        if (match.turn !== HUMAN || match.phase !== 'move' || match.moveHistory.length === 0) return;
+        clearFlightFX();
+        const last = match.moveHistory.pop();
+        match.state = last.stateBefore;
+        match.remainingDice.push(last.dieUsed);
+        match.selectedFrom = match.state.bar[HUMAN] > 0 ? 'bar' : null;
+        match.legalMoves = getValidImmediateMoves(match.state, HUMAN, match.remainingDice);
+        sound.playCheckerClack(1.16);
+        rebuildCheckers3D();
+        updateHUD();
+      }
+
+      function confirmHumanTurn() {
+        if (match.turn !== HUMAN || match.phase !== 'move') return;
+        if (match.legalMoves.length > 0) {
+          sound.playError();
+          showToast('Turu bitirmeden önce oynanabilir zarlarını kullanmalısın.', 'error');
+          return;
+        }
+        sound.playCheckerClack(1.1);
+        beginBotTurn();
+      }
+
+      function beginBotTurn() {
+        match.turn = BOT;
+        match.phase = 'bot';
+        match.selectedFrom = null;
+        match.legalMoves = [];
+        updateHUD();
+        updateSelectionHighlights();
+        setTimeout(() => {
+          if (match.phase === 'ended') return;
+          rollDiceFor(BOT);
+        }, 420);
+      }
+
+      function runBotMovesSequence(d1, d2) {
+        const seq = chooseBestBotSequence(match.state, match.remainingDice);
+        if (seq.length === 0) {
+          showToast(`Usta Bot ${d1}-${d2} attı, hamle yapamadı. Sıra sende!`);
+          setTimeout(() => {
+            match.turn = HUMAN;
+            match.phase = 'roll';
+            match.rolledDice = [];
+            match.remainingDice = [];
+            updateHUD();
+          }, 950);
+          return;
+        }
+
+        let stepIdx = 0;
+        function nextStep() {
+          if (match.phase === 'ended') return;
+          if (stepIdx >= seq.length) {
+            if (match.state.off[BOT] === 15) {
+              finishGame(BOT);
+              return;
+            }
+            match.turn = HUMAN;
+            match.phase = 'roll';
+            match.selectedFrom = null;
+            match.legalMoves = [];
+            updateHUD();
+            updateSelectionHighlights();
+            return;
+          }
+
+          const move = seq[stepIdx++];
+          const before = cloneState(match.state);
+          const dIdx = match.remainingDice.indexOf(move.die);
+          if (dIdx !== -1) match.remainingDice.splice(dIdx, 1);
+
+          const midState = cloneState(before);
+          if (move.from === 'bar') midState.bar[BOT]--;
+          else midState.points[move.from] -= BOT;
+          match.state = midState;
+          rebuildCheckers3D();
+          updateHUD();
+
+          const after = applyMoveToState(before, BOT, move);
+          animateCheckerMove(BOT, move, before, () => {
+            match.state = after;
+            rebuildCheckers3D();
+            updateHUD();
+            if (match.state.off[BOT] === 15) {
+              finishGame(BOT);
+              return;
+            }
+            setTimeout(nextStep, 260);
+          });
+        }
+
+        setTimeout(nextStep, 300);
+      }
+
+      function finishGame(winner) {
+        match.phase = 'ended';
+        match.selectedFrom = null;
+        match.legalMoves = [];
+        updateHUD();
+        updateSelectionHighlights();
+
+        const humanWon = winner === HUMAN;
+        const loserOff = humanWon ? match.state.off[BOT] : match.state.off[HUMAN];
+        const isMars = loserOff === 0;
+        const multiplier = isMars ? 2 : 1;
+
+        const delta = humanWon
+          ? Math.round(tableStake * 1.9 * multiplier)
+          : -Math.min(playerChips, tableStake * multiplier);
+
+        playerChips = Math.max(0, playerChips + delta);
+        writeChips(playerChips, humanWon);
+
+        if (humanWon) sound.playVictory(isMars);
+        else sound.playError();
+
+        document.getElementById('end-kicker').textContent = isMars ? 'MARS! (2× ÇİP)' : 'OYUN SONU';
+        document.getElementById('end-title').textContent = humanWon
+          ? isMars
+            ? 'MARS İLE KAZANDIN!'
+            : 'Oyunu Kazandın!'
+          : isMars
+            ? 'Usta Bot Mars Etti!'
+            : 'Usta Bot Kazandı';
+        document.getElementById('end-desc').textContent = humanWon
+          ? isMars
+            ? 'Rakip tek pul bile toplayamadan tüm pullarını bitirdin! Ödülün 2 katına çıktı.'
+            : 'Tüm 15 pulunu başarıyla topladın ve masa ödülünü kazandın.'
+          : isMars
+            ? 'Hiç pul toplayamadığın için Mars (2×) cezası uygulandı.'
+            : 'Usta Bot tüm pullarını senden önce topladı.';
+
+        document.getElementById('res-human').textContent = `${match.state.off[HUMAN]} / 15`;
+        document.getElementById('res-bot').textContent = `${match.state.off[BOT]} / 15`;
+
+        const rewardEl = document.getElementById('reward-val');
+        rewardEl.textContent = `${delta >= 0 ? '+' : ''}${fmt(delta)} Çip`;
+        rewardEl.className = `reward-val ${delta >= 0 ? 'pos' : 'neg'}`;
+
+        document.getElementById('end-modal').classList.add('open');
+      }
+
+      /* ------------------ VISUAL HIGHLIGHTING & RAYCASTING ------------------ */
+      function updateSelectionHighlights() {
+        const playableFroms = new Set(
+          match.turn === HUMAN && match.phase === 'move' ? match.legalMoves.map((m) => m.from) : []
+        );
+
+        // Highlight playable & selected human checkers
+        for (const rec of boardCheckerVisuals) {
+          const halo = rec.mesh.userData.halo;
+          if (!halo) continue;
+          if (rec.player === HUMAN && rec.isTop && playableFroms.has(rec.loc)) {
+            const isSel = match.selectedFrom === rec.loc;
+            halo.material.color.setHex(isSel ? 0x34d399 : 0xf3d06b);
+            halo.material.opacity = isSel ? 0.95 : 0.62;
+          } else {
+            halo.material.opacity = 0;
+          }
+        }
+
+        // Highlight valid destination rings for currently selected source
+        const validTargets = new Map();
+        if (match.turn === HUMAN && match.phase === 'move' && match.selectedFrom !== null) {
+          for (const m of match.legalMoves) {
+            if (m.from === match.selectedFrom) {
+              // Prefer smallest die if multiple dice reach same destination
+              if (!validTargets.has(m.to) || m.die < validTargets.get(m.to).die) {
+                validTargets.set(m.to, m);
+              }
+            }
+          }
+        }
+
+        for (let p = 0; p < 24; p++) {
+          const ring = pointTargetRings[p];
+          const mv = validTargets.get(p);
+          if (mv) {
+            const stackIdx = mv.isHit ? 0 : Math.min(Math.abs(match.state.points[p]), 4);
+            const pos = getCheckerWorldPos(p, stackIdx, HUMAN);
+            ring.position.set(pos.x, pos.y + CHECKER_H * 0.45, pos.z);
+            ring.material.color.setHex(mv.isHit ? 0xf43f5e : 0x34d399);
+            ring.material.opacity = 0.9;
+          } else {
+            ring.material.opacity = 0;
+          }
+        }
+
+        bearOffGlow.material.opacity = validTargets.has('off') ? 0.92 : 0;
+      }
+
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let downX = 0;
+      let downY = 0;
+
+      renderer.domElement.addEventListener('pointerdown', (e) => {
+        downX = e.clientX;
+        downY = e.clientY;
+      });
+
+      renderer.domElement.addEventListener('pointerup', (e) => {
+        if (e.button !== 0) return;
+        // Ignore if user was orbiting camera
+        if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return;
+        if (match.turn !== HUMAN || match.phase !== 'move') return;
+
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+
+        const targets = [...pointHitMeshes, barHitMesh, bearOffHitMesh];
+        const hits = raycaster.intersectObjects(targets, false);
+        if (hits.length === 0) {
+          if (match.state.bar[HUMAN] === 0 && match.selectedFrom !== null) {
+            match.selectedFrom = null;
+            updateSelectionHighlights();
+          }
+          return;
+        }
+
+        const hitData = hits[0].object.userData;
+        const clickedLoc = hitData.kind === 'point' ? hitData.point : hitData.kind; // number | 'bar' | 'off'
+
+        // 1. If a source is selected and clicked location is a legal destination -> execute move!
+        if (match.selectedFrom !== null) {
+          const matchingMoves = match.legalMoves.filter(
+            (m) => m.from === match.selectedFrom && m.to === clickedLoc
+          );
+          if (matchingMoves.length > 0) {
+            // Pick smallest die if multiple dice reach same target (e.g., bear off)
+            matchingMoves.sort((a, b) => a.die - b.die);
+            executeHumanMove(matchingMoves[0]);
+            return;
+          }
+        }
+
+        // 2. Otherwise check if clicked location is a valid source checker to select
+        const isPlayableSource = match.legalMoves.some((m) => m.from === clickedLoc);
+        if (isPlayableSource) {
+          if (match.selectedFrom === clickedLoc) {
+            // Convenience: double-click / re-click with only 1 destination moves immediately!
+            const fromMoves = match.legalMoves.filter((m) => m.from === clickedLoc);
+            const uniqueDests = new Set(fromMoves.map((m) => m.to));
+            if (uniqueDests.size === 1) {
+              executeHumanMove(fromMoves[0]);
+              return;
+            }
+            if (match.state.bar[HUMAN] === 0) match.selectedFrom = null;
+          } else {
+            match.selectedFrom = clickedLoc;
+            sound.playCheckerClack(1.2);
+          }
+          updateSelectionHighlights();
+        } else if (match.state.bar[HUMAN] > 0) {
+          sound.playError();
+          showToast('Önce ortadaki bardaki kırık pulunu oyuna sokmalısın!', 'error');
+        }
+      });
+
+      /* ------------------ HUD UPDATES & BUTTON EVENTS ------------------ */
+      function updateHUD() {
+        const st = match.state;
+        const hRem = 15 - st.off[HUMAN];
+        const bRem = 15 - st.off[BOT];
+        const hPip = computePipCount(st, HUMAN);
+        const bPip = computePipCount(st, BOT);
+
+        document.getElementById('stat-human').classList.toggle('active', match.turn === HUMAN && match.phase !== 'ended');
+        document.getElementById('stat-bot').classList.toggle('active', match.turn === BOT && match.phase !== 'ended');
+
+        document.getElementById('meta-human').innerHTML =
+          `Kalan: ${hRem} · Pip: ${hPip}${st.bar[HUMAN] > 0 ? `<span class="stat-bar-badge"> · Bar:${st.bar[HUMAN]}</span>` : ''}`;
+        document.getElementById('meta-bot').innerHTML =
+          `Kalan: ${bRem} · Pip: ${bPip}${st.bar[BOT] > 0 ? `<span class="stat-bar-badge"> · Bar:${st.bar[BOT]}</span>` : ''}`;
+
+        // 2D Dice Display
+        const diceHud = document.getElementById('dice-hud');
+        if (match.rolledDice.length === 0) {
+          diceHud.innerHTML = '<div class="die-2d empty">-</div><div class="die-2d empty">-</div>';
+        } else {
+          const remCopy = match.remainingDice.slice();
+          diceHud.innerHTML = match.rolledDice
+            .map((d) => {
+              const idx = remCopy.indexOf(d);
+              const active = idx !== -1;
+              if (active) remCopy.splice(idx, 1);
+              return `<div class="die-2d ${active ? '' : 'used'}">${d}</div>`;
+            })
+            .join('');
+        }
+
+        // Turn Banner
+        const banner = document.getElementById('turn-banner');
+        if (match.phase === 'ended') {
+          banner.className = 'turn-banner';
+          banner.textContent = 'Oyun tamamlandı.';
+        } else if (match.turn === HUMAN) {
+          banner.className = 'turn-banner highlight';
+          if (match.phase === 'roll') {
+            banner.textContent = 'Sıra Sende — "Zar At" butonuna bas';
+          } else if (match.phase === 'rolling') {
+            banner.textContent = 'Zarlar yuvarlanıyor...';
+          } else if (match.legalMoves.length === 0) {
+            banner.textContent = 'Hamlelerin tamamlandı — "Turu Tamamla" ile sırayı devret';
+          } else if (st.bar[HUMAN] > 0) {
+            banner.textContent = 'Kırık Pulun Var! Parlayan yeşil haneye tıklayarak oyuna sok';
+          } else if (match.selectedFrom !== null) {
+            banner.textContent = 'Hedef hanedeki yeşil/altın halkaya tıkla';
+          } else {
+            banner.textContent = 'Parlayan pullarından birini seç ve hedefine taşı';
+          }
+        } else {
+          banner.className = 'turn-banner';
+          banner.textContent = match.phase === 'rolling' ? 'Usta Bot zar atıyor...' : 'Usta Bot hamlesini düşünüyor...';
+        }
+
+        // Buttons enabled state
+        document.getElementById('btn-roll').disabled = !(match.turn === HUMAN && match.phase === 'roll');
+        document.getElementById('btn-undo').disabled = !(
+          match.turn === HUMAN &&
+          match.phase === 'move' &&
+          match.moveHistory.length > 0
+        );
+        document.getElementById('btn-confirm').disabled = !(
+          match.turn === HUMAN &&
+          match.phase === 'move' &&
+          match.legalMoves.length === 0
+        );
+      }
+
+      document.getElementById('btn-roll').addEventListener('click', () => {
+        if (match.turn === HUMAN && match.phase === 'roll') {
+          rollDiceFor(HUMAN);
+        }
+      });
+      document.getElementById('btn-undo').addEventListener('click', undoHumanMove);
+      document.getElementById('btn-confirm').addEventListener('click', confirmHumanTurn);
+      document.getElementById('btn-rematch').addEventListener('click', startNewGame);
+
+      // Camera View Preset Toggle (Smooth Damped Transition, cancels if user orbits manually)
+      let camMode = 'angled'; // 'angled' | 'top'
+      let camPresetActive = false;
+      const camGoalPos = new THREE.Vector3();
+      const camGoalTarget = new THREE.Vector3(0.3, 0, 0.2);
+
+      controls.addEventListener('start', () => {
+        camPresetActive = false;
+      });
+
+      function applyCameraPreset(mode) {
+        camMode = mode;
+        const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+        const narrowPull = aspect < 1.45 ? (1.45 - aspect) * 6.5 : 0;
+        if (mode === 'top') {
+          camGoalPos.set(0.3, 15.8 + narrowPull, 2.2);
+          document.getElementById('cam-label').textContent = '3D Masa Açısı';
+        } else {
+          camGoalPos.set(0.3, 11.4 + narrowPull * 0.7, 10.6 + narrowPull * 0.7);
+          document.getElementById('cam-label').textContent = 'Kuşbakışı';
+        }
+        camPresetActive = true;
+      }
+
+      document.getElementById('btn-cam').addEventListener('click', () => {
+        sound.playCheckerClack(1.18);
+        applyCameraPreset(camMode === 'angled' ? 'top' : 'angled');
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'v' || e.key === 'V') {
+          applyCameraPreset(camMode === 'angled' ? 'top' : 'angled');
+        }
+      });
+
+      // Sound Toggle
+      function syncSoundUI() {
+        document.getElementById('ico-on').style.display = sound.enabled ? 'block' : 'none';
+        document.getElementById('ico-off').style.display = sound.enabled ? 'none' : 'block';
+        document.getElementById('sound-label').textContent = sound.enabled ? 'Ses' : 'Sessiz';
+      }
+      syncSoundUI();
+
+      document.getElementById('btn-sound').addEventListener('click', () => {
+        sound.enabled = !sound.enabled;
+        syncSoundUI();
+        if (sound.enabled) sound.playCheckerClack(1.15);
+      });
+
+      /* =========================================================================
+       * 6. RENDER & PHYSICS ANIMATION LOOP (WITH SOFTWARE-WEBGL PACING)
+       * ========================================================================= */
+      const clock = new THREE.Clock();
+      const _qSpin = new THREE.Quaternion();
+      const _qTmp = new THREE.Quaternion();
+      let frameId = 0;
+      let contextLost = false;
+
+      function afterDraw(cb) {
+        const gl = renderer.getContext();
+        if (gl && typeof gl.fenceSync === 'function') {
+          const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+          gl.flush();
+          const poll = () => {
+            const state = sync && gl.getSyncParameter(sync, gl.SYNC_STATUS);
+            if (state === gl.UNSIGNALED) frameId = window.setTimeout(poll, 5);
+            else {
+              if (sync) gl.deleteSync(sync);
+              frameId = window.setTimeout(cb, 80);
+            }
+          };
+          frameId = window.setTimeout(poll, 5);
+        } else {
+          frameId = window.setTimeout(cb, 80);
+        }
+      }
+
+      function tick() {
+        if (contextLost) return;
+        const dt = Math.min(clock.getDelta(), 0.08);
+        const elapsed = clock.getElapsedTime();
+
+        // Smooth camera preset glide
+        if (camPresetActive) {
+          camera.position.lerp(camGoalPos, 1 - Math.exp(-6.5 * dt));
+          controls.target.lerp(camGoalTarget, 1 - Math.exp(-6.5 * dt));
+          if (camera.position.distanceTo(camGoalPos) < 0.05) {
+            camPresetActive = false;
+          }
+        }
+        controls.update();
+
+        // Physical damped-bounce 3D dice launched from the wooden rail
+        if (diceAnim.active) {
+          diceAnim.elapsed += dt;
+          let allDone = true;
+
+          diceAnim.items.forEach((it, idx) => {
+            const localElapsed = Math.max(0, diceAnim.elapsed - it.delay);
+            const dieDur = diceAnim.duration - it.delay;
+            const t = Math.min(1, localElapsed / dieDur);
+            if (t < 1) allDone = false;
+
+            // Curved quadratic Bezier horizontal glide with wooden friction deceleration
+            const hEase = 1 - Math.pow(1 - t, 2.35);
+            const inv = 1 - hEase;
+            it.mesh.position.x =
+              inv * inv * it.startPos.x + 2 * inv * hEase * it.midPos.x + hEase * hEase * it.endPos.x;
+            it.mesh.position.z =
+              inv * inv * it.startPos.z + 2 * inv * hEase * it.midPos.z + hEase * hEase * it.endPos.z;
+
+            // 4-stage damped bounce curve (energy decays realistically on each wood contact)
+            let bounceH = 0;
+            if (t < 0.34) {
+              // Initial throw arc from the outer box rail
+              const lt = t / 0.34;
+              bounceH = (1 - lt * lt) * (it.startPos.y - (DIE_SIZE / 2 + 0.006)) + Math.sin(lt * Math.PI) * 0.42;
+            } else if (t < 0.62) {
+              if (!it.bouncesHit[0]) {
+                it.bouncesHit[0] = true;
+                sound.playDiceBounce(idx === 0 ? 1.0 : 0.88);
+                spawnImpactRing(it.mesh.position, 0xf3d06b, 0.55, false, 0.02);
+              }
+              const lt = (t - 0.34) / 0.28;
+              bounceH = Math.sin(lt * Math.PI) * 1.08;
+            } else if (t < 0.81) {
+              if (!it.bouncesHit[1]) {
+                it.bouncesHit[1] = true;
+                sound.playDiceBounce(0.62);
+              }
+              const lt = (t - 0.62) / 0.19;
+              bounceH = Math.sin(lt * Math.PI) * 0.44;
+            } else if (t < 0.93) {
+              if (!it.bouncesHit[2]) {
+                it.bouncesHit[2] = true;
+                sound.playDiceBounce(0.36);
+              }
+              const lt = (t - 0.81) / 0.12;
+              bounceH = Math.sin(lt * Math.PI) * 0.15;
+            } else {
+              if (!it.bouncesHit[3]) {
+                it.bouncesHit[3] = true;
+                sound.playDiceBounce(0.18);
+              }
+              // Final damped micro-settle rock
+              const lt = (t - 0.93) / 0.07;
+              bounceH = Math.sin(lt * Math.PI) * 0.032;
+            }
+            it.mesh.position.y = DIE_SIZE / 2 + 0.006 + bounceH;
+
+            // Continuous axis tumble that smoothly decelerates into exact target face-up orientation
+            if (t < 0.82) {
+              const remSpin = Math.pow(1 - t / 0.82, 1.55) * it.totalSpins;
+              _qSpin.setFromAxisAngle(it.spinAxis, remSpin);
+              _qTmp.copy(it.endQuat).multiply(_qSpin);
+              it.mesh.quaternion.copy(_qTmp);
+            } else {
+              const lockT = (t - 0.82) / 0.18;
+              const wobble = Math.sin(lockT * Math.PI * 2.0) * (1 - lockT) * 0.12;
+              _qSpin.setFromAxisAngle(it.spinAxis, wobble);
+              _qTmp.copy(it.endQuat).multiply(_qSpin);
+              it.mesh.quaternion.slerp(_qTmp, Math.min(1, 0.38 + lockT * 0.62));
+            }
+          });
+
+          if (allDone) {
+            diceAnim.items.forEach((it) => {
+              it.mesh.position.copy(it.endPos);
+              it.mesh.quaternion.copy(it.endQuat);
+            });
+            diceAnim.active = false;
+            const cb = diceAnim.onDone;
+            diceAnim.onDone = null;
+            if (cb) cb();
+          }
+        }
+
+        // High-arc parabolic checker flights & spinning hit-to-bar launches
+        for (let i = activeArcs.length - 1; i >= 0; i--) {
+          const arc = activeArcs[i];
+          arc.elapsed += dt;
+          const t = Math.min(1, arc.elapsed / arc.duration);
+          const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+          arc.mesh.position.lerpVectors(arc.start, arc.end, eased);
+          // High graceful parabolic arc: 4 * t * (1 - t) peaks cleanly at t = 0.5
+          arc.mesh.position.y += 4 * t * (1 - t) * arc.arcHeight;
+
+          if (arc.isHitLaunch) {
+            // Dramatic rapid mid-air spin as the struck checker flies to the central bar
+            const spinAngle = (1 - eased) * Math.PI * 6.0;
+            _qSpin.setFromAxisAngle(arc.spinAxis, spinAngle);
+            arc.mesh.quaternion.copy(_qSpin);
+          } else if (arc.isBearOff) {
+            arc.mesh.rotation.set(eased * (Math.PI / 2), Math.sin(t * Math.PI) * 0.35, 0);
+          } else {
+            // Subtle aerodynamic bank & pitch along flight arc
+            const dx = arc.end.x - arc.start.x;
+            const dz = arc.end.z - arc.start.z;
+            const envelope = Math.sin(t * Math.PI);
+            arc.mesh.rotation.set(dz * 0.045 * envelope, eased * Math.PI * 0.5, -dx * 0.045 * envelope);
+          }
+
+          if (t >= 1) {
+            activeArcs.splice(i, 1);
+            arc.onLand();
+          }
+        }
+
+        // Damped spring landing bounce on destination checkers
+        for (let i = landingBounces.length - 1; i >= 0; i--) {
+          const lb = landingBounces[i];
+          lb.elapsed += dt;
+          const p = Math.min(1, lb.elapsed / lb.duration);
+          const springY = Math.abs(Math.sin(p * Math.PI * 2.0)) * Math.exp(-p * 4.8) * lb.amp;
+          const squash = 1 - Math.sin(p * Math.PI) * Math.exp(-p * 5.2) * 0.08;
+
+          for (const rec of boardCheckerVisuals) {
+            if (rec.player === lb.player && rec.isTop && rec.loc === lb.loc) {
+              if (p < 1) {
+                rec.mesh.position.y = rec.baseY + springY;
+                rec.mesh.scale.set(1 / Math.sqrt(squash), squash, 1 / Math.sqrt(squash));
+              } else {
+                rec.mesh.position.y = rec.baseY;
+                rec.mesh.scale.set(1, 1, 1);
+              }
+            }
+          }
+          if (p >= 1) landingBounces.splice(i, 1);
+        }
+
+        // Expanding crimson/gold impact shockwave rings & spark burst particles
+        for (let i = impactFXList.length - 1; i >= 0; i--) {
+          const fx = impactFXList[i];
+          fx.elapsed += dt;
+          const p = Math.min(1, fx.elapsed / fx.duration);
+          const easeOut = 1 - Math.pow(1 - p, 3);
+
+          const s1 = (0.55 + easeOut * (fx.heavyBurst ? 2.85 : 1.75)) * fx.scaleBoost;
+          fx.coreRing.scale.set(s1, s1, 1);
+          fx.coreMat.opacity = (fx.heavyBurst ? 0.96 : 0.7) * Math.pow(1 - p, 1.5);
+
+          if (fx.outerRing) {
+            const s2 = (0.4 + easeOut * 3.65) * fx.scaleBoost;
+            fx.outerRing.scale.set(s2, s2, 1);
+            fx.outerMat.opacity = 0.82 * Math.pow(1 - p, 1.8);
+          }
+
+          for (let j = 0; j < fx.sparks.length; j++) {
+            const sp = fx.sparks[j];
+            sp.mesh.position.x += sp.vx * dt;
+            sp.mesh.position.y = Math.max(0.01, sp.mesh.position.y + sp.vy * dt);
+            sp.mesh.position.z += sp.vz * dt;
+            sp.vy -= 7.2 * dt;
+            sp.mat.opacity = (fx.heavyBurst ? 0.92 : 0.65) * (1 - p);
+            const sc = Math.max(0.01, 1 - p * 0.75);
+            sp.mesh.scale.setScalar(sc);
+          }
+
+          if (p >= 1) {
+            scene.remove(fx.group);
+            fx.coreMat.dispose();
+            if (fx.outerMat) fx.outerMat.dispose();
+            fx.sparks.forEach((sp) => sp.mat.dispose());
+            impactFXList.splice(i, 1);
+          }
+        }
+
+        // Gentle breathing lift on selected checker & destination rings
+        const bob = Math.sin(elapsed * 5.2) * 0.04;
+        if (match.selectedFrom !== null) {
+          for (const rec of boardCheckerVisuals) {
+            if (rec.player === HUMAN && rec.isTop && rec.loc === match.selectedFrom) {
+              rec.mesh.position.y = rec.baseY + 0.14 + bob;
+            }
+          }
+        }
+
+        renderer.render(scene, camera);
+
+        if (isSoftwareGl) afterDraw(tick);
+        else frameId = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      });
+
+      renderer.domElement.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        contextLost = true;
+        cancelAnimationFrame(frameId);
+        clearTimeout(frameId);
+      });
+
+      renderer.domElement.addEventListener('webglcontextrestored', () => {
+        contextLost = false;
+        tick();
+      });
+
+      // Boot 3D Tavla!
+      applyCameraPreset('angled');
+      startNewGame();
+      if (!isSoftwareGl) renderer.compile(scene, camera);
+      tick();
+      })();
+    </script>
+  </body>
+</html>

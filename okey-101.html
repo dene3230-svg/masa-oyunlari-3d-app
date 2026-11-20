@@ -1,0 +1,4638 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>3D Okey 101 — Masa Oyunları 3D</title>
+    <meta
+      name="description"
+      content="Three.js ile prosedürel 3D ahşap ıstaka, 106 taş ve 3 akıllı AI bot ile gerçekçi 3D Okey 101 masa oyunu."
+    />
+    <style>
+      :root {
+        --bg-void: #050b16;
+        --panel-bg: rgba(8, 16, 34, 0.88);
+        --panel-soft: rgba(13, 25, 50, 0.82);
+        --border-gold: rgba(212, 175, 55, 0.34);
+        --border-subtle: rgba(148, 163, 184, 0.2);
+        --gold: #f3d06b;
+        --gold-deep: #c79a26;
+        --cyan: #22d3ee;
+        --emerald: #34d399;
+        --danger: #f87171;
+        --text-main: #f8fafc;
+        --text-dim: #cbd5e1;
+        --text-muted: #8ca0bf;
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg-void);
+        color: var(--text-main);
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        user-select: none;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Fullscreen 3D WebGL Canvas */
+      #canvas-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background: radial-gradient(ellipse 80% 70% at 50% 45%, #112a3d 0%, #071324 58%, #040914 100%);
+        touch-action: none;
+      }
+
+      #canvas-wrap canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ================= TOP HUD BAR ================= */
+      .hud-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        padding: 10px 18px;
+        background: linear-gradient(180deg, rgba(5, 11, 24, 0.94) 0%, rgba(7, 15, 32, 0.8) 100%);
+        border-bottom: 1px solid var(--border-gold);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .hud-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-shrink: 0;
+      }
+
+      .game-title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+
+      .game-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: var(--gold);
+        white-space: nowrap;
+      }
+
+      .game-stake-sub {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Mini Gösterge & Okey Indicator */
+      .okey-indicator-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px;
+        border-radius: 10px;
+        background: rgba(14, 28, 56, 0.85);
+        border: 1px solid rgba(243, 208, 107, 0.28);
+      }
+
+      .mini-tile-slot {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+
+      .mini-tile-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+
+      .mini-tile {
+        min-width: 28px;
+        height: 34px;
+        padding: 0 5px;
+        border-radius: 5px;
+        background: linear-gradient(180deg, #fffdf7 0%, #eae0c9 100%);
+        border: 1px solid rgba(180, 145, 70, 0.65);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        font-size: 0.92rem;
+        line-height: 1;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+      }
+
+      .mini-tile .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        margin-top: 2px;
+      }
+
+      .mini-tile.is-okey {
+        box-shadow: 0 0 0 2px rgba(243, 208, 107, 0.85), 0 0 12px rgba(243, 208, 107, 0.4);
+      }
+
+      /* 4-Player Status Strip */
+      .players-strip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        overflow-x: auto;
+      }
+
+      .player-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 11px;
+        border-radius: 9px;
+        background: rgba(14, 26, 52, 0.76);
+        border: 1px solid var(--border-subtle);
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: border-color 180ms var(--ease), background-color 180ms var(--ease);
+      }
+
+      .player-box.active-turn {
+        border-color: var(--gold);
+        background: rgba(34, 48, 84, 0.92);
+        box-shadow: 0 0 14px rgba(243, 208, 107, 0.22);
+      }
+
+      .player-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .player-meta {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .player-status {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 5px;
+      }
+
+      .player-status.opened {
+        color: #6ee7b7;
+        background: rgba(16, 185, 129, 0.16);
+      }
+
+      .player-status.closed {
+        color: #94a3b8;
+        background: rgba(148, 163, 184, 0.12);
+      }
+
+      /* Right HUD Zone */
+      .hud-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .chip-box {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 9px;
+        background: rgba(20, 32, 62, 0.86);
+        border: 1px solid var(--border-gold);
+        white-space: nowrap;
+      }
+
+      .chip-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+
+      .chip-unit {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+      }
+
+      .hud-btn {
+        appearance: none;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 9px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(14, 26, 52, 0.82);
+        color: var(--text-dim);
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease), transform 120ms var(--ease);
+      }
+
+      .hud-btn:hover {
+        background: rgba(24, 42, 82, 0.92);
+        border-color: rgba(243, 208, 107, 0.45);
+        color: var(--text-main);
+      }
+
+      .hud-btn:active {
+        transform: scale(0.96);
+      }
+
+      .hud-btn.lobby-link {
+        border-color: rgba(243, 208, 107, 0.48);
+        color: var(--gold);
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(14, 26, 52, 0.9));
+      }
+
+      .hud-btn.lobby-link:hover {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.28), rgba(20, 36, 70, 0.95));
+      }
+
+      /* ================= TURN BANNER & TOAST ================= */
+      .turn-banner {
+        position: fixed;
+        top: 66px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 18;
+        padding: 6px 16px;
+        border-radius: 9px;
+        background: rgba(7, 15, 32, 0.84);
+        border: 1px solid rgba(243, 208, 107, 0.32);
+        color: var(--text-main);
+        font-size: 0.82rem;
+        font-weight: 600;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      }
+
+      .turn-banner.highlight {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+
+      .toast {
+        position: fixed;
+        top: 106px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-10px);
+        z-index: 35;
+        padding: 9px 18px;
+        border-radius: 9px;
+        background: rgba(8, 16, 36, 0.95);
+        border: 1px solid var(--border-gold);
+        color: var(--text-main);
+        font-size: 0.83rem;
+        font-weight: 600;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+        transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .toast.error {
+        border-color: rgba(248, 113, 113, 0.7);
+        color: #fecaca;
+      }
+
+      .toast.success {
+        border-color: rgba(52, 211, 153, 0.7);
+        color: #a7f3d0;
+      }
+
+      /* ================= BOTTOM ACTION DOCK ================= */
+      .action-dock {
+        position: fixed;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        max-width: min(1220px, 96vw);
+        padding: 8px 12px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(10, 20, 44, 0.92) 0%, rgba(6, 12, 28, 0.95) 100%);
+        border: 1px solid var(--border-gold);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+      }
+
+      .dock-divider {
+        width: 1px;
+        height: 26px;
+        background: rgba(148, 163, 184, 0.22);
+        flex-shrink: 0;
+        margin: 0 2px;
+      }
+
+      .act-btn {
+        appearance: none;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 9px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(18, 34, 68, 0.85);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background-color 150ms var(--ease), border-color 150ms var(--ease), transform 120ms var(--ease), opacity 150ms var(--ease);
+      }
+
+      .act-btn:hover:not(:disabled) {
+        background: rgba(28, 50, 98, 0.95);
+        border-color: rgba(243, 208, 107, 0.55);
+      }
+
+      .act-btn:active:not(:disabled) {
+        transform: scale(0.96);
+      }
+
+      .act-btn:disabled {
+        opacity: 0.42;
+        cursor: not-allowed;
+      }
+
+      .act-btn.primary {
+        background: linear-gradient(135deg, #e5bf4b 0%, #c19220 100%);
+        border-color: rgba(254, 240, 138, 0.6);
+        color: #070d1c;
+      }
+
+      .act-btn.primary:hover:not(:disabled) {
+        filter: brightness(1.08);
+      }
+
+      .act-btn.emerald {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(6, 78, 59, 0.72));
+        border-color: rgba(52, 211, 153, 0.62);
+        color: #a7f3d0;
+      }
+
+      .act-btn.cyan {
+        background: linear-gradient(135deg, rgba(34, 211, 238, 0.22), rgba(14, 54, 82, 0.78));
+        border-color: rgba(34, 211, 238, 0.55);
+        color: #a5f3fc;
+      }
+
+      .act-btn.danger {
+        background: linear-gradient(135deg, rgba(244, 63, 94, 0.24), rgba(88, 16, 36, 0.78));
+        border-color: rgba(251, 113, 133, 0.58);
+        color: #fecdd3;
+      }
+
+      .act-btn.active-mode {
+        border-color: var(--cyan);
+        background: rgba(14, 66, 94, 0.9);
+        color: #67e8f9;
+      }
+
+      .score-inline {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.76rem;
+        padding: 2px 6px;
+        border-radius: 5px;
+        background: rgba(0, 0, 0, 0.28);
+      }
+
+      /* ================= ROUND END MODAL ================= */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(3, 7, 18, 0.78);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: 100%;
+        max-width: 520px;
+        padding: 26px;
+        border-radius: 16px;
+        background: linear-gradient(160deg, rgba(16, 30, 64, 0.96) 0%, rgba(7, 14, 32, 0.98) 100%);
+        border: 1px solid var(--border-gold);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+      }
+
+      .modal-kicker {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 4px;
+      }
+
+      .modal-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.65rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 6px;
+      }
+
+      .modal-sub {
+        font-size: 0.88rem;
+        color: var(--text-dim);
+        margin-bottom: 18px;
+      }
+
+      .score-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 18px;
+      }
+
+      .score-table th,
+      .score-table td {
+        padding: 9px 10px;
+        text-align: left;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        font-size: 0.84rem;
+      }
+
+      .score-table th {
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.75rem;
+      }
+
+      .score-table td.num,
+      .score-table th.num {
+        text-align: right;
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .score-table tr.winner-row td {
+        color: var(--gold);
+        font-weight: 700;
+      }
+
+      .reward-summary {
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(6, 13, 30, 0.78);
+        border: 1px solid rgba(243, 208, 107, 0.28);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        font-size: 0.88rem;
+      }
+
+      .reward-amount {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        font-size: 1rem;
+      }
+
+      .reward-amount.pos {
+        color: var(--emerald);
+      }
+
+      .reward-amount.neg {
+        color: var(--danger);
+      }
+
+      .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      @media (max-width: 1120px) {
+        .hud-top {
+          flex-wrap: wrap;
+          padding: 8px 12px;
+          gap: 8px;
+        }
+        .players-strip {
+          order: 3;
+          width: 100%;
+          justify-content: space-between;
+        }
+        .turn-banner {
+          top: 104px;
+        }
+        .toast {
+          top: 142px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hud-btn span {
+          display: none;
+        }
+        .hud-btn.lobby-link span {
+          display: inline;
+        }
+        .action-dock {
+          padding: 6px 8px;
+          gap: 6px;
+        }
+        .act-btn {
+          height: 36px;
+          padding: 0 10px;
+          font-size: 0.74rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 3D Three.js Canvas Container -->
+    <div id="canvas-wrap" aria-label="3D Okey 101 Oyun Masası"></div>
+
+    <!-- TOP HUD -->
+    <header class="hud-top">
+      <div class="hud-left">
+        <div class="game-title-wrap">
+          <div class="game-title">3D OKEY 101</div>
+          <div class="game-stake-sub" id="stake-sub">Masa: 500 Çip</div>
+        </div>
+
+        <div class="okey-indicator-group" aria-label="Gösterge ve Okey Taşı">
+          <div class="mini-tile-slot">
+            <span class="mini-tile-label">Gösterge</span>
+            <div class="mini-tile" id="hud-indicator">-</div>
+          </div>
+          <div class="mini-tile-slot">
+            <span class="mini-tile-label">Okey</span>
+            <div class="mini-tile is-okey" id="hud-okey">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Players Status -->
+      <div class="players-strip" id="players-strip" aria-label="Oyuncu Durumları"></div>
+
+      <!-- Right: Chips, Audio, Camera, Lobby Return -->
+      <div class="hud-right">
+        <div class="chip-box" title="Ortak Platform Çip Bakiyesi">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="rgba(243,208,107,0.18)" stroke="#F3D06B" stroke-width="1.8" />
+            <circle cx="12" cy="12" r="4.8" stroke="#D4AF37" stroke-width="1.4" stroke-dasharray="2.5 2" />
+          </svg>
+          <span class="chip-val" id="hud-chips">10.000</span>
+          <span class="chip-unit">Çip</span>
+        </div>
+
+        <button type="button" class="hud-btn" id="btn-cam" title="Kamera modunu değiştir (V)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+          <span id="cam-label">Dinamik Kamera</span>
+        </button>
+
+        <button type="button" class="hud-btn" id="btn-sound" title="Ses efektlerini aç/kapat">
+          <svg id="ico-sound-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          </svg>
+          <svg id="ico-sound-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+          <span id="sound-label">Ses</span>
+        </button>
+
+        <a href="index.html" class="hud-btn lobby-link" id="btn-lobby">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+            <path d="M3 12h18" />
+            <path d="M9 6l-6 6 6 6" />
+          </svg>
+          <span>Ana Lobiye Dön</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Turn Banner & Toast -->
+    <div class="turn-banner" id="turn-banner">Oyun hazırlanıyor...</div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- BOTTOM ACTION DOCK -->
+    <nav class="action-dock" aria-label="Okey 101 Aksiyonları">
+      <button type="button" class="act-btn cyan" id="btn-draw-center">Ortadan Çek</button>
+      <button type="button" class="act-btn" id="btn-draw-side">Yandan Al</button>
+      <button type="button" class="act-btn danger" id="btn-return-side" style="display:none">Yandan İade Et</button>
+
+      <div class="dock-divider" aria-hidden="true"></div>
+
+      <button type="button" class="act-btn emerald" id="btn-open-melds">
+        <span id="open-btn-text">Perleri Aç</span>
+        <span class="score-inline" id="live-meld-score">0 / 101</span>
+      </button>
+
+      <button type="button" class="act-btn" id="btn-layoff">İşlek Ekle</button>
+      <button type="button" class="act-btn primary" id="btn-discard">Seçili Taşı At</button>
+
+      <div class="dock-divider" aria-hidden="true"></div>
+
+      <button type="button" class="act-btn" id="btn-multiselect" title="Birden fazla taş seçmek için aç/kapat (veya Shift+Tıkla)">
+        Per Seç
+      </button>
+      <button type="button" class="act-btn" id="btn-sort-series">Seri Diz</button>
+      <button type="button" class="act-btn" id="btn-sort-pairs">Çift Diz</button>
+    </nav>
+
+    <!-- END-OF-ROUND SCOREBOARD MODAL -->
+    <div class="modal-backdrop" id="round-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-card">
+        <div class="modal-kicker" id="modal-kicker">EL SONU</div>
+        <h2 class="modal-title" id="modal-title">Tebrikler!</h2>
+        <p class="modal-sub" id="modal-sub">El puanları hesaplandı.</p>
+        <table class="score-table">
+          <thead>
+            <tr>
+              <th>Oyuncu</th>
+              <th>Durum</th>
+              <th class="num">Kalan Taş</th>
+              <th class="num">Ceza Puanı</th>
+            </tr>
+          </thead>
+          <tbody id="modal-tbody"></tbody>
+        </table>
+        <div class="reward-summary">
+          <span>Masa Çip Sonucu</span>
+          <span class="reward-amount" id="modal-reward">+0 Çip</span>
+        </div>
+        <div class="modal-actions">
+          <a href="index.html" class="hud-btn lobby-link">Ana Lobiye Dön</a>
+          <button type="button" class="act-btn primary" id="btn-next-round">Yeni El Başlat</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./three.min.js"></script>
+    <script>
+      (() => {
+        'use strict';
+
+        function createStudioEnvScene() {
+          const env = new THREE.Scene();
+          env.add(
+            new THREE.Mesh(
+              new THREE.BoxGeometry(28, 18, 28),
+              new THREE.MeshStandardMaterial({
+                color: 0x182132,
+                roughness: 0.9,
+                metalness: 0.05,
+                side: THREE.BackSide,
+              })
+            )
+          );
+          env.add(new THREE.AmbientLight(0xffffff, 0.72));
+          const addPanel = (hex, intensity, pos, rot, w, h) => {
+            const p = new THREE.Mesh(
+              new THREE.PlaneGeometry(w, h),
+              new THREE.MeshBasicMaterial({
+                color: new THREE.Color(hex).multiplyScalar(intensity),
+                side: THREE.DoubleSide,
+                toneMapped: false,
+              })
+            );
+            p.position.set(pos[0], pos[1], pos[2]);
+            p.rotation.set(rot[0], rot[1], rot[2]);
+            env.add(p);
+          };
+          addPanel(0xfff4dd, 1.25, [0, 8.6, 0], [Math.PI / 2, 0, 0], 11, 7);
+          addPanel(0xffe1a8, 0.95, [11, 4.5, 6], [0, -Math.PI * 0.65, 0], 8, 4.5);
+          addPanel(0x9ec5ff, 0.85, [-11, 4.2, -6], [0, Math.PI * 0.35, 0], 8, 4.5);
+          return env;
+        }
+
+        function disposeEnvScene(env) {
+          env.traverse((obj) => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+              else obj.material.dispose();
+            }
+          });
+        }
+
+      /* =========================================================================
+       * 1. SHARED LOCALSTORAGE PROFILE & CHIPS (masaOyunlariChips + lobby sync)
+       * ========================================================================= */
+      const PROFILE_KEY = 'masa_oyunlari_3d_profile';
+      const CHIPS_KEY = 'masaOyunlariChips';
+      const DEFAULT_CHIPS = 10000;
+      const fmt = (n) => new Intl.NumberFormat('tr-TR').format(Math.floor(n));
+
+      function readSharedChips() {
+        try {
+          const direct = localStorage.getItem(CHIPS_KEY);
+          if (direct !== null && Number.isFinite(Number(direct))) {
+            return Math.max(0, Math.floor(Number(direct)));
+          }
+          const profRaw = localStorage.getItem(PROFILE_KEY);
+          if (profRaw) {
+            const p = JSON.parse(profRaw);
+            if (Number.isFinite(Number(p.chips))) {
+              const val = Math.max(0, Math.floor(Number(p.chips)));
+              localStorage.setItem(CHIPS_KEY, String(val));
+              return val;
+            }
+          }
+        } catch {}
+        localStorage.setItem(CHIPS_KEY, String(DEFAULT_CHIPS));
+        return DEFAULT_CHIPS;
+      }
+
+      function readPlayerName() {
+        try {
+          const profRaw = localStorage.getItem(PROFILE_KEY);
+          if (profRaw) {
+            const p = JSON.parse(profRaw);
+            if (p.username && String(p.username).trim()) return String(p.username).trim().slice(0, 16);
+          }
+          const flat = localStorage.getItem('mo3d_username');
+          if (flat && flat.trim()) return flat.trim().slice(0, 16);
+        } catch {}
+        return 'Sen';
+      }
+
+      function saveSharedChips(newChips, wonRound = false) {
+        const clamped = Math.max(0, Math.floor(newChips));
+        try {
+          localStorage.setItem(CHIPS_KEY, String(clamped));
+          localStorage.setItem('mo3d_chips', String(clamped));
+          const profRaw = localStorage.getItem(PROFILE_KEY);
+          const prof = profRaw ? JSON.parse(profRaw) : { username: readPlayerName(), wins: 0 };
+          prof.chips = clamped;
+          if (wonRound) {
+            prof.wins = (Number(prof.wins) || 0) + 1;
+            localStorage.setItem('mo3d_wins', String(prof.wins));
+          }
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(prof));
+        } catch {}
+        document.getElementById('hud-chips').textContent = fmt(clamped);
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const tableStake = Math.max(
+        100,
+        Number(urlParams.get('stake')) || Number(localStorage.getItem('mo3d_stake')) || 500
+      );
+      let playerChips = readSharedChips();
+      const humanName = readPlayerName();
+      document.getElementById('hud-chips').textContent = fmt(playerChips);
+      document.getElementById('stake-sub').textContent = `Masa: ${fmt(tableStake)} Çip`;
+
+      /* =========================================================================
+       * 2. PROCEDURAL WEB AUDIO API SOUND SYNTHESIZER
+       * ========================================================================= */
+      class OkeySoundEngine {
+        constructor() {
+          this.ctx = null;
+          this.enabled = true;
+          try {
+            const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+            if (p.soundEnabled === false) this.enabled = false;
+          } catch {}
+        }
+
+        ensure() {
+          if (!this.enabled) return null;
+          if (!this.ctx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return null;
+            this.ctx = new Ctx();
+          }
+          if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+          return this.ctx;
+        }
+
+        // Authentic wooden-ivory "şak" clack on wooden rack
+        playTileClack(pitchScale = 1.0) {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          // Short crisp noise transient (ivory click)
+          const bufLen = Math.floor(ctx.sampleRate * 0.035);
+          const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < bufLen; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufLen * 0.16));
+          }
+          const noise = ctx.createBufferSource();
+          noise.buffer = buf;
+
+          const bp = ctx.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.setValueAtTime(2400 * pitchScale, now);
+          bp.Q.setValueAtTime(1.9, now);
+
+          const nGain = ctx.createGain();
+          nGain.gain.setValueAtTime(0.32, now);
+          nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.036);
+
+          noise.connect(bp);
+          bp.connect(nGain);
+          nGain.connect(ctx.destination);
+          noise.start(now);
+
+          // Resonant hardwood body knock
+          const osc = ctx.createOscillator();
+          const oGain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(980 * pitchScale, now);
+          osc.frequency.exponentialRampToValueAtTime(340 * pitchScale, now + 0.048);
+
+          oGain.gain.setValueAtTime(0.16, now);
+          oGain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+
+          osc.connect(oGain);
+          oGain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.06);
+        }
+
+        playTileDraw() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(420, now);
+          osc.frequency.exponentialRampToValueAtTime(720, now + 0.075);
+
+          gain.gain.setValueAtTime(0.07, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.095);
+          setTimeout(() => this.playTileClack(1.12), 55);
+        }
+
+        playOpenFanfare() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+          notes.forEach((f, idx) => {
+            const t = now + idx * 0.058;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = idx >= 3 ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(f, t);
+
+            gain.gain.setValueAtTime(0.001, t);
+            gain.gain.linearRampToValueAtTime(0.085, t + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.36);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.38);
+          });
+        }
+
+        playLayoff() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [880, 1318.5].forEach((f, i) => {
+            const t = now + i * 0.045;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.065, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.18);
+          });
+        }
+
+        playTurnNotify() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [587.33, 880].forEach((f, i) => {
+            const t = now + i * 0.07;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.05, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.16);
+          });
+        }
+
+        playWin() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const seq = [523.25, 659.25, 783.99, 1046.5, 987.77, 1046.5];
+          seq.forEach((f, i) => {
+            const t = now + i * 0.085;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.08, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.34);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.36);
+          });
+        }
+
+        playError() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [210, 160].forEach((f, i) => {
+            const t = now + i * 0.08;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(f, t);
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.setValueAtTime(480, t);
+            gain.gain.setValueAtTime(0.05, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+            osc.connect(lp);
+            lp.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.11);
+          });
+        }
+      }
+
+      const sound = new OkeySoundEngine();
+
+      /* =========================================================================
+       * 3. OKEY 101 RULES, DECK, MELD VALIDATOR & AI SOLVER
+       * ========================================================================= */
+      const COLORS = ['red', 'blue', 'black', 'yellow'];
+      const COLOR_HEX = {
+        red: '#c81e1e',
+        blue: '#0369a1',
+        black: '#0f172a',
+        yellow: '#c2610c',
+      };
+      const COLOR_NAME = {
+        red: 'Kırmızı',
+        blue: 'Mavi',
+        black: 'Siyah',
+        yellow: 'Sarı',
+      };
+
+      const RACK_SLOTS = 28; // 2 tiers x 14 columns
+
+      const game = {
+        round: 1,
+        dealer: 0,
+        turn: 0,
+        phase: 'draw', // 'draw' | 'play' | 'bot' | 'ended'
+        indicatorTile: null,
+        okeyColor: 'red',
+        okeyNumber: 1,
+        drawPile: [],
+        discards: [[], [], [], []], // discards[p] = tiles discarded by player p (sits to p's right)
+        openMelds: [], // { id, owner, type: 'run'|'set', color, startNum, endNum, setNum, tiles: [...], points }
+        players: [
+          { id: 0, name: humanName, isBot: false, hasOpened: false, rack: new Array(RACK_SLOTS).fill(null) },
+          { id: 1, name: 'Defne', isBot: true, hasOpened: false, hand: [] },
+          { id: 2, name: 'Kerem', isBot: true, hasOpened: false, hand: [] },
+          { id: 3, name: 'Zeynep', isBot: true, hasOpened: false, hand: [] },
+        ],
+        tookSideTile: null, // tile object taken from Bot 3 this turn
+        selectedTileId: null,
+        multiSelectedIds: new Set(),
+        multiSelectMode: false,
+        nextMeldId: 1,
+        botTimer: null,
+        botTimers: [],
+      };
+
+      function isRealOkey(tile) {
+        return !tile.isFakeJoker && tile.color === game.okeyColor && tile.number === game.okeyNumber;
+      }
+
+      function getEffectiveTile(tile) {
+        if (isRealOkey(tile)) {
+          return { wildcard: true, color: null, num: null };
+        }
+        if (tile.isFakeJoker) {
+          return { wildcard: false, color: game.okeyColor, num: game.okeyNumber };
+        }
+        return { wildcard: false, color: tile.color, num: tile.number };
+      }
+
+      function getTilePenaltyValue(tile) {
+        if (isRealOkey(tile)) return 101;
+        if (tile.isFakeJoker) return game.okeyNumber;
+        return tile.number;
+      }
+
+      function createDeck106() {
+        const deck = [];
+        let uid = 1;
+        for (let copy = 0; copy < 2; copy++) {
+          for (const color of COLORS) {
+            for (let num = 1; num <= 13; num++) {
+              deck.push({ id: uid++, color, number: num, isFakeJoker: false });
+            }
+          }
+        }
+        deck.push({ id: uid++, color: 'joker', number: 0, isFakeJoker: true });
+        deck.push({ id: uid++, color: 'joker', number: 0, isFakeJoker: true });
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        return deck;
+      }
+
+      /**
+       * Validates whether an array of tiles forms a legal Okey 101 Run (Seri) or Set (Per).
+       * Returns null if invalid, or detailed meld object with optimal score and sorted tile order.
+       */
+      function evaluateMeld(tiles) {
+        if (!tiles || tiles.length < 3 || tiles.length > 13) return null;
+
+        const wildcards = [];
+        const regulars = [];
+        for (const t of tiles) {
+          const eff = getEffectiveTile(t);
+          if (eff.wildcard) wildcards.push(t);
+          else regulars.push({ tile: t, color: eff.color, num: eff.num });
+        }
+
+        if (regulars.length === 0) return null;
+
+        let bestResult = null;
+
+        // 1. Check SET (Per: 3 or 4 tiles, same number, distinct colors)
+        if (tiles.length === 3 || tiles.length === 4) {
+          const targetNum = regulars[0].num;
+          const usedColors = new Set();
+          let validSet = true;
+          for (const r of regulars) {
+            if (r.num !== targetNum || usedColors.has(r.color)) {
+              validSet = false;
+              break;
+            }
+            usedColors.add(r.color);
+          }
+          if (validSet) {
+            const missingColors = COLORS.filter((c) => !usedColors.has(c));
+            const ordered = [
+              ...regulars
+                .slice()
+                .sort((a, b) => COLORS.indexOf(a.color) - COLORS.indexOf(b.color))
+                .map((r) => ({ tile: r.tile, assignedColor: r.color, assignedNum: targetNum })),
+              ...wildcards.map((w, idx) => ({
+                tile: w,
+                assignedColor: missingColors[idx] || COLORS[0],
+                assignedNum: targetNum,
+              })),
+            ];
+            bestResult = {
+              type: 'set',
+              setNum: targetNum,
+              usedColors: Array.from(usedColors),
+              tiles: ordered.map((o) => o.tile),
+              slots: ordered,
+              points: targetNum * tiles.length,
+            };
+          }
+        }
+
+        // 2. Check RUN (Seri: same color, consecutive numbers 1..13, plus 12-13-1 wrap)
+        const runColor = regulars[0].color;
+        if (regulars.every((r) => r.color === runColor)) {
+          // Ensure distinct numbers
+          const numMap = new Map();
+          let uniqueNums = true;
+          for (const r of regulars) {
+            if (numMap.has(r.num)) {
+              uniqueNums = false;
+              break;
+            }
+            numMap.set(r.num, r.tile);
+          }
+
+          if (uniqueNums) {
+            const len = tiles.length;
+            // Try every possible starting number start in [1 .. 14 - len] (standard 1..13)
+            // plus wrap-ending at 14 (meaning 12-13-1 where 14 represents ace-high 1 valued as 1)
+            const maxStart = len <= 13 ? 15 - len : 1;
+            for (let start = 1; start <= maxStart; start++) {
+              const end = start + len - 1;
+              if (end > 14) continue;
+              // If end === 14, number 1 plays as position 14, so start must be >= 2
+              if (end === 14 && start === 1) continue;
+
+              // Check all regulars fit inside [start .. end]
+              let fits = true;
+              const slotMap = new Map();
+              for (const r of regulars) {
+                const pos = end === 14 && r.num === 1 ? 14 : r.num;
+                if (pos < start || pos > end || slotMap.has(pos)) {
+                  fits = false;
+                  break;
+                }
+                slotMap.set(pos, r.tile);
+              }
+              if (!fits) continue;
+
+              const gaps = len - regulars.length;
+              if (gaps !== wildcards.length) continue;
+
+              // Build ordered slots and calculate exact points
+              const orderedSlots = [];
+              let wIdx = 0;
+              let pts = 0;
+              for (let pos = start; pos <= end; pos++) {
+                const faceNum = pos === 14 ? 1 : pos;
+                pts += faceNum;
+                if (slotMap.has(pos)) {
+                  orderedSlots.push({ tile: slotMap.get(pos), assignedColor: runColor, assignedNum: faceNum, pos });
+                } else {
+                  orderedSlots.push({ tile: wildcards[wIdx++], assignedColor: runColor, assignedNum: faceNum, pos });
+                }
+              }
+
+              if (!bestResult || pts > bestResult.points) {
+                bestResult = {
+                  type: 'run',
+                  color: runColor,
+                  startPos: start,
+                  endPos: end,
+                  tiles: orderedSlots.map((s) => s.tile),
+                  slots: orderedSlots,
+                  points: pts,
+                };
+              }
+            }
+          }
+        }
+
+        return bestResult;
+      }
+
+      /**
+       * Analyzes contiguous groups separated by empty slots on the player's 28-slot rack.
+       */
+      function getHumanRackGroups() {
+        const rack = game.players[0].rack;
+        const validMelds = [];
+        let totalPoints = 0;
+
+        for (let row = 0; row < 2; row++) {
+          const rowStart = row * 14;
+          let group = [];
+          let slotIndices = [];
+          for (let col = 0; col <= 14; col++) {
+            const tile = col < 14 ? rack[rowStart + col] : null;
+            if (tile) {
+              group.push(tile);
+              slotIndices.push(rowStart + col);
+            } else {
+              if (group.length >= 3) {
+                const ev = evaluateMeld(group);
+                if (ev) {
+                  validMelds.push({ ...ev, slotIndices: [...slotIndices], row });
+                  totalPoints += ev.points;
+                }
+              }
+              group = [];
+              slotIndices = [];
+            }
+          }
+        }
+        return { validMelds, totalPoints };
+      }
+
+      /**
+       * Fast combinatorial solver used by AI bots AND "Seri Diz" auto-sort
+       * to extract maximum-point disjoint valid melds from a hand.
+       */
+      function findBestMelds(hand) {
+        const okeys = [];
+        const regulars = [];
+        for (const t of hand) {
+          if (isRealOkey(t)) okeys.push(t);
+          else regulars.push(t);
+        }
+
+        const candidates = [];
+
+        // Generate Set candidates (same effective num, distinct effective colors)
+        const byNum = new Map();
+        for (const t of regulars) {
+          const eff = getEffectiveTile(t);
+          if (!byNum.has(eff.num)) byNum.set(eff.num, []);
+          byNum.get(eff.num).push({ tile: t, color: eff.color, num: eff.num });
+        }
+
+        for (const [num, items] of byNum.entries()) {
+          // Unique by color (pick 1st copy per color for clean candidate generation)
+          const perColor = new Map();
+          for (const it of items) {
+            if (!perColor.has(it.color)) perColor.set(it.color, []);
+            perColor.get(it.color).push(it.tile);
+          }
+          const cols = Array.from(perColor.keys());
+          // 4-color sets
+          if (cols.length === 4) {
+            const group = cols.map((c) => perColor.get(c)[0]);
+            const ev = evaluateMeld(group);
+            if (ev) candidates.push(ev);
+          }
+          // 3-color sets
+          if (cols.length >= 3) {
+            for (let i = 0; i < cols.length; i++) {
+              for (let j = i + 1; j < cols.length; j++) {
+                for (let k = j + 1; k < cols.length; k++) {
+                  const group = [perColor.get(cols[i])[0], perColor.get(cols[j])[0], perColor.get(cols[k])[0]];
+                  const ev = evaluateMeld(group);
+                  if (ev) candidates.push(ev);
+                }
+              }
+            }
+          }
+          // 2-color + 1 okey sets
+          if (cols.length >= 2 && okeys.length >= 1) {
+            for (let i = 0; i < cols.length; i++) {
+              for (let j = i + 1; j < cols.length; j++) {
+                const group = [perColor.get(cols[i])[0], perColor.get(cols[j])[0], okeys[0]];
+                const ev = evaluateMeld(group);
+                if (ev) candidates.push(ev);
+              }
+            }
+          }
+        }
+
+        // Generate Run candidates per color
+        for (const color of COLORS) {
+          const byPos = new Map();
+          for (const t of regulars) {
+            const eff = getEffectiveTile(t);
+            if (eff.color !== color) continue;
+            if (!byPos.has(eff.num)) byPos.set(eff.num, []);
+            byPos.get(eff.num).push(t);
+          }
+
+          for (let start = 1; start <= 12; start++) {
+            for (let len = 3; len <= 7; len++) {
+              const end = start + len - 1;
+              if (end > 14) break;
+              if (end === 14 && start === 1) continue;
+
+              const chosen = [];
+              let missing = 0;
+              for (let pos = start; pos <= end; pos++) {
+                const face = pos === 14 ? 1 : pos;
+                const list = byPos.get(face);
+                if (list && list.length > 0) {
+                  chosen.push(list[0]);
+                } else {
+                  missing++;
+                }
+              }
+
+              if (missing <= okeys.length && chosen.length >= 2) {
+                const group = [...chosen, ...okeys.slice(0, missing)];
+                const ev = evaluateMeld(group);
+                if (ev) candidates.push(ev);
+              }
+            }
+          }
+        }
+
+        // Deduplicate candidates by sorted tile IDs & sort descending by points
+        const seen = new Set();
+        const unique = [];
+        for (const c of candidates) {
+          const key = c.tiles
+            .map((t) => t.id)
+            .sort((a, b) => a - b)
+            .join('-');
+          if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(c);
+          }
+        }
+        unique.sort((a, b) => b.points - a.points);
+
+        // Greedy + limited branch-and-bound search over top candidates for optimal score
+        const pool = unique.slice(0, 42);
+        let bestMelds = [];
+        let bestScore = 0;
+        let iterations = 0;
+
+        function search(idx, usedIds, currentMelds, currentScore) {
+          iterations++;
+          if (iterations > 2500) return;
+
+          if (currentScore > bestScore) {
+            bestScore = currentScore;
+            bestMelds = currentMelds.slice();
+          }
+
+          // Upper bound pruning
+          let upper = currentScore;
+          for (let i = idx; i < pool.length && upper < bestScore + 120; i++) {
+            upper += pool[i].points;
+          }
+          if (upper <= bestScore) return;
+
+          for (let i = idx; i < pool.length; i++) {
+            const cand = pool[i];
+            let conflict = false;
+            for (const t of cand.tiles) {
+              if (usedIds.has(t.id)) {
+                conflict = true;
+                break;
+              }
+            }
+            if (conflict) continue;
+
+            for (const t of cand.tiles) usedIds.add(t.id);
+            currentMelds.push(cand);
+            search(i + 1, usedIds, currentMelds, currentScore + cand.points);
+            currentMelds.pop();
+            for (const t of cand.tiles) usedIds.delete(t.id);
+          }
+        }
+
+        search(0, new Set(), [], 0);
+        return { melds: bestMelds, totalPoints: bestScore };
+      }
+
+      /**
+       * Checks if a single tile can be laid off ("işlek") onto a given open meld on the table.
+       * Also supports swapping out a real Okey from the meld if the tile matches the Okey's exact slot!
+       */
+      function tryLayoffOnMeld(tile, meld) {
+        // 1. Check if tile can replace a real Okey inside the meld
+        if (!isRealOkey(tile)) {
+          const eff = getEffectiveTile(tile);
+          const okeySlotIdx = meld.slots.findIndex(
+            (s) => isRealOkey(s.tile) && s.assignedColor === eff.color && s.assignedNum === eff.num
+          );
+          if (okeySlotIdx !== -1) {
+            const retrievedOkey = meld.slots[okeySlotIdx].tile;
+            const newTiles = meld.tiles.map((t, idx) => (idx === okeySlotIdx ? tile : t));
+            const reEval = evaluateMeld(newTiles);
+            if (reEval) {
+              return { kind: 'swap-okey', updatedMeld: reEval, retrievedOkey };
+            }
+          }
+        }
+
+        // 2. Standard append/extend
+        const candidateTiles = [...meld.tiles, tile];
+        const reEval = evaluateMeld(candidateTiles);
+        if (reEval) {
+          return { kind: 'extend', updatedMeld: reEval, retrievedOkey: null };
+        }
+        return null;
+      }
+
+      /* =========================================================================
+       * 4. THREE.JS 3D SCENE, PROCEDURAL TEXTURES & RAYCASTING INTERACTION
+       * ========================================================================= */
+      const canvasWrap = document.getElementById('canvas-wrap');
+
+      const isSoftwareGl = (() => {
+        try {
+          const probe = document.createElement('canvas');
+          const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+          if (!gl) return true;
+          const ext = gl.getExtension('WEBGL_debug_renderer_info');
+          const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
+          const gpu = String(gl.getParameter(param) || '');
+          gl.getExtension('WEBGL_lose_context')?.loseContext();
+          return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
+        } catch {
+          return true;
+        }
+      })();
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: !isSoftwareGl,
+        powerPreference: 'high-performance',
+      });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 0.85;
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = !isSoftwareGl;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      canvasWrap.appendChild(renderer.domElement);
+
+      const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x050b16);
+      scene.fog = new THREE.FogExp2(0x050b16, 0.024);
+
+      // Soft, glare-free studio PMREM reflection map (keeps brass & walnut rich without blowing out tiles)
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const roomEnv = createStudioEnvScene();
+      scene.environment = pmrem.fromScene(roomEnv, 0.05).texture;
+      if ('environmentIntensity' in scene) {
+        scene.environmentIntensity = 0.45;
+      }
+      disposeEnvScene(roomEnv);
+      pmrem.dispose();
+
+      const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 100);
+      let cameraMode = 'auto'; // 'auto' (turn-aware dynamic) | 'rack' | 'overview'
+      let centerFocusTimer = 0;
+      const camPosCurrent = new THREE.Vector3(0, 7.6, 10.5);
+      const camLookCurrent = new THREE.Vector3(0, 0.25, 1.55);
+      camera.position.copy(camPosCurrent);
+      camera.lookAt(camLookCurrent);
+
+      // Balanced Anti-Glare Lighting Rig (Soft Ambient 0.45 + Oblique Main Directional Key 0.9 + Subtle Cool Fill/Rim)
+      const ambientLight = new THREE.AmbientLight(0xfff6e8, 0.45);
+      scene.add(ambientLight);
+
+      const hemi = new THREE.HemisphereLight(0x7aa4d6, 0x0a1322, 0.26);
+      scene.add(hemi);
+
+      // Positioned at a high oblique side angle so specular highlights never bounce directly from tilted rack tiles into camera
+      const mainKeyLight = new THREE.DirectionalLight(0xfff1d6, 0.9);
+      mainKeyLight.position.set(-7.2, 12.6, 2.2);
+      mainKeyLight.target.position.set(0, 0, 0.4);
+      mainKeyLight.castShadow = !isSoftwareGl;
+      if (!isSoftwareGl) {
+        mainKeyLight.shadow.mapSize.set(2048, 2048);
+        mainKeyLight.shadow.camera.near = 2;
+        mainKeyLight.shadow.camera.far = 30;
+        const d = 10.5;
+        mainKeyLight.shadow.camera.left = -d;
+        mainKeyLight.shadow.camera.right = d;
+        mainKeyLight.shadow.camera.top = d;
+        mainKeyLight.shadow.camera.bottom = -d;
+        mainKeyLight.shadow.radius = 3.5;
+        mainKeyLight.shadow.bias = -0.0004;
+        mainKeyLight.shadow.normalBias = 0.02;
+      }
+      scene.add(mainKeyLight);
+      scene.add(mainKeyLight.target);
+
+      const rimLight = new THREE.DirectionalLight(0x6da8e0, 0.28);
+      rimLight.position.set(8.2, 7.0, -7.8);
+      scene.add(rimLight);
+
+      /* ------------------ PROCEDURAL CANVAS TEXTURES ------------------ */
+      function makeColorTex(canvas) {
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = maxAniso;
+        tex.needsUpdate = true;
+        return tex;
+      }
+
+      function makeDataTex(canvas) {
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.colorSpace = THREE.NoColorSpace;
+        tex.anisotropy = maxAniso;
+        tex.needsUpdate = true;
+        return tex;
+      }
+
+      function createFeltTex() {
+        const w = 1024;
+        const h = 768;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+
+        // Deep light-absorbing matte emerald-green / dark navy tournament baize felt
+        const g = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.62);
+        g.addColorStop(0, '#0c3b36');
+        g.addColorStop(0.52, '#08272f');
+        g.addColorStop(1, '#051420');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+
+        // Micro baize wool texture
+        ctx.fillStyle = 'rgba(255,255,255,0.016)';
+        for (let i = 0; i < 9500; i++) {
+          ctx.fillRect(Math.random() * w, Math.random() * h, 2, 1);
+        }
+
+        // Gold border trim
+        ctx.strokeStyle = 'rgba(243, 208, 107, 0.42)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(30, 30, w - 60, h - 60);
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(42, 42, w - 84, h - 84);
+
+        // Subtle center oval frame for open melds
+        ctx.strokeStyle = 'rgba(243, 208, 107, 0.22)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.roundRect(140, 120, w - 280, h - 250, 36);
+        ctx.stroke();
+
+        // Corner discard zone markings (bottom-left YANDAN AL & bottom-right AT)
+        ctx.strokeStyle = 'rgba(34, 211, 238, 0.38)';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([8, 6]);
+        ctx.strokeRect(66, h - 180, 106, 128);
+        ctx.strokeStyle = 'rgba(243, 208, 107, 0.45)';
+        ctx.strokeRect(w - 172, h - 180, 106, 128);
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = 'rgba(165, 243, 252, 0.65)';
+        ctx.font = '700 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('YANDAN AL', 119, h - 34);
+
+        ctx.fillStyle = 'rgba(243, 208, 107, 0.72)';
+        ctx.fillText('TAŞ AT', w - 119, h - 34);
+
+        return makeColorTex(c);
+      }
+
+      // Paired high-resolution lacquered walnut wood Albedo + BumpMap (CanvasTexture)
+      function createWalnutWoodPair(baseR = 96, baseG = 52, baseB = 24) {
+        const size = 1024;
+        const colorCanvas = document.createElement('canvas');
+        colorCanvas.width = size;
+        colorCanvas.height = size;
+        const cCtx = colorCanvas.getContext('2d');
+
+        const bumpCanvas = document.createElement('canvas');
+        bumpCanvas.width = size;
+        bumpCanvas.height = size;
+        const bCtx = bumpCanvas.getContext('2d');
+
+        cCtx.fillStyle = `rgb(${baseR},${baseG},${baseB})`;
+        cCtx.fillRect(0, 0, size, size);
+        bCtx.fillStyle = '#808080';
+        bCtx.fillRect(0, 0, size, size);
+
+        // Multi-harmonic walnut cathedral grain bands
+        for (let y = 0; y < size; y += 2) {
+          const w1 = Math.sin(y * 0.019) * 24;
+          const w2 = Math.cos(y * 0.053) * 11;
+          const w3 = Math.sin(y * 0.14) * 3.5;
+          const ring = Math.sin((y + w1 + w2 + w3) * 0.062);
+          const fine = Math.sin(y * 0.34 + w2 * 0.4) * 0.35;
+          const delta = Math.floor((ring * 0.78 + fine) * 20);
+
+          const r = Math.max(12, Math.min(245, baseR + delta));
+          const g = Math.max(8, Math.min(220, baseG + Math.floor(delta * 0.66)));
+          const b = Math.max(4, Math.min(180, baseB + Math.floor(delta * 0.36)));
+          cCtx.fillStyle = `rgb(${r},${g},${b})`;
+          cCtx.fillRect(0, y, size, 2);
+
+          const bumpVal = Math.max(20, Math.min(235, 128 + Math.floor((ring * 0.65 + fine) * 48)));
+          bCtx.fillStyle = `rgb(${bumpVal},${bumpVal},${bumpVal})`;
+          bCtx.fillRect(0, y, size, 2);
+        }
+
+        // Flowing dark walnut grain veins & matching recessed pores in bumpMap
+        for (let i = 0; i < 110; i++) {
+          const sy = Math.random() * size;
+          const amp = (Math.random() - 0.5) * 44;
+          const amp2 = (Math.random() - 0.5) * 44;
+          const lw = 0.8 + Math.random() * 2.1;
+
+          cCtx.strokeStyle = `rgba(18, 7, 2, ${0.14 + Math.random() * 0.24})`;
+          cCtx.lineWidth = lw;
+          cCtx.beginPath();
+          cCtx.moveTo(0, sy);
+          cCtx.bezierCurveTo(size * 0.33, sy + amp, size * 0.66, sy + amp2, size, sy);
+          cCtx.stroke();
+
+          bCtx.strokeStyle = `rgba(28, 28, 28, ${0.28 + Math.random() * 0.32})`;
+          bCtx.lineWidth = lw * 1.15;
+          bCtx.beginPath();
+          bCtx.moveTo(0, sy);
+          bCtx.bezierCurveTo(size * 0.33, sy + amp, size * 0.66, sy + amp2, size, sy);
+          bCtx.stroke();
+        }
+
+        // Subtle warm satin wood knots & micro-pores
+        for (let k = 0; k < 4; k++) {
+          const kx = 140 + Math.random() * (size - 280);
+          const ky = 140 + Math.random() * (size - 280);
+          const rx = 28 + Math.random() * 36;
+          const ry = 10 + Math.random() * 14;
+          cCtx.save();
+          cCtx.translate(kx, ky);
+          cCtx.scale(1, ry / rx);
+          const kg = cCtx.createRadialGradient(0, 0, 2, 0, 0, rx);
+          kg.addColorStop(0, 'rgba(22, 9, 3, 0.52)');
+          kg.addColorStop(0.6, 'rgba(42, 19, 8, 0.22)');
+          kg.addColorStop(1, 'rgba(42, 19, 8, 0)');
+          cCtx.fillStyle = kg;
+          cCtx.beginPath();
+          cCtx.arc(0, 0, rx, 0, Math.PI * 2);
+          cCtx.fill();
+          cCtx.restore();
+        }
+
+        const colorTex = makeColorTex(colorCanvas);
+        colorTex.wrapS = THREE.RepeatWrapping;
+        colorTex.wrapT = THREE.RepeatWrapping;
+
+        const bumpTex = makeDataTex(bumpCanvas);
+        bumpTex.wrapS = THREE.RepeatWrapping;
+        bumpTex.wrapT = THREE.RepeatWrapping;
+
+        return { color: colorTex, bump: bumpTex };
+      }
+
+      function createIvoryBackTex() {
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 384;
+        const ctx = c.getContext('2d');
+        const g = ctx.createLinearGradient(0, 0, 256, 384);
+        g.addColorStop(0, '#f3ebd9');
+        g.addColorStop(0.55, '#e8ddc6');
+        g.addColorStop(1, '#d8cab0');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 256, 384);
+
+        ctx.strokeStyle = 'rgba(255, 250, 238, 0.35)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(10, 10, 236, 364);
+
+        ctx.strokeStyle = 'rgba(154, 126, 78, 0.38)';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(18, 18, 220, 348);
+        return makeColorTex(c);
+      }
+
+      // Shared linear bump map for beveled melamine tile edge + recessed bottom crescent dimple
+      function createTileFrontBumpTex() {
+        const w = 256;
+        const h = 384;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#c8c8c8';
+        ctx.fillRect(0, 0, w, h);
+
+        // Beveled outer chamfer rim
+        ctx.strokeStyle = '#6e6e6e';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(5, 5, w - 10, h - 10);
+
+        // Recessed dimple at bottom (matches 0.745 * h)
+        const dimpleY = h * 0.745;
+        const dg = ctx.createRadialGradient(w / 2, dimpleY, 4, w / 2, dimpleY, 36);
+        dg.addColorStop(0, '#444444');
+        dg.addColorStop(0.68, '#666666');
+        dg.addColorStop(0.92, '#b0b0b0');
+        dg.addColorStop(1, '#c8c8c8');
+        ctx.fillStyle = dg;
+        ctx.beginPath();
+        ctx.arc(w / 2, dimpleY, 36, 0, Math.PI * 2);
+        ctx.fill();
+
+        return makeDataTex(c);
+      }
+
+      const tileFrontBumpTex = createTileFrontBumpTex();
+
+      function createImpactRingTex() {
+        const size = 256;
+        const c = document.createElement('canvas');
+        c.width = size;
+        c.height = size;
+        const ctx = c.getContext('2d');
+        const cx = size / 2;
+        const g = ctx.createRadialGradient(cx, cx, cx * 0.42, cx, cx, cx);
+        g.addColorStop(0, 'rgba(255, 245, 200, 0)');
+        g.addColorStop(0.58, 'rgba(255, 232, 156, 0.85)');
+        g.addColorStop(0.76, 'rgba(243, 208, 107, 0.5)');
+        g.addColorStop(1, 'rgba(243, 208, 107, 0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, size, size);
+        return makeColorTex(c);
+      }
+
+      const impactRingTex = createImpactRingTex();
+
+      const tileFaceTexCache = new Map();
+
+      // Ultra-sharp 512x768 high-DPI procedural tile face generator
+      function getTileFrontTexture(tile) {
+        const okeyFlag = isRealOkey(tile);
+        const key = `${tile.isFakeJoker ? 'FJ' : tile.color}-${tile.number}-${okeyFlag ? 'OK' : 'N'}`;
+        if (tileFaceTexCache.has(key)) return tileFaceTexCache.get(key);
+
+        const w = 512;
+        const h = 768;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+
+        // Warm matte-satin ivory/cream base (#f3ebd9) for zero glare & high-contrast digit readability
+        const bg = ctx.createLinearGradient(0, 0, w * 0.85, h);
+        bg.addColorStop(0, '#f5eedc');
+        bg.addColorStop(0.48, '#f3ebd9');
+        bg.addColorStop(1, '#e4d8be');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle molded chamfer border (soft cream top/left + warm antique inner groove)
+        ctx.strokeStyle = 'rgba(255, 250, 238, 0.42)';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(10, 10, w - 20, h - 20);
+
+        ctx.strokeStyle = okeyFlag ? '#c9931d' : 'rgba(156, 130, 82, 0.5)';
+        ctx.lineWidth = okeyFlag ? 16 : 8;
+        ctx.strokeRect(20, 20, w - 40, h - 40);
+
+        if (tile.isFakeJoker) {
+          // High-res ornate Turkish Sahte Okey medallion
+          ctx.save();
+          ctx.translate(w / 2, h * 0.41);
+
+          ctx.fillStyle = '#0c1f44';
+          ctx.beginPath();
+          ctx.arc(0, 0, 152, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#e5bd4b';
+          ctx.lineWidth = 12;
+          ctx.stroke();
+
+          ctx.strokeStyle = 'rgba(255, 240, 185, 0.5)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, 132, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Sharp 8-point golden star + inner crescent
+          ctx.fillStyle = '#f5d472';
+          ctx.beginPath();
+          for (let i = 0; i < 16; i++) {
+            const a = (i * Math.PI) / 8 - Math.PI / 2;
+            const r = i % 2 === 0 ? 104 : 48;
+            if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+          }
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = '#0c1f44';
+          ctx.beginPath();
+          ctx.arc(0, 0, 34, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#f5d472';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.fillStyle = '#0e244d';
+          ctx.font = '800 62px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('SAHTE', w / 2, h * 0.74);
+
+          ctx.fillStyle = COLOR_HEX[game.okeyColor];
+          ctx.font = '800 58px Outfit, sans-serif';
+          ctx.fillText(`(${game.okeyNumber})`, w / 2, h * 0.855);
+        } else {
+          const ink = COLOR_HEX[tile.color];
+
+          // Crisp engraved number with subtle porcelain shadow depth
+          ctx.save();
+          ctx.font = '800 286px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const numY = okeyFlag ? h * 0.405 : h * 0.375;
+
+          // Micro debossed shadow
+          ctx.fillStyle = 'rgba(40, 28, 12, 0.16)';
+          ctx.fillText(String(tile.number), w / 2 + 3, numY + 5);
+
+          // Main razor-sharp pigment
+          ctx.fillStyle = ink;
+          ctx.fillText(String(tile.number), w / 2, numY);
+          ctx.restore();
+
+          // Authentic sculpted circular dimple with crisp Hilal (Crescent) & Yıldız (Star)
+          const dimpleY = h * 0.745;
+          const dimpleR = 70;
+
+          // Outer recessed rim bevel
+          const dg = ctx.createRadialGradient(w / 2 - 14, dimpleY - 14, 10, w / 2, dimpleY, dimpleR);
+          dg.addColorStop(0, '#e3d8be');
+          dg.addColorStop(0.65, '#d2c29f');
+          dg.addColorStop(0.94, '#b8a57d');
+          dg.addColorStop(1, '#f8f2e2');
+          ctx.fillStyle = dg;
+          ctx.beginPath();
+          ctx.arc(w / 2, dimpleY, dimpleR, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctx.arc(w / 2, dimpleY, dimpleR + 1, 0.2 * Math.PI, 0.85 * Math.PI);
+          ctx.stroke();
+
+          ctx.strokeStyle = 'rgba(90, 70, 38, 0.32)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(w / 2, dimpleY, dimpleR - 2, 1.15 * Math.PI, 1.85 * Math.PI);
+          ctx.stroke();
+
+          // Sharp Crescent (Hilal) & 5-Point Star (Yıldız) inside dimple
+          ctx.save();
+          ctx.translate(w / 2 - 11, dimpleY);
+
+          // Subtle engraved drop shadow under symbol
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.45)';
+          ctx.shadowOffsetY = 2;
+          ctx.shadowBlur = 1;
+
+          ctx.fillStyle = ink;
+          ctx.beginPath();
+          ctx.arc(0, 0, 37, 0.46, Math.PI * 2 - 0.46);
+          ctx.arc(11, 0, 28.5, Math.PI * 2 - 0.56, 0.56, true);
+          ctx.closePath();
+          ctx.fill();
+
+          // Crisp 5-point star positioned cleanly inside crescent opening
+          ctx.translate(31, 0);
+          ctx.beginPath();
+          for (let i = 0; i < 10; i++) {
+            const a = (i * Math.PI) / 5 - Math.PI / 2;
+            const r = i % 2 === 0 ? 16.5 : 6.8;
+            if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+
+          // Active Real OKEY Wildcard metallic-gold top banner
+          if (okeyFlag) {
+            const banGrad = ctx.createLinearGradient(20, 20, w - 20, 90);
+            banGrad.addColorStop(0, '#c89622');
+            banGrad.addColorStop(0.5, '#f6d56e');
+            banGrad.addColorStop(1, '#c89622');
+            ctx.fillStyle = banGrad;
+            ctx.fillRect(20, 20, w - 40, 74);
+
+            ctx.fillStyle = '#091228';
+            ctx.font = '800 44px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('★ OKEY ★', w / 2, 58);
+          }
+        }
+
+        const tex = makeColorTex(c);
+        tileFaceTexCache.set(key, tex);
+        return tex;
+      }
+
+      function createDrawStackBadgeTex(count) {
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 384;
+        const ctx = c.getContext('2d');
+        const bg = ctx.createLinearGradient(0, 0, 256, 384);
+        bg.addColorStop(0, '#f3ebd9');
+        bg.addColorStop(1, '#d9cbb0');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, 256, 384);
+
+        ctx.strokeStyle = '#c89b2b';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(12, 12, 232, 360);
+
+        ctx.fillStyle = '#0c1c3d';
+        ctx.beginPath();
+        ctx.arc(128, 168, 76, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f3d06b';
+        ctx.lineWidth = 6;
+        ctx.stroke();
+
+        ctx.fillStyle = '#f3d06b';
+        ctx.font = '800 84px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(count), 128, 172);
+
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '800 28px Outfit, sans-serif';
+        ctx.fillText('TAŞ ÇEK', 128, 304);
+
+        return makeColorTex(c);
+      }
+
+      /* ------------------ BUILD 3D TABLE & LACQUERED WALNUT RACKS ------------------ */
+      const tableWalnut = createWalnutWoodPair(62, 33, 17);
+      const rackWalnut = createWalnutWoodPair(106, 58, 27);
+
+      // Light-absorbing dark matte emerald/navy felt (roughness: 0.9, zero glare)
+      const feltMat = new THREE.MeshPhysicalMaterial({
+        map: createFeltTex(),
+        roughness: 0.9,
+        metalness: 0.0,
+        clearcoat: 0,
+        sheen: 0.14,
+        sheenRoughness: 0.9,
+        sheenColor: new THREE.Color(0x13423b),
+        specularIntensity: 0.15,
+        envMapIntensity: 0.18,
+      });
+
+      const tableWoodMat = new THREE.MeshPhysicalMaterial({
+        map: tableWalnut.color,
+        bumpMap: tableWalnut.bump,
+        bumpScale: 0.032,
+        roughness: 0.48,
+        metalness: 0.04,
+        clearcoat: 0.28,
+        clearcoatRoughness: 0.32,
+        ior: 1.5,
+        envMapIntensity: 0.65,
+      });
+
+      const rackWoodMat = new THREE.MeshPhysicalMaterial({
+        map: rackWalnut.color,
+        bumpMap: rackWalnut.bump,
+        bumpScale: 0.028,
+        roughness: 0.44,
+        metalness: 0.04,
+        clearcoat: 0.32,
+        clearcoatRoughness: 0.28,
+        ior: 1.5,
+        specularIntensity: 0.55,
+        envMapIntensity: 0.68,
+      });
+
+      const brassMat = new THREE.MeshPhysicalMaterial({
+        color: 0xdcb44e,
+        metalness: 0.92,
+        roughness: 0.24,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.18,
+        envMapIntensity: 1.15,
+      });
+
+      // Warm matte-satin ivory/cream tiles (#f3ebd9, matte roughness for zero glare & crisp digits)
+      const tileSideMat = new THREE.MeshPhysicalMaterial({
+        color: 0xf3ebd9,
+        roughness: 0.72,
+        metalness: 0.04,
+        clearcoat: 0,
+        specularIntensity: 0.22,
+        envMapIntensity: 0.2,
+      });
+
+      const tileBackMat = new THREE.MeshPhysicalMaterial({
+        map: createIvoryBackTex(),
+        color: 0xffffff,
+        roughness: 0.72,
+        metalness: 0.04,
+        clearcoat: 0,
+        specularIntensity: 0.22,
+        envMapIntensity: 0.2,
+      });
+
+      // Composite 3D Table Group
+      const tableGroup = new THREE.Group();
+      scene.add(tableGroup);
+
+      const TABLE_W = 16.2;
+      const TABLE_D = 11.4;
+
+      const feltSurface = new THREE.Mesh(new THREE.BoxGeometry(TABLE_W, 0.2, TABLE_D), feltMat);
+      feltSurface.position.y = -0.1;
+      feltSurface.receiveShadow = !isSoftwareGl;
+      tableGroup.add(feltSurface);
+
+      // Raised walnut wooden rails around all 4 edges
+      const railH = 0.44;
+      const railT = 0.65;
+      const rails = [
+        [TABLE_W + railT * 2, railH, railT, 0, 0.04, -TABLE_D / 2 - railT / 2],
+        [TABLE_W + railT * 2, railH, railT, 0, 0.04, TABLE_D / 2 + railT / 2],
+        [railT, railH, TABLE_D, -TABLE_W / 2 - railT / 2, 0.04, 0],
+        [railT, railH, TABLE_D, TABLE_W / 2 + railT / 2, 0.04, 0],
+      ];
+      rails.forEach(([w, h, d, x, y, z]) => {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), tableWoodMat);
+        m.position.set(x, y, z);
+        m.castShadow = !isSoftwareGl;
+        m.receiveShadow = !isSoftwareGl;
+        tableGroup.add(m);
+      });
+
+      // Brass corner brackets on table frame
+      [
+        [-TABLE_W / 2 - railT / 2, -TABLE_D / 2 - railT / 2],
+        [TABLE_W / 2 + railT / 2, -TABLE_D / 2 - railT / 2],
+        [-TABLE_W / 2 - railT / 2, TABLE_D / 2 + railT / 2],
+        [TABLE_W / 2 + railT / 2, TABLE_D / 2 + railT / 2],
+      ].forEach(([cx, cz]) => {
+        const cap = new THREE.Mesh(new THREE.BoxGeometry(railT + 0.06, railH + 0.04, railT + 0.06), brassMat);
+        cap.position.set(cx, 0.04, cz);
+        tableGroup.add(cap);
+      });
+
+      // Dark lounge floor beneath table
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(50, 50),
+        new THREE.MeshStandardMaterial({ color: 0x040914, roughness: 0.9 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -2.2;
+      scene.add(floor);
+
+      /* ------------------ HUMAN 2-TIER 3D WOODEN RACK (28 SLOTS) ------------------ */
+      const SLOT_COLS = 14;
+      const SLOT_PITCH_X = 0.76;
+      const TILE_W = 0.68;
+      const TILE_H = 0.96;
+      const TILE_D = 0.21;
+      const RACK_W = SLOT_COLS * SLOT_PITCH_X + 0.56;
+
+      const humanRackGroup = new THREE.Group();
+      humanRackGroup.position.set(0, 0.14, 4.78);
+      humanRackGroup.rotation.x = -0.58; // Ergonomic tilt directly toward camera
+      scene.add(humanRackGroup);
+
+      // Backboard
+      const rackBack = new THREE.Mesh(new THREE.BoxGeometry(RACK_W, 2.24, 0.16), rackWoodMat);
+      rackBack.position.set(0, 1.04, -0.2);
+      rackBack.castShadow = !isSoftwareGl;
+      rackBack.receiveShadow = !isSoftwareGl;
+      humanRackGroup.add(rackBack);
+
+      // Lower tier shelf (row 1: slots 14..27)
+      const lowerShelf = new THREE.Mesh(new THREE.BoxGeometry(RACK_W, 0.14, 0.52), rackWoodMat);
+      lowerShelf.position.set(0, -0.02, 0.04);
+      lowerShelf.castShadow = !isSoftwareGl;
+      lowerShelf.receiveShadow = !isSoftwareGl;
+      humanRackGroup.add(lowerShelf);
+
+      // Lower front brass-accented lip
+      const lowerLip = new THREE.Mesh(new THREE.BoxGeometry(RACK_W, 0.12, 0.08), rackWoodMat);
+      lowerLip.position.set(0, 0.07, 0.28);
+      humanRackGroup.add(lowerLip);
+
+      // Upper tier shelf (row 0: slots 0..13)
+      const upperShelf = new THREE.Mesh(new THREE.BoxGeometry(RACK_W, 0.12, 0.44), rackWoodMat);
+      upperShelf.position.set(0, 1.02, -0.04);
+      upperShelf.castShadow = !isSoftwareGl;
+      upperShelf.receiveShadow = !isSoftwareGl;
+      humanRackGroup.add(upperShelf);
+
+      const upperLip = new THREE.Mesh(new THREE.BoxGeometry(RACK_W, 0.1, 0.07), rackWoodMat);
+      upperLip.position.set(0, 1.1, 0.16);
+      humanRackGroup.add(upperLip);
+
+      // Left & right sculpted wooden side cheeks + brass end caps
+      [-RACK_W / 2 - 0.07, RACK_W / 2 + 0.07].forEach((sx) => {
+        const cheek = new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.32, 0.58), rackWoodMat);
+        cheek.position.set(sx, 1.04, 0.02);
+        cheek.castShadow = !isSoftwareGl;
+        humanRackGroup.add(cheek);
+
+        const cap = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.6), brassMat);
+        cap.position.set(sx, 2.18, 0.02);
+        humanRackGroup.add(cap);
+      });
+
+      // Slot position helper in rack local space
+      function getSlotLocalPos(slotIndex) {
+        const row = slotIndex < 14 ? 0 : 1;
+        const col = slotIndex % 14;
+        const x = (col - (SLOT_COLS - 1) / 2) * SLOT_PITCH_X;
+        const y = row === 0 ? 1.56 : 0.53;
+        const z = row === 0 ? 0.02 : 0.12;
+        return new THREE.Vector3(x, y, z);
+      }
+
+      // Subtle slot hover / valid-meld highlight plates on the rack
+      const slotGlowMeshes = [];
+      const slotHitMeshes = [];
+      for (let i = 0; i < RACK_SLOTS; i++) {
+        const pos = getSlotLocalPos(i);
+        const strip = new THREE.Mesh(
+          new THREE.PlaneGeometry(TILE_W * 0.92, 0.09),
+          new THREE.MeshBasicMaterial({
+            color: 0x34d399,
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+          })
+        );
+        strip.position.set(pos.x, pos.y - TILE_H / 2 + 0.02, pos.z + TILE_D / 2 + 0.03);
+        humanRackGroup.add(strip);
+        slotGlowMeshes.push(strip);
+
+        // Invisible clickable slot proxy for click-to-move onto empty slots
+        const hit = new THREE.Mesh(
+          new THREE.PlaneGeometry(SLOT_PITCH_X * 0.96, TILE_H * 1.02),
+          new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hit.position.set(pos.x, pos.y, pos.z + 0.04);
+        hit.userData = { kind: 'rack-slot', slotIndex: i };
+        humanRackGroup.add(hit);
+        slotHitMeshes.push(hit);
+      }
+
+      /* ------------------ 3 AI OPPONENT RACKS ------------------ */
+      const botRackGroups = [null, new THREE.Group(), new THREE.Group(), new THREE.Group()];
+      const botRackTransforms = [
+        null,
+        { pos: [6.8, 0.05, -0.35], rotY: -Math.PI / 2 }, // Bot 1 (Right)
+        { pos: [0, 0.05, -4.65], rotY: Math.PI }, // Bot 2 (Top)
+        { pos: [-6.8, 0.05, -0.35], rotY: Math.PI / 2 }, // Bot 3 (Left)
+      ];
+
+      for (let p = 1; p <= 3; p++) {
+        const grp = botRackGroups[p];
+        const tr = botRackTransforms[p];
+        grp.position.set(tr.pos[0], tr.pos[1], tr.pos[2]);
+        grp.rotation.y = tr.rotY;
+
+        const w = p === 2 ? 8.6 : 6.4;
+        const base = new THREE.Mesh(new THREE.BoxGeometry(w, 0.16, 0.56), rackWoodMat);
+        base.position.y = 0.08;
+        base.castShadow = !isSoftwareGl;
+        grp.add(base);
+
+        const back = new THREE.Mesh(new THREE.BoxGeometry(w, 0.92, 0.12), rackWoodMat);
+        back.position.set(0, 0.52, -0.22);
+        back.castShadow = !isSoftwareGl;
+        grp.add(back);
+
+        const tilesHolder = new THREE.Group();
+        grp.userData.tilesHolder = tilesHolder;
+        grp.userData.rackWidth = w;
+        grp.add(tilesHolder);
+        scene.add(grp);
+      }
+
+      /* ------------------ ACTIVE-TURN NEON GREEN RACK LIGHT RINGS (ALL 4 PLAYERS) ------------------ */
+      function createNeonFrameHaloTex() {
+        const w = 512;
+        const h = 256;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, w, h);
+
+        const drawBorderGlow = (blur, lw, alpha) => {
+          ctx.save();
+          ctx.shadowColor = `rgba(16, 255, 128, ${alpha})`;
+          ctx.shadowBlur = blur;
+          ctx.strokeStyle = `rgba(34, 255, 136, ${alpha})`;
+          ctx.lineWidth = lw;
+          ctx.beginPath();
+          ctx.roundRect(42, 34, w - 84, h - 68, 28);
+          ctx.stroke();
+          ctx.restore();
+        };
+        drawBorderGlow(36, 18, 0.55);
+        drawBorderGlow(18, 10, 0.82);
+        drawBorderGlow(6, 5, 1.0);
+
+        return makeColorTex(c);
+      }
+
+      const neonFrameHaloTex = createNeonFrameHaloTex();
+
+      function buildRoundedRectTubeGeo(w, h, cornerR, tubeR) {
+        const hw = w / 2;
+        const hh = h / 2;
+        const r = Math.min(cornerR, hw * 0.4, hh * 0.4);
+        const pts = [];
+        const arcSegs = 6;
+        const corners = [
+          { cx: hw - r, cy: hh - r, a0: 0, a1: Math.PI / 2 },
+          { cx: -hw + r, cy: hh - r, a0: Math.PI / 2, a1: Math.PI },
+          { cx: -hw + r, cy: -hh + r, a0: Math.PI, a1: Math.PI * 1.5 },
+          { cx: hw - r, cy: -hh + r, a0: Math.PI * 1.5, a1: Math.PI * 2 },
+        ];
+        corners.forEach((c) => {
+          for (let i = 0; i <= arcSegs; i++) {
+            const a = c.a0 + ((c.a1 - c.a0) * i) / arcSegs;
+            pts.push(new THREE.Vector3(c.cx + Math.cos(a) * r, c.cy + Math.sin(a) * r, 0));
+          }
+        });
+        const curve = new THREE.CatmullRomCurve3(pts, true, 'centripetal', 0.25);
+        return new THREE.TubeGeometry(curve, 96, tubeR, 10, true);
+      }
+
+      function createRackTurnNeonRing(parentGroup, width, height, localCenterY, localZ, isHorizontalFootprint, footprintD) {
+        const group = new THREE.Group();
+        parentGroup.add(group);
+
+        // 1. Crisp bright neon green core tube wrapping around the rack perimeter
+        const coreMat = new THREE.MeshBasicMaterial({
+          color: 0x39ff88,
+          transparent: true,
+          opacity: 0,
+          toneMapped: false,
+        });
+        const coreTube = new THREE.Mesh(buildRoundedRectTubeGeo(width, height, 0.24, 0.048), coreMat);
+        coreTube.position.set(0, localCenterY, localZ);
+        if (isHorizontalFootprint) {
+          coreTube.rotation.x = -Math.PI / 2;
+        }
+        group.add(coreTube);
+
+        // 2. Soft additive outer neon green bloom tube
+        const outerMat = new THREE.MeshBasicMaterial({
+          color: 0x10ff7a,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          toneMapped: false,
+        });
+        const outerTube = new THREE.Mesh(buildRoundedRectTubeGeo(width + 0.04, height + 0.04, 0.26, 0.11), outerMat);
+        outerTube.position.set(0, localCenterY, localZ);
+        if (isHorizontalFootprint) {
+          outerTube.rotation.x = -Math.PI / 2;
+        }
+        group.add(outerTube);
+
+        // 3. Soft additive halo glow plane around rack outline
+        const haloMat = new THREE.MeshBasicMaterial({
+          map: neonFrameHaloTex,
+          color: 0x22ff88,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+          toneMapped: false,
+        });
+        const haloPlane = new THREE.Mesh(
+          new THREE.PlaneGeometry(width + 1.15, (isHorizontalFootprint ? footprintD : height) + 0.95),
+          haloMat
+        );
+        haloPlane.position.set(
+          0,
+          isHorizontalFootprint ? localCenterY - 0.008 : localCenterY,
+          isHorizontalFootprint ? localZ : localZ - 0.02
+        );
+        if (isHorizontalFootprint) {
+          haloPlane.rotation.x = -Math.PI / 2;
+        }
+        group.add(haloPlane);
+
+        return { group, coreMat, outerMat, haloMat, coreTube, outerTube, haloPlane, level: 0 };
+      }
+
+      // Human rack: prominent 3D neon green ring framing the 2-tier rack + grounded felt-base halo
+      const humanPerimeterNeon = createRackTurnNeonRing(
+        humanRackGroup,
+        RACK_W + 0.54,
+        2.62,
+        1.05,
+        -0.14,
+        false,
+        2.62
+      );
+      const humanBaseNeon = createRackTurnNeonRing(
+        scene,
+        RACK_W + 0.82,
+        1.68,
+        0.025,
+        4.78,
+        true,
+        1.68
+      );
+      // Subtle low green ambient point light under the human rack edge (no direct glare on tiles)
+      const activeTurnLight = new THREE.PointLight(0x10ff7a, 0, 7.2, 1.8);
+      activeTurnLight.position.set(0, 0.45, 5.25);
+      scene.add(activeTurnLight);
+
+      const rackTurnRings = [
+        { primary: humanPerimeterNeon, base: humanBaseNeon, lightPos: new THREE.Vector3(0, 0.45, 5.25) },
+        {
+          primary: createRackTurnNeonRing(botRackGroups[1], botRackGroups[1].userData.rackWidth + 0.48, 1.08, 0.04, 0, true, 1.08),
+          base: null,
+          lightPos: new THREE.Vector3(6.8, 0.55, -0.35),
+        },
+        {
+          primary: createRackTurnNeonRing(botRackGroups[2], botRackGroups[2].userData.rackWidth + 0.48, 1.08, 0.04, 0, true, 1.08),
+          base: null,
+          lightPos: new THREE.Vector3(0, 0.55, -4.65),
+        },
+        {
+          primary: createRackTurnNeonRing(botRackGroups[3], botRackGroups[3].userData.rackWidth + 0.48, 1.08, 0.04, 0, true, 1.08),
+          base: null,
+          lightPos: new THREE.Vector3(-6.8, 0.55, -0.35),
+        },
+      ];
+
+      /* ------------------ CENTER STACK, INDICATOR, DISCARDS & OPEN MELDS ------------------ */
+      const sharedTileGeo = new THREE.BoxGeometry(TILE_W, TILE_H, TILE_D);
+      const flatTileGeo = new THREE.BoxGeometry(TILE_W * 0.78, TILE_D * 0.78, TILE_H * 0.78);
+
+      function createStandingTileMesh(tile) {
+        const frontMat = new THREE.MeshPhysicalMaterial({
+          map: getTileFrontTexture(tile),
+          color: 0xffffff,
+          bumpMap: tile.isFakeJoker ? null : tileFrontBumpTex,
+          bumpScale: 0.012,
+          roughness: 0.72,
+          metalness: 0.04,
+          clearcoat: 0,
+          specularIntensity: 0.22,
+          envMapIntensity: 0.2,
+        });
+        const mesh = new THREE.Mesh(sharedTileGeo, [
+          tileSideMat,
+          tileSideMat,
+          tileSideMat,
+          tileSideMat,
+          frontMat,
+          tileBackMat,
+        ]);
+        mesh.castShadow = !isSoftwareGl;
+        mesh.receiveShadow = !isSoftwareGl;
+        return mesh;
+      }
+
+      function createFlatTileMesh(tile, scale = 1.0) {
+        const frontMat = new THREE.MeshPhysicalMaterial({
+          map: getTileFrontTexture(tile),
+          color: 0xffffff,
+          bumpMap: tile.isFakeJoker ? null : tileFrontBumpTex,
+          bumpScale: 0.01,
+          roughness: 0.72,
+          metalness: 0.04,
+          clearcoat: 0,
+          specularIntensity: 0.22,
+          envMapIntensity: 0.2,
+        });
+        const mesh = new THREE.Mesh(flatTileGeo, [
+          tileSideMat,
+          tileSideMat,
+          frontMat,
+          tileBackMat,
+          tileSideMat,
+          tileSideMat,
+        ]);
+        mesh.scale.setScalar(scale);
+        mesh.castShadow = !isSoftwareGl;
+        mesh.receiveShadow = !isSoftwareGl;
+        return mesh;
+      }
+
+      // Center Closed Draw Stack (Clickable in 3D)
+      const drawStackGroup = new THREE.Group();
+      drawStackGroup.position.set(-0.62, 0.02, -1.92);
+      scene.add(drawStackGroup);
+
+      const drawStackBody = new THREE.Mesh(
+        new THREE.BoxGeometry(TILE_W * 0.95, 0.8, TILE_H * 0.95),
+        [tileSideMat, tileSideMat, tileBackMat, tileSideMat, tileSideMat, tileSideMat]
+      );
+      drawStackBody.position.y = 0.4;
+      drawStackBody.castShadow = !isSoftwareGl;
+      drawStackBody.userData = { kind: 'draw-center' };
+      drawStackGroup.add(drawStackBody);
+
+      const drawStackBadge = new THREE.Mesh(
+        new THREE.PlaneGeometry(TILE_W * 0.94, TILE_H * 0.94),
+        new THREE.MeshBasicMaterial({ map: createDrawStackBadgeTex(20) })
+      );
+      drawStackBadge.rotation.x = -Math.PI / 2;
+      drawStackBadge.position.y = 0.81;
+      drawStackBadge.userData = { kind: 'draw-center' };
+      drawStackGroup.add(drawStackBadge);
+
+      // Indicator Tile (Gösterge) beside draw stack
+      const indicatorHolder = new THREE.Group();
+      indicatorHolder.position.set(0.68, 0.02, -1.92);
+      scene.add(indicatorHolder);
+
+      const indicatorPedestal = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.08, 1.12), brassMat);
+      indicatorPedestal.position.y = 0.04;
+      indicatorHolder.add(indicatorPedestal);
+
+      // 4 Discard Piles on the 4 corners of the playable felt
+      // discards[3] = Bot 3's discard -> bottom-left ("Yandan Al" for human)
+      // discards[0] = Human's discard -> bottom-right ("Taş At" zone)
+      // discards[1] = Bot 1's discard -> top-right
+      // discards[2] = Bot 2's discard -> top-left
+      const discardCoords = [
+        { x: 6.25, z: 3.15 }, // Player 0 (human discard -> bottom-right)
+        { x: 5.5, z: -3.2 }, // Bot 1 discard -> top-right
+        { x: -5.5, z: -3.2 }, // Bot 2 discard -> top-left
+        { x: -6.25, z: 3.15 }, // Bot 3 discard -> bottom-left (Yandan Al!)
+      ];
+      const discardHolders = discardCoords.map((pos, idx) => {
+        const g = new THREE.Group();
+        g.position.set(pos.x, 0.02, pos.z);
+        scene.add(g);
+
+        // Subtle interactive base pad
+        const padColor = idx === 3 ? 0x22d3ee : idx === 0 ? 0xf3d06b : 0x64748b;
+        const pad = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.15, 1.45),
+          new THREE.MeshBasicMaterial({
+            color: padColor,
+            transparent: true,
+            opacity: idx === 3 || idx === 0 ? 0.18 : 0.08,
+            depthWrite: false,
+          })
+        );
+        pad.rotation.x = -Math.PI / 2;
+        pad.position.y = 0.01;
+        pad.userData = { kind: idx === 3 ? 'draw-side' : idx === 0 ? 'discard-zone' : 'other-discard' };
+        g.add(pad);
+        return { group: g, pad, tilesGroup: new THREE.Group() };
+      });
+      discardHolders.forEach((dh) => dh.group.add(dh.tilesGroup));
+
+      // Open Melds Container on Center Felt
+      const openMeldsGroup = new THREE.Group();
+      scene.add(openMeldsGroup);
+      let openMeldHitMeshes = [];
+
+      // Maps for syncing static destination meshes with in-flight parabolic animations
+      const rackTileVisuals = new Map();
+      const discardTileVisuals = new Map();
+      const openMeldTileVisuals = new Map();
+      const hiddenFlyingTileIds = new Set();
+
+      // Parabolic Flight & Touchdown Impact FX System
+      const flightGroup = new THREE.Group();
+      scene.add(flightGroup);
+      const activeFlights = [];
+      const impactEffects = [];
+
+      const _flatStandQuat = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+      const _tmpQuat = new THREE.Quaternion();
+      const _spinQuat = new THREE.Quaternion();
+      const _spinEuler = new THREE.Euler();
+      const _tmpVec = new THREE.Vector3();
+
+      function clearFlightAnimations() {
+        for (const f of activeFlights) {
+          flightGroup.remove(f.mesh);
+        }
+        activeFlights.length = 0;
+        for (const fx of impactEffects) {
+          flightGroup.remove(fx.group);
+        }
+        impactEffects.length = 0;
+        hiddenFlyingTileIds.clear();
+      }
+
+      function revealTileVisual(tileId) {
+        hiddenFlyingTileIds.delete(tileId);
+        const r = rackTileVisuals.get(tileId);
+        if (r) r.mesh.visible = true;
+        const d = discardTileVisuals.get(tileId);
+        if (d) d.visible = true;
+        const m = openMeldTileVisuals.get(tileId);
+        if (m) m.visible = true;
+      }
+
+      function spawnImpactRing(worldPos, colorHex = 0xf3d06b, scaleBoost = 1.0) {
+        const group = new THREE.Group();
+        group.position.set(worldPos.x, Math.max(0.035, worldPos.y - 0.04), worldPos.z);
+
+        // Expanding golden/emerald light halo ring
+        const ringMat = new THREE.MeshBasicMaterial({
+          map: impactRingTex,
+          color: colorHex,
+          transparent: true,
+          opacity: 0.92,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        });
+        const ring = new THREE.Mesh(new THREE.PlaneGeometry(0.75 * scaleBoost, 0.75 * scaleBoost), ringMat);
+        ring.rotation.x = -Math.PI / 2;
+        group.add(ring);
+
+        // Soft tactile dust/spark puff burst around tile landing edges
+        const dustCount = 12;
+        const positions = new Float32Array(dustCount * 3);
+        const vels = [];
+        for (let i = 0; i < dustCount; i++) {
+          const a = (i / dustCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
+          const spd = (0.75 + Math.random() * 0.95) * scaleBoost;
+          positions[i * 3] = Math.cos(a) * 0.14;
+          positions[i * 3 + 1] = 0.04;
+          positions[i * 3 + 2] = Math.sin(a) * 0.14;
+          vels.push({ vx: Math.cos(a) * spd, vy: 0.55 + Math.random() * 0.65, vz: Math.sin(a) * spd });
+        }
+        const dustGeo = new THREE.BufferGeometry();
+        dustGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const dustMat = new THREE.PointsMaterial({
+          map: impactRingTex,
+          color: colorHex,
+          size: 0.24 * scaleBoost,
+          transparent: true,
+          opacity: 0.85,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const dust = new THREE.Points(dustGeo, dustMat);
+        group.add(dust);
+
+        flightGroup.add(group);
+        impactEffects.push({
+          group,
+          ring,
+          ringMat,
+          dust,
+          dustGeo,
+          dustMat,
+          vels,
+          elapsed: 0,
+          duration: 0.54,
+          scaleBoost,
+        });
+      }
+
+      function spawnFlyingTile({
+        tile,
+        startPos,
+        startQuat,
+        endPos,
+        endQuat,
+        startScale = 1.0,
+        endScale = 1.0,
+        arcHeight = 2.1,
+        duration = 0.5,
+        delay = 0,
+        spinX = 0,
+        spinY = Math.PI,
+        spinZ = 0.25,
+        hideTargetId = null,
+        faceDown = false,
+        onComplete = null,
+      }) {
+        const mesh = faceDown
+          ? new THREE.Mesh(sharedTileGeo, tileBackMat)
+          : createStandingTileMesh(tile);
+        mesh.castShadow = !isSoftwareGl;
+        mesh.receiveShadow = !isSoftwareGl;
+        mesh.position.copy(startPos);
+        mesh.quaternion.copy(startQuat);
+        mesh.scale.setScalar(startScale);
+        mesh.visible = delay <= 0;
+        flightGroup.add(mesh);
+
+        if (hideTargetId !== null) {
+          hiddenFlyingTileIds.add(hideTargetId);
+          const r = rackTileVisuals.get(hideTargetId);
+          if (r) r.mesh.visible = false;
+          const d = discardTileVisuals.get(hideTargetId);
+          if (d) d.visible = false;
+          const m = openMeldTileVisuals.get(hideTargetId);
+          if (m) m.visible = false;
+        }
+
+        activeFlights.push({
+          mesh,
+          startPos: startPos.clone(),
+          startQuat: startQuat.clone(),
+          endPos: endPos.clone(),
+          endQuat: endQuat.clone(),
+          startScale,
+          endScale,
+          arcHeight,
+          duration,
+          delay,
+          elapsed: 0,
+          spinX,
+          spinY,
+          spinZ,
+          hideTargetId,
+          onComplete,
+        });
+      }
+
+      function getRackSlotWorldTransform(slotIndex) {
+        humanRackGroup.updateMatrixWorld(true);
+        const pos = getSlotLocalPos(slotIndex).applyMatrix4(humanRackGroup.matrixWorld);
+        const quat = new THREE.Quaternion();
+        humanRackGroup.getWorldQuaternion(quat);
+        return { pos, quat };
+      }
+
+      function getDrawStackTopWorld() {
+        const topY = drawStackBadge.position.y + 0.08;
+        return {
+          pos: new THREE.Vector3(drawStackGroup.position.x, topY, drawStackGroup.position.z),
+          quat: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0)),
+        };
+      }
+
+      function getDiscardTopWorld(playerIdx, indexOffset = 0) {
+        const pile = game.discards[playerIdx];
+        const visibleIdx = Math.min(3, Math.max(0, pile.length - 1 + indexOffset));
+        const base = discardCoords[playerIdx];
+        const x = base.x + (visibleIdx % 2) * 0.03 - 0.015;
+        const y = 0.02 + 0.11 + visibleIdx * 0.14;
+        const z = base.z;
+        const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+        return { pos: new THREE.Vector3(x, y, z), quat };
+      }
+
+      function getBotRackWorld(playerIdx) {
+        const tr = botRackTransforms[playerIdx];
+        const pos = new THREE.Vector3(tr.pos[0], tr.pos[1] + 0.55, tr.pos[2]);
+        const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, tr.rotY, 0));
+        return { pos, quat };
+      }
+
+      function clearGroup(grp) {
+        while (grp.children.length > 0) {
+          const ch = grp.children[0];
+          grp.remove(ch);
+        }
+      }
+
+      function rebuildRackVisuals(immediate = false) {
+        const rack = game.players[0].rack;
+        const activeIds = new Set();
+
+        for (let slot = 0; slot < RACK_SLOTS; slot++) {
+          const tile = rack[slot];
+          if (!tile) continue;
+          activeIds.add(tile.id);
+
+          let rec = rackTileVisuals.get(tile.id);
+          if (!rec) {
+            const mesh = createStandingTileMesh(tile);
+            mesh.userData = { kind: 'rack-tile', tileId: tile.id };
+            const initPos = getSlotLocalPos(slot);
+            mesh.position.copy(initPos);
+            mesh.visible = !hiddenFlyingTileIds.has(tile.id);
+            humanRackGroup.add(mesh);
+            rec = {
+              mesh,
+              tile,
+              slot,
+              targetPos: initPos.clone(),
+            };
+            rackTileVisuals.set(tile.id, rec);
+          } else {
+            rec.slot = slot;
+            rec.targetPos.copy(getSlotLocalPos(slot));
+            rec.mesh.visible = !hiddenFlyingTileIds.has(tile.id);
+            if (immediate) rec.mesh.position.copy(rec.targetPos);
+          }
+        }
+
+        // Remove meshes no longer on human rack
+        for (const [id, rec] of rackTileVisuals.entries()) {
+          if (!activeIds.has(id)) {
+            humanRackGroup.remove(rec.mesh);
+            rackTileVisuals.delete(id);
+          }
+        }
+      }
+
+      function rebuildBotRacks() {
+        const miniGeo = new THREE.BoxGeometry(0.32, 0.56, 0.14);
+        for (let p = 1; p <= 3; p++) {
+          const holder = botRackGroups[p].userData.tilesHolder;
+          clearGroup(holder);
+          const count = game.players[p].hand.length;
+          const maxW = botRackGroups[p].userData.rackWidth - 0.5;
+          const visibleCount = Math.min(count, 22);
+          const step = visibleCount > 1 ? Math.min(0.35, maxW / (visibleCount - 1)) : 0;
+          const startX = -((visibleCount - 1) * step) / 2;
+
+          for (let i = 0; i < visibleCount; i++) {
+            const m = new THREE.Mesh(miniGeo, tileBackMat);
+            m.position.set(startX + i * step, 0.44, 0.04);
+            m.castShadow = !isSoftwareGl;
+            holder.add(m);
+          }
+        }
+      }
+
+      function rebuildDrawStackAndIndicator() {
+        const count = game.drawPile.length;
+        drawStackGroup.visible = count > 0;
+        if (count > 0) {
+          const h = Math.max(0.18, Math.min(1.1, 0.14 + count * 0.036));
+          drawStackBody.scale.y = h / 0.8;
+          drawStackBody.position.y = h / 2;
+          drawStackBadge.position.y = h + 0.012;
+          if (drawStackBadge.material.map) drawStackBadge.material.map.dispose();
+          drawStackBadge.material.map = createDrawStackBadgeTex(count);
+          drawStackBadge.material.needsUpdate = true;
+        }
+
+        // Indicator tile
+        while (indicatorHolder.children.length > 1) {
+          indicatorHolder.remove(indicatorHolder.children[1]);
+        }
+        if (game.indicatorTile) {
+          const indMesh = createFlatTileMesh(game.indicatorTile, 1.15);
+          indMesh.position.y = 0.18;
+          indicatorHolder.add(indMesh);
+        }
+      }
+
+      function rebuildDiscardPiles() {
+        discardTileVisuals.clear();
+        for (let p = 0; p < 4; p++) {
+          const holder = discardHolders[p].tilesGroup;
+          clearGroup(holder);
+          const pile = game.discards[p];
+          const show = pile.slice(-4);
+          show.forEach((tile, idx) => {
+            const mesh = createFlatTileMesh(tile, 1.16);
+            mesh.position.set((idx % 2) * 0.03 - 0.015, 0.11 + idx * 0.14, 0);
+            mesh.rotation.y = (idx - show.length + 1) * 0.05;
+            mesh.visible = !hiddenFlyingTileIds.has(tile.id);
+            if (p === 3) {
+              mesh.userData = { kind: 'draw-side' };
+            } else if (p === 0) {
+              mesh.userData = { kind: 'discard-zone' };
+            }
+            holder.add(mesh);
+            discardTileVisuals.set(tile.id, mesh);
+          });
+        }
+      }
+
+      function rebuildOpenMelds3D() {
+        clearGroup(openMeldsGroup);
+        openMeldHitMeshes = [];
+        openMeldTileVisuals.clear();
+
+        // Layout open melds cleanly in rows across the center felt (z from -0.85 to +2.45)
+        const maxRowWidth = 10.2;
+        const tileStep = 0.56;
+        const meldGap = 0.42;
+        const rowPitchZ = 0.96;
+
+        let cursorX = -maxRowWidth / 2;
+        let cursorZ = -0.78;
+
+        for (const meld of game.openMelds) {
+          const meldW = meld.tiles.length * tileStep;
+          if (cursorX + meldW > maxRowWidth / 2 && cursorX > -maxRowWidth / 2) {
+            cursorX = -maxRowWidth / 2;
+            cursorZ += rowPitchZ;
+          }
+
+          const meldGroup = new THREE.Group();
+          meldGroup.position.set(cursorX + meldW / 2, 0.09, cursorZ);
+
+          // Subtle tray highlight plate under meld (clickable for İşlek Ekle!)
+          const plate = new THREE.Mesh(
+            new THREE.PlaneGeometry(meldW + 0.16, 0.84),
+            new THREE.MeshBasicMaterial({
+              color: 0x22d3ee,
+              transparent: true,
+              opacity: 0.1,
+              depthWrite: false,
+            })
+          );
+          plate.rotation.x = -Math.PI / 2;
+          plate.position.y = -0.065;
+          plate.userData = { kind: 'open-meld', meldId: meld.id };
+          meldGroup.add(plate);
+          openMeldHitMeshes.push(plate);
+
+          meld.tiles.forEach((tile, i) => {
+            const tm = createFlatTileMesh(tile, 0.98);
+            tm.position.set((i - (meld.tiles.length - 1) / 2) * tileStep, 0, 0);
+            tm.visible = !hiddenFlyingTileIds.has(tile.id);
+            tm.userData = { kind: 'open-meld', meldId: meld.id };
+            meldGroup.add(tm);
+            openMeldHitMeshes.push(tm);
+            openMeldTileVisuals.set(tile.id, tm);
+          });
+
+          openMeldsGroup.add(meldGroup);
+          cursorX += meldW + meldGap;
+        }
+        openMeldsGroup.updateMatrixWorld(true);
+      }
+
+      /* ------------------ RAYCASTING, DRAG-AND-DROP & CLICK SWAP ------------------ */
+      const raycaster = new THREE.Raycaster();
+      const pointerNdc = new THREE.Vector2();
+      const rackDragPlane = new THREE.Plane();
+      const _planeNormal = new THREE.Vector3();
+      const _planePoint = new THREE.Vector3();
+      const _dragWorldPos = new THREE.Vector3();
+      const _dragLocalPos = new THREE.Vector3();
+
+      let hoveredTileId = null;
+      let dragState = null; // { tileId, startSlot, startX, startY, active, targetSlot, overDiscard }
+
+      function updatePointerNdc(e) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointerNdc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        pointerNdc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      }
+
+      function updateRackDragPlane() {
+        humanRackGroup.updateMatrixWorld(true);
+        _planeNormal.set(0, 0, 1).transformDirection(humanRackGroup.matrixWorld).normalize();
+        _planePoint.set(0, 1.0, 0.2).applyMatrix4(humanRackGroup.matrixWorld);
+        rackDragPlane.setFromNormalAndCoplanarPoint(_planeNormal, _planePoint);
+      }
+
+      function findNearestRackSlot(localPos) {
+        let bestSlot = 0;
+        let bestDist = Infinity;
+        for (let i = 0; i < RACK_SLOTS; i++) {
+          const sp = getSlotLocalPos(i);
+          const dx = localPos.x - sp.x;
+          const dy = localPos.y - sp.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < bestDist) {
+            bestDist = d2;
+            bestSlot = i;
+          }
+        }
+        return bestSlot;
+      }
+
+      function getRackTileMeshes() {
+        const list = [];
+        for (const rec of rackTileVisuals.values()) list.push(rec.mesh);
+        return list;
+      }
+
+      renderer.domElement.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 || game.phase === 'ended') return;
+        updatePointerNdc(e);
+        raycaster.setFromCamera(pointerNdc, camera);
+
+        // 1. Check human rack tiles first
+        const tileHits = raycaster.intersectObjects(getRackTileMeshes(), false);
+        if (tileHits.length > 0) {
+          const tileId = tileHits[0].object.userData.tileId;
+          const slot = game.players[0].rack.findIndex((t) => t && t.id === tileId);
+          if (slot !== -1) {
+            updateRackDragPlane();
+            dragState = {
+              tileId,
+              startSlot: slot,
+              startX: e.clientX,
+              startY: e.clientY,
+              active: false,
+              targetSlot: slot,
+              overDiscard: false,
+              shiftKey: e.shiftKey,
+            };
+            return;
+          }
+        }
+
+        // 2. Check clickable empty rack slots (move selected tile to empty slot)
+        if (game.selectedTileId !== null && !game.multiSelectMode) {
+          const slotHits = raycaster.intersectObjects(slotHitMeshes, false);
+          if (slotHits.length > 0) {
+            const targetSlot = slotHits[0].object.userData.slotIndex;
+            const rack = game.players[0].rack;
+            const fromSlot = rack.findIndex((t) => t && t.id === game.selectedTileId);
+            if (fromSlot !== -1 && targetSlot !== fromSlot) {
+              [rack[fromSlot], rack[targetSlot]] = [rack[targetSlot], rack[fromSlot]];
+              game.selectedTileId = null;
+              sound.playTileClack(1.0);
+              rebuildRackVisuals();
+              updateHUD();
+              return;
+            }
+          }
+        }
+
+        // 3. Check 3D Center Draw Stack
+        const drawHits = raycaster.intersectObjects([drawStackBody, drawStackBadge], false);
+        if (drawHits.length > 0) {
+          humanDrawFromCenter();
+          return;
+        }
+
+        // 4. Check 3D Side Discard ("Yandan Al")
+        const sideObjects = [discardHolders[3].pad, ...discardHolders[3].tilesGroup.children];
+        if (raycaster.intersectObjects(sideObjects, false).length > 0) {
+          humanDrawFromSide();
+          return;
+        }
+
+        // 5. Check 3D Right Discard Zone ("Taş At")
+        const discardObjects = [discardHolders[0].pad, ...discardHolders[0].tilesGroup.children];
+        if (raycaster.intersectObjects(discardObjects, false).length > 0) {
+          if (game.selectedTileId !== null) {
+            humanDiscardTile(game.selectedTileId);
+          }
+          return;
+        }
+
+        // 6. Check 3D Open Melds (Click meld to İşlek Ekle!)
+        if (openMeldHitMeshes.length > 0) {
+          const meldHits = raycaster.intersectObjects(openMeldHitMeshes, false);
+          if (meldHits.length > 0) {
+            const meldId = meldHits[0].object.userData.meldId;
+            humanLayoffToSpecificMeld(meldId);
+            return;
+          }
+        }
+
+        // Clicked blank felt -> clear selection
+        if (game.selectedTileId !== null || game.multiSelectedIds.size > 0) {
+          game.selectedTileId = null;
+          game.multiSelectedIds.clear();
+          updateHUD();
+        }
+      });
+
+      let lastHoverCheck = 0;
+      window.addEventListener('pointermove', (e) => {
+        updatePointerNdc(e);
+
+        if (dragState) {
+          const dist = Math.hypot(e.clientX - dragState.startX, e.clientY - dragState.startY);
+          if (!dragState.active && dist > 6) {
+            dragState.active = true;
+            game.selectedTileId = dragState.tileId;
+          }
+          if (dragState.active) {
+            raycaster.setFromCamera(pointerNdc, camera);
+            if (raycaster.ray.intersectPlane(rackDragPlane, _dragWorldPos)) {
+              _dragLocalPos.copy(_dragWorldPos);
+              humanRackGroup.worldToLocal(_dragLocalPos);
+
+              // Check if dragged past right edge of rack toward Discard Zone
+              dragState.overDiscard = _dragLocalPos.x > RACK_W / 2 + 0.55 && game.turn === 0 && game.phase === 'play';
+              dragState.targetSlot = findNearestRackSlot(_dragLocalPos);
+
+              const rec = rackTileVisuals.get(dragState.tileId);
+              if (rec) {
+                rec.mesh.position.set(_dragLocalPos.x, _dragLocalPos.y, 0.55);
+              }
+            }
+          }
+          return;
+        }
+
+        // Throttled hover raycast for smooth cursor & lift
+        const now = performance.now();
+        if (now - lastHoverCheck < 35) return;
+        lastHoverCheck = now;
+
+        raycaster.setFromCamera(pointerNdc, camera);
+        const hits = raycaster.intersectObjects(getRackTileMeshes(), false);
+        if (hits.length > 0) {
+          hoveredTileId = hits[0].object.userData.tileId;
+          renderer.domElement.style.cursor = 'grab';
+        } else {
+          hoveredTileId = null;
+          const interactive = [drawStackBody, drawStackBadge, discardHolders[3].pad, discardHolders[0].pad, ...openMeldHitMeshes];
+          renderer.domElement.style.cursor = raycaster.intersectObjects(interactive, false).length > 0 ? 'pointer' : 'default';
+        }
+      });
+
+      window.addEventListener('pointerup', () => {
+        if (!dragState) return;
+        const ds = dragState;
+        dragState = null;
+
+        const rack = game.players[0].rack;
+
+        if (ds.active) {
+          if (ds.overDiscard) {
+            humanDiscardTile(ds.tileId);
+            return;
+          }
+          if (ds.targetSlot !== ds.startSlot) {
+            [rack[ds.startSlot], rack[ds.targetSlot]] = [rack[ds.targetSlot], rack[ds.startSlot]];
+            sound.playTileClack(0.98);
+          } else {
+            sound.playTileClack(1.08);
+          }
+          game.selectedTileId = null;
+          rebuildRackVisuals();
+          updateHUD();
+          return;
+        }
+
+        // Short click interaction: Multi-select OR Click-to-Select / Click-to-Swap
+        if (ds.shiftKey || game.multiSelectMode) {
+          if (game.multiSelectedIds.has(ds.tileId)) {
+            game.multiSelectedIds.delete(ds.tileId);
+          } else {
+            game.multiSelectedIds.add(ds.tileId);
+          }
+          game.selectedTileId = ds.tileId;
+          sound.playTileClack(1.18);
+          updateHUD();
+          return;
+        }
+
+        if (game.selectedTileId === null) {
+          game.selectedTileId = ds.tileId;
+          sound.playTileClack(1.14);
+        } else if (game.selectedTileId === ds.tileId) {
+          game.selectedTileId = null;
+          sound.playTileClack(0.92);
+        } else {
+          // Swap the two sequentially clicked tiles!
+          const slotA = rack.findIndex((t) => t && t.id === game.selectedTileId);
+          const slotB = rack.findIndex((t) => t && t.id === ds.tileId);
+          if (slotA !== -1 && slotB !== -1) {
+            [rack[slotA], rack[slotB]] = [rack[slotB], rack[slotA]];
+            sound.playTileClack(1.0);
+          }
+          game.selectedTileId = null;
+          rebuildRackVisuals();
+        }
+        updateHUD();
+      });
+
+      /* =========================================================================
+       * 5. GAMEPLAY ACTIONS (HUMAN + AI BOTS + ROUND LIFECYCLE)
+       * ========================================================================= */
+      const toastEl = document.getElementById('toast');
+      let toastTimeout = null;
+      function showToast(msg, kind = 'default') {
+        toastEl.textContent = msg;
+        toastEl.className = `toast visible ${kind}`;
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => toastEl.classList.remove('visible'), 2700);
+      }
+
+      function placeHumanTilesOnRack(tiles, preserveSpacing = false) {
+        const rack = new Array(RACK_SLOTS).fill(null);
+        if (!preserveSpacing) {
+          tiles.forEach((t, i) => {
+            if (i < RACK_SLOTS) rack[i] = t;
+          });
+        }
+        game.players[0].rack = rack;
+      }
+
+      function addTileToHumanRack(tile) {
+        const rack = game.players[0].rack;
+        // Prefer bottom row empty slot first, then top row
+        for (let i = 14; i < RACK_SLOTS; i++) {
+          if (!rack[i]) {
+            rack[i] = tile;
+            return i;
+          }
+        }
+        for (let i = 0; i < 14; i++) {
+          if (!rack[i]) {
+            rack[i] = tile;
+            return i;
+          }
+        }
+        return -1;
+      }
+
+      function getHumanHandList() {
+        return game.players[0].rack.filter(Boolean);
+      }
+
+      function clearAllBotTimers() {
+        if (game.botTimer) {
+          clearTimeout(game.botTimer);
+          game.botTimer = null;
+        }
+        while (game.botTimers.length > 0) {
+          clearTimeout(game.botTimers.pop());
+        }
+      }
+
+      function startNewRound() {
+        clearAllBotTimers();
+        clearFlightAnimations();
+        centerFocusTimer = 0;
+        document.getElementById('round-modal').classList.remove('open');
+
+        // Clear texture cache because Okey changes every round!
+        for (const tex of tileFaceTexCache.values()) tex.dispose();
+        tileFaceTexCache.clear();
+
+        // Clear existing rack meshes so fresh textures are bound
+        for (const rec of rackTileVisuals.values()) {
+          humanRackGroup.remove(rec.mesh);
+        }
+        rackTileVisuals.clear();
+
+        const deck = createDeck106();
+
+        // Pick indicator (must not be a Fake Joker)
+        const indIdx = deck.findIndex((t) => !t.isFakeJoker);
+        game.indicatorTile = deck.splice(indIdx, 1)[0];
+        game.okeyColor = game.indicatorTile.color;
+        game.okeyNumber = game.indicatorTile.number === 13 ? 1 : game.indicatorTile.number + 1;
+
+        game.discards = [[], [], [], []];
+        game.openMelds = [];
+        game.tookSideTile = null;
+        game.selectedTileId = null;
+        game.multiSelectedIds.clear();
+        game.nextMeldId = 1;
+
+        // Deal: dealer gets 22 tiles, other 3 players get 21 tiles
+        game.players.forEach((p, idx) => {
+          p.hasOpened = false;
+          const count = idx === game.dealer ? 22 : 21;
+          const dealt = deck.splice(0, count);
+          if (idx === 0) {
+            placeHumanTilesOnRack(dealt);
+          } else {
+            p.hand = dealt;
+          }
+        });
+
+        game.drawPile = deck;
+        game.turn = game.dealer;
+        game.phase = game.turn === 0 ? 'play' : 'bot';
+
+        // Auto-sort player's starting hand cleanly into series for great opening UX
+        sortHumanRackBySeries(true);
+
+        rebuildRackVisuals(true);
+        rebuildBotRacks();
+        rebuildDrawStackAndIndicator();
+        rebuildDiscardPiles();
+        rebuildOpenMelds3D();
+        updateIndicatorHUD();
+        updateHUD();
+
+        showToast(
+          `El ${game.round} başladı! Okey: ${COLOR_NAME[game.okeyColor]} ${game.okeyNumber}`,
+          'success'
+        );
+
+        if (game.turn !== 0) {
+          scheduleBotTurn();
+        } else {
+          sound.playTurnNotify();
+        }
+      }
+
+      function humanDrawFromCenter() {
+        if (game.turn !== 0 || game.phase !== 'draw') {
+          if (game.turn === 0 && game.phase === 'play') {
+            showToast('Zaten taş çektin! Per açabilir veya taş atabilirsin.', 'error');
+          }
+          return;
+        }
+        if (game.drawPile.length === 0) {
+          finishRound(null, false);
+          return;
+        }
+        const startXf = getDrawStackTopWorld();
+        const tile = game.drawPile.pop();
+        const slotIdx = addTileToHumanRack(tile);
+        game.phase = 'play';
+        game.tookSideTile = null;
+        game.selectedTileId = tile.id;
+
+        sound.playTileDraw();
+        hiddenFlyingTileIds.add(tile.id);
+        rebuildRackVisuals();
+        rebuildDrawStackAndIndicator();
+        updateHUD();
+
+        const destXf = getRackSlotWorldTransform(slotIdx >= 0 ? slotIdx : 0);
+        spawnFlyingTile({
+          tile,
+          startPos: startXf.pos,
+          startQuat: startXf.quat,
+          endPos: destXf.pos,
+          endQuat: destXf.quat,
+          startScale: 0.9,
+          endScale: 1.0,
+          arcHeight: 2.35,
+          duration: 0.56,
+          spinX: 0.3,
+          spinY: Math.PI * 1.15,
+          spinZ: 0.25,
+          hideTargetId: tile.id,
+          onComplete: () => {
+            sound.playTileClack(1.16);
+          },
+        });
+        showToast('Ortadan taş çektin.');
+      }
+
+      function humanDrawFromSide() {
+        if (game.turn !== 0 || game.phase !== 'draw') {
+          showToast('Yandan taş almak için sıranın başında olmalısın.', 'error');
+          return;
+        }
+        const leftPile = game.discards[3];
+        if (leftPile.length === 0) {
+          sound.playError();
+          showToast('Sol oyuncunun attığı taş yok.', 'error');
+          return;
+        }
+        const startXf = getDiscardTopWorld(3, 0);
+        const tile = leftPile.pop();
+        const slotIdx = addTileToHumanRack(tile);
+        game.phase = 'play';
+        game.tookSideTile = tile;
+        game.selectedTileId = tile.id;
+
+        sound.playTileDraw();
+        hiddenFlyingTileIds.add(tile.id);
+        rebuildRackVisuals();
+        rebuildDiscardPiles();
+        updateHUD();
+
+        const destXf = getRackSlotWorldTransform(slotIdx >= 0 ? slotIdx : 0);
+        spawnFlyingTile({
+          tile,
+          startPos: startXf.pos,
+          startQuat: startXf.quat,
+          endPos: destXf.pos,
+          endQuat: destXf.quat,
+          startScale: 0.92,
+          endScale: 1.0,
+          arcHeight: 2.15,
+          duration: 0.54,
+          spinX: -0.25,
+          spinY: -Math.PI * 0.9,
+          spinZ: 0.35,
+          hideTargetId: tile.id,
+          onComplete: () => {
+            sound.playTileClack(1.1);
+          },
+        });
+
+        showToast(
+          game.players[0].hasOpened
+            ? 'Yandan taş aldın! Bu taşı bu turda kullanmalısın.'
+            : 'Yandan taş aldın! Elini 101+ açıp bu taşı kullanmalısın.'
+        );
+      }
+
+      function humanReturnSideTile() {
+        if (game.turn !== 0 || game.phase !== 'play' || !game.tookSideTile) return;
+        const rack = game.players[0].rack;
+        const idx = rack.findIndex((t) => t && t.id === game.tookSideTile.id);
+        if (idx === -1) return;
+
+        const startXf = getRackSlotWorldTransform(idx);
+        const tile = game.tookSideTile;
+        rack[idx] = null;
+        game.discards[3].push(tile);
+        game.tookSideTile = null;
+        game.phase = 'draw';
+        game.selectedTileId = null;
+
+        hiddenFlyingTileIds.add(tile.id);
+        rebuildRackVisuals();
+        rebuildDiscardPiles();
+        updateHUD();
+
+        const destXf = getDiscardTopWorld(3, 0);
+        spawnFlyingTile({
+          tile,
+          startPos: startXf.pos,
+          startQuat: startXf.quat,
+          endPos: destXf.pos,
+          endQuat: destXf.quat,
+          startScale: 1.0,
+          endScale: 0.9,
+          arcHeight: 1.85,
+          duration: 0.48,
+          spinY: Math.PI,
+          spinZ: -0.22,
+          hideTargetId: tile.id,
+          onComplete: () => {
+            sound.playTileClack(0.9);
+            spawnImpactRing(destXf.pos, 0x22d3ee, 0.9);
+          },
+        });
+        showToast('Yandan alınan taş iade edildi. Ortadan çekebilirsin.');
+      }
+
+      function evaluateHumanOpenCandidate() {
+        // If multi-selection has >= 3 tiles, evaluate selected tiles first
+        if (game.multiSelectedIds.size >= 3) {
+          const rack = game.players[0].rack;
+          const selected = rack.filter((t) => t && game.multiSelectedIds.has(t.id));
+          const direct = evaluateMeld(selected);
+          if (direct) {
+            return { melds: [direct], totalPoints: direct.points, source: 'selection' };
+          }
+          const solved = findBestMelds(selected);
+          if (solved.melds.length > 0) {
+            return { melds: solved.melds, totalPoints: solved.totalPoints, source: 'selection' };
+          }
+          return { melds: [], totalPoints: 0, source: 'selection' };
+        }
+        // Otherwise evaluate all valid contiguous groups on the 2-tier rack
+        const groups = getHumanRackGroups();
+        return { melds: groups.validMelds, totalPoints: groups.totalPoints, source: 'rack' };
+      }
+
+      function humanOpenMelds() {
+        if (game.turn !== 0 || game.phase !== 'play') {
+          sound.playError();
+          showToast('El açmak için önce taş çekmelisin.', 'error');
+          return;
+        }
+
+        const evalRes = evaluateHumanOpenCandidate();
+        if (evalRes.melds.length === 0) {
+          sound.playError();
+          showToast('Istakada geçerli bir per bulunamadı. "Seri Diz" deneyebilirsin.', 'error');
+          return;
+        }
+
+        const alreadyOpened = game.players[0].hasOpened;
+        if (!alreadyOpened && evalRes.totalPoints < 101) {
+          sound.playError();
+          showToast(`101 barajı için en az 101 puan gerekli (Mevcut: ${evalRes.totalPoints}).`, 'error');
+          return;
+        }
+
+        // Verify side tile usage if player took side tile and hasn't opened yet
+        if (game.tookSideTile && !alreadyOpened) {
+          const usedSide = evalRes.melds.some((m) => m.tiles.some((t) => t.id === game.tookSideTile.id));
+          if (!usedSide) {
+            sound.playError();
+            showToast('Yandan aldığın taşı açtığın perlerden birinde kullanmalısın!', 'error');
+            return;
+          }
+        }
+
+        // Snapshot exact world start transforms on the human rack BEFORE removing tiles
+        humanRackGroup.updateMatrixWorld(true);
+        const startTransforms = new Map();
+        const rack = game.players[0].rack;
+        for (let i = 0; i < RACK_SLOTS; i++) {
+          if (!rack[i]) continue;
+          const rec = rackTileVisuals.get(rack[i].id);
+          if (rec) {
+            const p = new THREE.Vector3();
+            const q = new THREE.Quaternion();
+            rec.mesh.getWorldPosition(p);
+            rec.mesh.getWorldQuaternion(q);
+            startTransforms.set(rack[i].id, { pos: p, quat: q });
+          } else {
+            startTransforms.set(rack[i].id, getRackSlotWorldTransform(i));
+          }
+        }
+
+        // Remove melded tiles from human rack & push onto 3D table
+        const removeIds = new Set();
+        const newlyOpenedMelds = [];
+        evalRes.melds.forEach((m) => {
+          m.tiles.forEach((t) => {
+            removeIds.add(t.id);
+            hiddenFlyingTileIds.add(t.id);
+          });
+          const entry = {
+            ...m,
+            id: game.nextMeldId++,
+            owner: 0,
+          };
+          game.openMelds.push(entry);
+          newlyOpenedMelds.push(entry);
+        });
+
+        for (let i = 0; i < RACK_SLOTS; i++) {
+          if (rack[i] && removeIds.has(rack[i].id)) {
+            rack[i] = null;
+          }
+        }
+
+        if (game.tookSideTile && removeIds.has(game.tookSideTile.id)) {
+          game.tookSideTile = null;
+        }
+
+        game.players[0].hasOpened = true;
+        game.selectedTileId = null;
+        game.multiSelectedIds.clear();
+        game.multiSelectMode = false;
+
+        sound.playOpenFanfare();
+        rebuildRackVisuals();
+        rebuildOpenMelds3D();
+        updateHUD();
+
+        // Briefly tilt camera wider toward center so player watches melds cascade into place
+        centerFocusTimer = 1.45;
+
+        // Launch sequential cascading parabolic flight for every tile in each opened meld!
+        let staggerIdx = 0;
+        newlyOpenedMelds.forEach((meld, mIdx) => {
+          meld.tiles.forEach((tile) => {
+            const startXf = startTransforms.get(tile.id) || getRackSlotWorldTransform(7);
+            const destMesh = openMeldTileVisuals.get(tile.id);
+            const endPos = new THREE.Vector3(0, 0.14, 0);
+            if (destMesh) destMesh.getWorldPosition(endPos);
+
+            const delay = staggerIdx * 0.062 + mIdx * 0.09;
+            staggerIdx++;
+
+            spawnFlyingTile({
+              tile,
+              startPos: startXf.pos,
+              startQuat: startXf.quat,
+              endPos,
+              endQuat: _flatStandQuat,
+              startScale: 1.0,
+              endScale: 0.77,
+              arcHeight: 2.05 + (mIdx % 2) * 0.25,
+              duration: 0.48,
+              delay,
+              spinX: 0.2,
+              spinY: Math.PI * 0.75,
+              spinZ: 0.18,
+              hideTargetId: tile.id,
+              onComplete: () => {
+                sound.playTileClack(1.06 + (staggerIdx % 4) * 0.04);
+                spawnImpactRing(endPos, 0x34d399, 0.72);
+              },
+            });
+          });
+        });
+
+        showToast(
+          alreadyOpened
+            ? `Yeni per masaya eklendi (+${evalRes.totalPoints} Puan)!`
+            : `Harika! ${evalRes.totalPoints} puanla elini açtın!`,
+          'success'
+        );
+
+        // If 0 tiles left after opening, instant victory!
+        if (getHumanHandList().length === 0) {
+          finishRound(0, false);
+        }
+      }
+
+      function humanLayoffToSpecificMeld(meldId = null) {
+        if (game.turn !== 0 || game.phase !== 'play') {
+          sound.playError();
+          showToast('İşlek eklemek için kendi turunda olmalısın.', 'error');
+          return;
+        }
+        if (!game.players[0].hasOpened) {
+          sound.playError();
+          showToast('İşlek atabilmek için önce 101 ile elini açmalısın.', 'error');
+          return;
+        }
+        if (game.openMelds.length === 0) {
+          sound.playError();
+          showToast('Masada henüz açık per yok.', 'error');
+          return;
+        }
+
+        const rack = game.players[0].rack;
+        const candidateTiles =
+          game.selectedTileId !== null
+            ? [rack.find((t) => t && t.id === game.selectedTileId)].filter(Boolean)
+            : getHumanHandList();
+
+        const targetMelds =
+          meldId !== null ? game.openMelds.filter((m) => m.id === meldId) : game.openMelds;
+
+        for (const tile of candidateTiles) {
+          for (const meld of targetMelds) {
+            const res = tryLayoffOnMeld(tile, meld);
+            if (!res) continue;
+
+            // Capture tile start transform before removing from rack
+            const slotIdx = rack.findIndex((t) => t && t.id === tile.id);
+            const startXf = getRackSlotWorldTransform(slotIdx);
+
+            // Execute layoff!
+            rack[slotIdx] = res.retrievedOkey ? res.retrievedOkey : null;
+
+            if (game.tookSideTile && game.tookSideTile.id === tile.id) {
+              game.tookSideTile = null;
+            }
+
+            Object.assign(meld, res.updatedMeld);
+            game.selectedTileId = null;
+
+            hiddenFlyingTileIds.add(tile.id);
+            sound.playLayoff();
+            rebuildRackVisuals();
+            rebuildOpenMelds3D();
+            updateHUD();
+
+            const destMesh = openMeldTileVisuals.get(tile.id);
+            const endPos = new THREE.Vector3(0, 0.14, 0);
+            if (destMesh) destMesh.getWorldPosition(endPos);
+
+            spawnFlyingTile({
+              tile,
+              startPos: startXf.pos,
+              startQuat: startXf.quat,
+              endPos,
+              endQuat: _flatStandQuat,
+              startScale: 1.0,
+              endScale: 0.77,
+              arcHeight: 1.9,
+              duration: 0.46,
+              spinY: Math.PI,
+              spinZ: 0.2,
+              hideTargetId: tile.id,
+              onComplete: () => {
+                sound.playTileClack(1.12);
+                spawnImpactRing(endPos, 0x22d3ee, 0.85);
+              },
+            });
+
+            showToast(
+              res.retrievedOkey
+                ? 'Okey taşını yerinden alıp eline geçirdin!'
+                : 'Taş masadaki pere işlendi!',
+              'success'
+            );
+
+            if (getHumanHandList().length === 0) {
+              finishRound(0, false);
+            }
+            return;
+          }
+        }
+
+        sound.playError();
+        showToast(
+          game.selectedTileId !== null
+            ? 'Seçili taş bu pere işlenemiyor.'
+            : 'Istakanda işlenebilir taş bulunamadı.',
+          'error'
+        );
+      }
+
+      function humanDiscardTile(tileId) {
+        if (game.turn !== 0 || game.phase !== 'play') {
+          sound.playError();
+          showToast('Taş atmak için önce taş çekmelisin.', 'error');
+          return;
+        }
+        if (tileId === null || tileId === undefined) {
+          sound.playError();
+          showToast('Atmak için önce ıstakadan bir taş seç.', 'error');
+          return;
+        }
+
+        if (game.tookSideTile) {
+          sound.playError();
+          showToast(
+            'Yandan aldığın taşı kullanmadan turu bitiremezsin! El aç veya "Yandan İade Et".',
+            'error'
+          );
+          return;
+        }
+
+        const rack = game.players[0].rack;
+        const slot = rack.findIndex((t) => t && t.id === tileId);
+        if (slot === -1) return;
+
+        // Capture exact current world transform (whether sitting on rack or dragged mid-air)
+        humanRackGroup.updateMatrixWorld(true);
+        const startPos = new THREE.Vector3();
+        const startQuat = new THREE.Quaternion();
+        const rec = rackTileVisuals.get(tileId);
+        if (rec) {
+          rec.mesh.getWorldPosition(startPos);
+          rec.mesh.getWorldQuaternion(startQuat);
+        } else {
+          const fallback = getRackSlotWorldTransform(slot);
+          startPos.copy(fallback.pos);
+          startQuat.copy(fallback.quat);
+        }
+
+        const tile = rack[slot];
+        rack[slot] = null;
+        game.discards[0].push(tile);
+        game.selectedTileId = null;
+        game.multiSelectedIds.clear();
+
+        hiddenFlyingTileIds.add(tile.id);
+        rebuildRackVisuals();
+        rebuildDiscardPiles();
+
+        const destXf = getDiscardTopWorld(0, 0);
+        spawnFlyingTile({
+          tile,
+          startPos,
+          startQuat,
+          endPos: destXf.pos,
+          endQuat: destXf.quat,
+          startScale: 1.0,
+          endScale: 0.9,
+          arcHeight: 2.25,
+          duration: 0.5,
+          spinX: 0.35,
+          spinY: Math.PI * 1.45,
+          spinZ: -0.3,
+          hideTargetId: tile.id,
+          onComplete: () => {
+            sound.playTileClack(0.84);
+            spawnImpactRing(destXf.pos, 0xf3d06b, 1.15);
+          },
+        });
+
+        // Check win!
+        if (getHumanHandList().length === 0) {
+          finishRound(0, isRealOkey(tile));
+          return;
+        }
+
+        if (game.drawPile.length === 0) {
+          finishRound(null, false);
+          return;
+        }
+
+        advanceTurn();
+      }
+
+      function sortHumanRackBySeries(silent = false) {
+        const hand = getHumanHandList();
+        const best = findBestMelds(hand);
+        const usedIds = new Set();
+        const nextRack = new Array(RACK_SLOTS).fill(null);
+
+        let cursor = 0;
+        for (const meld of best.melds) {
+          const len = meld.tiles.length;
+          // Keep each meld together on a single row if possible
+          const rowEnd = cursor < 14 ? 14 : 28;
+          if (cursor + len > rowEnd && cursor < 14) {
+            cursor = 14;
+          }
+          if (cursor + len <= RACK_SLOTS) {
+            meld.tiles.forEach((t) => {
+              nextRack[cursor++] = t;
+              usedIds.add(t.id);
+            });
+            // Leave a 1-slot gap between distinct melds so contiguous group detector sees them cleanly!
+            if (cursor < RACK_SLOTS && cursor !== 14) cursor++;
+          }
+        }
+
+        // Remaining tiles sorted by color & number
+        const leftover = hand
+          .filter((t) => !usedIds.has(t.id))
+          .sort((a, b) => {
+            if (isRealOkey(a) !== isRealOkey(b)) return isRealOkey(a) ? 1 : -1;
+            const ea = getEffectiveTile(a);
+            const eb = getEffectiveTile(b);
+            const cDiff = COLORS.indexOf(ea.color) - COLORS.indexOf(eb.color);
+            return cDiff !== 0 ? cDiff : ea.num - eb.num;
+          });
+
+        // Place leftovers starting after current cursor, wrapping into empty slots if needed
+        for (const t of leftover) {
+          while (cursor < RACK_SLOTS && nextRack[cursor] !== null) cursor++;
+          if (cursor < RACK_SLOTS) {
+            nextRack[cursor++] = t;
+          } else {
+            const empty = nextRack.findIndex((s) => s === null);
+            if (empty !== -1) nextRack[empty] = t;
+          }
+        }
+
+        game.players[0].rack = nextRack;
+        game.selectedTileId = null;
+        game.multiSelectedIds.clear();
+
+        if (!silent) {
+          sound.playTileClack(1.15);
+          rebuildRackVisuals();
+          updateHUD();
+        }
+      }
+
+      function sortHumanRackByPairs() {
+        const hand = getHumanHandList();
+        const buckets = new Map();
+        const okeys = [];
+
+        for (const t of hand) {
+          if (isRealOkey(t)) {
+            okeys.push(t);
+            continue;
+          }
+          const eff = getEffectiveTile(t);
+          const key = `${eff.color}-${eff.num}`;
+          if (!buckets.has(key)) buckets.set(key, []);
+          buckets.get(key).push(t);
+        }
+
+        const pairs = [];
+        const singles = [];
+        for (const arr of buckets.values()) {
+          if (arr.length >= 2) pairs.push(arr);
+          else singles.push(arr[0]);
+        }
+
+        pairs.sort((a, b) => getEffectiveTile(b[0]).num - getEffectiveTile(a[0]).num);
+        singles.sort((a, b) => getEffectiveTile(b).num - getEffectiveTile(a).num);
+
+        // Pair any okeys with highest singles
+        while (okeys.length > 0 && singles.length > 0) {
+          pairs.push([singles.shift(), okeys.shift()]);
+        }
+        while (okeys.length > 0) singles.push(okeys.shift());
+
+        const nextRack = new Array(RACK_SLOTS).fill(null);
+        let cursor = 0;
+
+        for (const pr of pairs) {
+          const rowEnd = cursor < 14 ? 14 : 28;
+          if (cursor + pr.length > rowEnd && cursor < 14) cursor = 14;
+          if (cursor + pr.length <= RACK_SLOTS) {
+            pr.forEach((t) => (nextRack[cursor++] = t));
+            if (cursor < RACK_SLOTS && cursor !== 14) cursor++;
+          } else {
+            pr.forEach((t) => singles.push(t));
+          }
+        }
+
+        for (const t of singles) {
+          while (cursor < RACK_SLOTS && nextRack[cursor] !== null) cursor++;
+          if (cursor < RACK_SLOTS) nextRack[cursor++] = t;
+          else {
+            const e = nextRack.findIndex((s) => s === null);
+            if (e !== -1) nextRack[e] = t;
+          }
+        }
+
+        game.players[0].rack = nextRack;
+        game.selectedTileId = null;
+        game.multiSelectedIds.clear();
+        sound.playTileClack(1.06);
+        rebuildRackVisuals();
+        updateHUD();
+        showToast(`Çift dizildi (${pairs.length} çift bulundu).`);
+      }
+
+      /* ------------------ AI BOT INTELLIGENCE ------------------ */
+      function advanceTurn() {
+        game.turn = (game.turn + 1) % 4;
+        if (game.turn === 0) {
+          game.phase = 'draw';
+          updateHUD();
+          sound.playTurnNotify();
+        } else {
+          game.phase = 'bot';
+          updateHUD();
+          scheduleBotTurn();
+        }
+      }
+
+      function scheduleBotTurn() {
+        clearAllBotTimers();
+        game.botTimer = setTimeout(executeBotTurn, 680);
+      }
+
+      function executeBotTurn() {
+        if (game.phase === 'ended') return;
+        const pIdx = game.turn;
+        const bot = game.players[pIdx];
+        const prevIdx = (pIdx + 3) % 4;
+        const sidePile = game.discards[prevIdx];
+        const botXf = getBotRackWorld(pIdx);
+
+        // 1. Draw step (with parabolic flight into bot's rack)
+        if (bot.hand.length % 3 === 0 || bot.hand.length <= 21) {
+          let tookSide = false;
+          if (sidePile.length > 0 && !bot.hasOpened) {
+            const topSide = sidePile[sidePile.length - 1];
+            const sim = findBestMelds([...bot.hand, topSide]);
+            const usesSide = sim.melds.some((m) => m.tiles.some((t) => t.id === topSide.id));
+            if (sim.totalPoints >= 101 && usesSide) {
+              const startXf = getDiscardTopWorld(prevIdx, 0);
+              const drawn = sidePile.pop();
+              bot.hand.push(drawn);
+              tookSide = true;
+              sound.playTileDraw();
+              spawnFlyingTile({
+                tile: drawn,
+                startPos: startXf.pos,
+                startQuat: startXf.quat,
+                endPos: botXf.pos,
+                endQuat: botXf.quat,
+                startScale: 0.85,
+                endScale: 0.6,
+                arcHeight: 1.9,
+                duration: 0.42,
+                spinY: Math.PI,
+                faceDown: false,
+              });
+            }
+          }
+          if (!tookSide) {
+            if (game.drawPile.length === 0) {
+              finishRound(null, false);
+              return;
+            }
+            const startXf = getDrawStackTopWorld();
+            const drawn = game.drawPile.pop();
+            bot.hand.push(drawn);
+            sound.playTileDraw();
+            spawnFlyingTile({
+              tile: drawn,
+              startPos: startXf.pos,
+              startQuat: startXf.quat,
+              endPos: botXf.pos,
+              endQuat: botXf.quat,
+              startScale: 0.85,
+              endScale: 0.58,
+              arcHeight: 2.0,
+              duration: 0.42,
+              spinY: Math.PI,
+              faceDown: true,
+            });
+          }
+        }
+
+        rebuildDrawStackAndIndicator();
+        rebuildDiscardPiles();
+        rebuildBotRacks();
+
+        // Pause briefly for draw flight, then meld & discard with parabolic animations
+        const step2Timer = setTimeout(() => {
+          if (game.phase === 'ended' || game.turn !== pIdx) return;
+
+          // 2. Meld / Open step
+          const best = findBestMelds(bot.hand);
+          if (!bot.hasOpened && best.totalPoints >= 101) {
+            const usedIds = new Set();
+            const newlyOpened = [];
+            best.melds.forEach((m) => {
+              m.tiles.forEach((t) => {
+                usedIds.add(t.id);
+                hiddenFlyingTileIds.add(t.id);
+              });
+              const entry = { ...m, id: game.nextMeldId++, owner: pIdx };
+              game.openMelds.push(entry);
+              newlyOpened.push(entry);
+            });
+            bot.hand = bot.hand.filter((t) => !usedIds.has(t.id));
+            bot.hasOpened = true;
+            sound.playOpenFanfare();
+            rebuildOpenMelds3D();
+            rebuildBotRacks();
+            showToast(`${bot.name}, ${best.totalPoints} puanla elini açtı!`, 'success');
+
+            let idxCounter = 0;
+            newlyOpened.forEach((meld) => {
+              meld.tiles.forEach((tile) => {
+                const destMesh = openMeldTileVisuals.get(tile.id);
+                const endPos = new THREE.Vector3(0, 0.14, 0);
+                if (destMesh) destMesh.getWorldPosition(endPos);
+                const delay = idxCounter * 0.05;
+                idxCounter++;
+                spawnFlyingTile({
+                  tile,
+                  startPos: botXf.pos,
+                  startQuat: botXf.quat,
+                  endPos,
+                  endQuat: _flatStandQuat,
+                  startScale: 0.65,
+                  endScale: 0.77,
+                  arcHeight: 1.9,
+                  duration: 0.44,
+                  delay,
+                  spinY: Math.PI * 0.8,
+                  hideTargetId: tile.id,
+                  onComplete: () => {
+                    spawnImpactRing(endPos, 0x34d399, 0.68);
+                  },
+                });
+              });
+            });
+
+            if (bot.hand.length === 0) {
+              finishRound(pIdx, false);
+              return;
+            }
+          } else if (bot.hasOpened) {
+            if (best.melds.length > 0) {
+              const usedIds = new Set();
+              const newlyOpened = [];
+              best.melds.forEach((m) => {
+                m.tiles.forEach((t) => {
+                  usedIds.add(t.id);
+                  hiddenFlyingTileIds.add(t.id);
+                });
+                const entry = { ...m, id: game.nextMeldId++, owner: pIdx };
+                game.openMelds.push(entry);
+                newlyOpened.push(entry);
+              });
+              bot.hand = bot.hand.filter((t) => !usedIds.has(t.id));
+              sound.playLayoff();
+              rebuildOpenMelds3D();
+              let idxCounter = 0;
+              newlyOpened.forEach((meld) => {
+                meld.tiles.forEach((tile) => {
+                  const destMesh = openMeldTileVisuals.get(tile.id);
+                  const endPos = new THREE.Vector3(0, 0.14, 0);
+                  if (destMesh) destMesh.getWorldPosition(endPos);
+                  spawnFlyingTile({
+                    tile,
+                    startPos: botXf.pos,
+                    startQuat: botXf.quat,
+                    endPos,
+                    endQuat: _flatStandQuat,
+                    startScale: 0.65,
+                    endScale: 0.77,
+                    arcHeight: 1.85,
+                    duration: 0.42,
+                    delay: idxCounter++ * 0.05,
+                    spinY: Math.PI * 0.8,
+                    hideTargetId: tile.id,
+                    onComplete: () => spawnImpactRing(endPos, 0x22d3ee, 0.68),
+                  });
+                });
+              });
+              if (bot.hand.length === 0) {
+                finishRound(pIdx, false);
+                return;
+              }
+            }
+
+            // Try laying off single tiles ("işlek") onto existing open melds
+            let laidOffAny = true;
+            while (laidOffAny && bot.hand.length > 1) {
+              laidOffAny = false;
+              for (let i = 0; i < bot.hand.length; i++) {
+                const t = bot.hand[i];
+                for (const meld of game.openMelds) {
+                  const res = tryLayoffOnMeld(t, meld);
+                  if (res) {
+                    if (res.retrievedOkey) bot.hand[i] = res.retrievedOkey;
+                    else bot.hand.splice(i, 1);
+                    Object.assign(meld, res.updatedMeld);
+                    laidOffAny = true;
+                    sound.playLayoff();
+                    rebuildOpenMelds3D();
+                    break;
+                  }
+                }
+                if (laidOffAny) break;
+              }
+            }
+          }
+
+          // 3. Smart Discard step
+          const postBest = findBestMelds(bot.hand);
+          const keepIds = new Set();
+          postBest.melds.forEach((m) => m.tiles.forEach((t) => keepIds.add(t.id)));
+
+          let discardIdx = 0;
+          let worstScore = -Infinity;
+
+          for (let i = 0; i < bot.hand.length; i++) {
+            const t = bot.hand[i];
+            if (bot.hand.length === 1) {
+              discardIdx = 0;
+              break;
+            }
+            if (isRealOkey(t)) continue;
+
+            const eff = getEffectiveTile(t);
+            let utility = eff.num;
+            if (keepIds.has(t.id)) utility -= 40;
+
+            for (let j = 0; j < bot.hand.length; j++) {
+              if (i === j) continue;
+              const o = bot.hand[j];
+              if (isRealOkey(o)) continue;
+              const oe = getEffectiveTile(o);
+              if (oe.color === eff.color && Math.abs(oe.num - eff.num) <= 2) utility -= 8;
+              if (oe.num === eff.num && oe.color !== eff.color) utility -= 7;
+            }
+
+            if (utility > worstScore) {
+              worstScore = utility;
+              discardIdx = i;
+            }
+          }
+
+          const discarded = bot.hand.splice(discardIdx, 1)[0];
+          game.discards[pIdx].push(discarded);
+          hiddenFlyingTileIds.add(discarded.id);
+          rebuildBotRacks();
+          rebuildDiscardPiles();
+
+          const destXf = getDiscardTopWorld(pIdx, 0);
+          spawnFlyingTile({
+            tile: discarded,
+            startPos: botXf.pos,
+            startQuat: botXf.quat,
+            endPos: destXf.pos,
+            endQuat: destXf.quat,
+            startScale: 0.72,
+            endScale: 0.9,
+            arcHeight: 1.95,
+            duration: 0.45,
+            spinY: Math.PI * 1.25,
+            spinZ: 0.25,
+            hideTargetId: discarded.id,
+            onComplete: () => {
+              sound.playTileClack(0.92 + pIdx * 0.04);
+              spawnImpactRing(destXf.pos, pIdx === 3 ? 0x22d3ee : 0xf3d06b, 0.95);
+            },
+          });
+
+          if (bot.hand.length === 0) {
+            finishRound(pIdx, isRealOkey(discarded));
+            return;
+          }
+
+          if (game.drawPile.length === 0) {
+            finishRound(null, false);
+            return;
+          }
+
+          const nextTimer = setTimeout(() => {
+            if (game.phase !== 'ended' && game.turn === pIdx) {
+              advanceTurn();
+            }
+          }, 430);
+          game.botTimers.push(nextTimer);
+        }, 380);
+        game.botTimers.push(step2Timer);
+      }
+
+      /* ------------------ ROUND END SCORING & LOCALSTORAGE REWARD ------------------ */
+      function finishRound(winnerIdx, wonByOkey) {
+        clearAllBotTimers();
+        game.phase = 'ended';
+
+        const rows = game.players.map((p, idx) => {
+          const hand = idx === 0 ? getHumanHandList() : p.hand;
+          let penalty = 0;
+          if (idx === winnerIdx) {
+            penalty = wonByOkey ? -202 : -101;
+          } else if (!p.hasOpened) {
+            penalty = 202;
+          } else {
+            penalty = hand.reduce((acc, t) => acc + getTilePenaltyValue(t), 0);
+          }
+          return { idx, name: p.name, hasOpened: p.hasOpened, leftCount: hand.length, penalty };
+        });
+
+        // If draw pile ran out (no one emptied hand), lowest penalty wins!
+        let resolvedWinner = winnerIdx;
+        if (resolvedWinner === null) {
+          const sorted = rows.slice().sort((a, b) => a.penalty - b.penalty);
+          resolvedWinner = sorted[0].idx;
+        }
+
+        const humanWon = resolvedWinner === 0;
+        const deltaChips = humanWon
+          ? Math.round(tableStake * (wonByOkey ? 5.0 : 3.6))
+          : -Math.min(playerChips, tableStake);
+
+        playerChips = Math.max(0, playerChips + deltaChips);
+        saveSharedChips(playerChips, humanWon);
+
+        if (humanWon) sound.playWin();
+        else sound.playError();
+
+        document.getElementById('modal-kicker').textContent = `EL ${game.round} SONUCU`;
+        document.getElementById('modal-title').textContent = humanWon
+          ? wonByOkey
+            ? 'Okey Atarak Kazandın!'
+            : 'Eli Kazandın!'
+          : `${game.players[resolvedWinner].name} Eli Kazandı`;
+        document.getElementById('modal-sub').textContent =
+          winnerIdx === null
+            ? 'Ortadaki taşlar tükendi. En düşük ceza puanına sahip oyuncu kazandı.'
+            : wonByOkey
+              ? 'Okey taşı atılarak bitildi — çift ödül uygulandı!'
+              : 'Tüm taşlarını bitiren oyuncu masanın ödülünü aldı.';
+
+        const tbody = document.getElementById('modal-tbody');
+        tbody.innerHTML = rows
+          .map(
+            (r) => `
+              <tr class="${r.idx === resolvedWinner ? 'winner-row' : ''}">
+                <td>${r.name}${r.idx === resolvedWinner ? ' ★' : ''}</td>
+                <td>${r.hasOpened ? '101 Açtı' : 'Açmadı'}</td>
+                <td class="num">${r.leftCount}</td>
+                <td class="num">${r.penalty}</td>
+              </tr>
+            `
+          )
+          .join('');
+
+        const rewardEl = document.getElementById('modal-reward');
+        rewardEl.textContent = `${deltaChips >= 0 ? '+' : ''}${fmt(deltaChips)} Çip`;
+        rewardEl.className = `reward-amount ${deltaChips >= 0 ? 'pos' : 'neg'}`;
+
+        document.getElementById('round-modal').classList.add('open');
+        updateHUD();
+      }
+
+      /* =========================================================================
+       * 6. HUD UPDATERS & BUTTON BINDINGS
+       * ========================================================================= */
+      function renderMiniTile(el, color, num) {
+        const hex = COLOR_HEX[color] || '#0f172a';
+        el.innerHTML = `<span style="color:${hex}">${num}</span><span class="dot" style="background:${hex}"></span>`;
+      }
+
+      function updateIndicatorHUD() {
+        if (!game.indicatorTile) return;
+        renderMiniTile(
+          document.getElementById('hud-indicator'),
+          game.indicatorTile.color,
+          game.indicatorTile.number
+        );
+        renderMiniTile(document.getElementById('hud-okey'), game.okeyColor, game.okeyNumber);
+      }
+
+      function updateHUD() {
+        // Players top strip
+        const strip = document.getElementById('players-strip');
+        strip.innerHTML = game.players
+          .map((p, idx) => {
+            const count = idx === 0 ? getHumanHandList().length : p.hand.length;
+            const active = game.turn === idx && game.phase !== 'ended';
+            return `
+              <div class="player-box ${active ? 'active-turn' : ''}">
+                <span class="player-name">${p.name}</span>
+                <span class="player-meta">${count} taş</span>
+                <span class="player-status ${p.hasOpened ? 'opened' : 'closed'}">
+                  ${p.hasOpened ? '101 Açtı' : 'Açmadı'}
+                </span>
+              </div>
+            `;
+          })
+          .join('');
+
+        // Turn banner
+        const banner = document.getElementById('turn-banner');
+        if (game.phase === 'ended') {
+          banner.textContent = 'El tamamlandı.';
+          banner.className = 'turn-banner';
+        } else if (game.turn === 0) {
+          banner.className = 'turn-banner highlight';
+          if (game.phase === 'draw') {
+            banner.textContent = 'Sıra Sende — Ortadan taş çek veya sol oyuncunun taşını (Yandan Al) al';
+          } else if (game.tookSideTile) {
+            banner.textContent = 'Yandan Taş Aldın — 101+ Per Aç veya "Yandan İade Et"';
+          } else {
+            banner.textContent = 'Sıra Sende — Taşlarını diz, 101+ el aç veya sağa bir taş at';
+          }
+        } else {
+          banner.className = 'turn-banner';
+          banner.textContent = `${game.players[game.turn].name} hamle yapıyor...`;
+        }
+
+        // Live valid meld score & rack glow indicators
+        const evalRes = evaluateHumanOpenCandidate();
+        const scoreEl = document.getElementById('live-meld-score');
+        const openBtn = document.getElementById('btn-open-melds');
+        const openText = document.getElementById('open-btn-text');
+
+        if (game.players[0].hasOpened) {
+          openText.textContent = 'Yeni Per Aç';
+          scoreEl.textContent = `${evalRes.totalPoints} Puan`;
+        } else {
+          openText.textContent = game.multiSelectedIds.size >= 3 ? 'Seçili Perleri Aç' : 'El Aç (101+)';
+          scoreEl.textContent = `${evalRes.totalPoints} / 101`;
+        }
+
+        const canDraw = game.turn === 0 && game.phase === 'draw';
+        const canPlay = game.turn === 0 && game.phase === 'play';
+        const canOpen =
+          canPlay &&
+          evalRes.melds.length > 0 &&
+          (game.players[0].hasOpened || evalRes.totalPoints >= 101);
+
+        document.getElementById('btn-draw-center').disabled = !canDraw || game.drawPile.length === 0;
+        document.getElementById('btn-draw-side').disabled = !canDraw || game.discards[3].length === 0;
+        document.getElementById('btn-return-side').style.display =
+          canPlay && game.tookSideTile ? 'inline-flex' : 'none';
+        openBtn.disabled = !canOpen;
+        document.getElementById('btn-layoff').disabled =
+          !canPlay || !game.players[0].hasOpened || game.openMelds.length === 0;
+        document.getElementById('btn-discard').disabled =
+          !canPlay || game.selectedTileId === null || Boolean(game.tookSideTile);
+
+        const msBtn = document.getElementById('btn-multiselect');
+        msBtn.classList.toggle('active-mode', game.multiSelectMode);
+        msBtn.textContent =
+          game.multiSelectedIds.size > 0 ? `Per Seç (${game.multiSelectedIds.size})` : 'Per Seç';
+
+        // Update subtle rack slot glow bars under valid contiguous melds
+        const validSlots = new Set();
+        getHumanRackGroups().validMelds.forEach((m) => m.slotIndices.forEach((s) => validSlots.add(s)));
+        for (let i = 0; i < RACK_SLOTS; i++) {
+          const mat = slotGlowMeshes[i].material;
+          if (dragState && dragState.active && dragState.targetSlot === i) {
+            mat.color.setHex(0x22d3ee);
+            mat.opacity = 0.92;
+          } else if (validSlots.has(i)) {
+            mat.color.setHex(evalRes.totalPoints >= 101 || game.players[0].hasOpened ? 0x34d399 : 0xf3d06b);
+            mat.opacity = 0.72;
+          } else {
+            mat.opacity = 0;
+          }
+        }
+      }
+
+      // Bind DOM buttons
+      document.getElementById('btn-draw-center').addEventListener('click', humanDrawFromCenter);
+      document.getElementById('btn-draw-side').addEventListener('click', humanDrawFromSide);
+      document.getElementById('btn-return-side').addEventListener('click', humanReturnSideTile);
+      document.getElementById('btn-open-melds').addEventListener('click', humanOpenMelds);
+      document.getElementById('btn-layoff').addEventListener('click', () => humanLayoffToSpecificMeld(null));
+      document.getElementById('btn-discard').addEventListener('click', () => humanDiscardTile(game.selectedTileId));
+      document.getElementById('btn-sort-series').addEventListener('click', () => sortHumanRackBySeries(false));
+      document.getElementById('btn-sort-pairs').addEventListener('click', sortHumanRackByPairs);
+
+      document.getElementById('btn-multiselect').addEventListener('click', () => {
+        game.multiSelectMode = !game.multiSelectMode;
+        if (!game.multiSelectMode) game.multiSelectedIds.clear();
+        sound.playTileClack(1.12);
+        updateHUD();
+      });
+
+      document.getElementById('btn-next-round').addEventListener('click', () => {
+        game.round++;
+        game.dealer = (game.dealer + 1) % 4;
+        startNewRound();
+      });
+
+      function syncSoundUI() {
+        document.getElementById('ico-sound-on').style.display = sound.enabled ? 'block' : 'none';
+        document.getElementById('ico-sound-off').style.display = sound.enabled ? 'none' : 'block';
+        document.getElementById('sound-label').textContent = sound.enabled ? 'Ses' : 'Sessiz';
+      }
+      syncSoundUI();
+
+      document.getElementById('btn-sound').addEventListener('click', () => {
+        sound.enabled = !sound.enabled;
+        syncSoundUI();
+        if (sound.enabled) sound.playTileClack(1.1);
+      });
+
+      function toggleCameraMode() {
+        const order = ['auto', 'rack', 'overview'];
+        const labels = {
+          auto: 'Dinamik Kamera',
+          rack: 'Istaka Odak',
+          overview: 'Geniş Masa',
+        };
+        cameraMode = order[(order.indexOf(cameraMode) + 1) % order.length];
+        document.getElementById('cam-label').textContent = labels[cameraMode];
+        sound.playTileClack(1.16);
+      }
+
+      document.getElementById('btn-cam').addEventListener('click', toggleCameraMode);
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'v' || e.key === 'V') toggleCameraMode();
+      });
+
+      /* =========================================================================
+       * 7. ANIMATION LOOP (PARABOLIC FLIGHTS, IMPACT FX, DYNAMIC CAMERA & PACING)
+       * ========================================================================= */
+      const clock = new THREE.Clock();
+      const _desiredCamPos = new THREE.Vector3();
+      const _desiredCamLook = new THREE.Vector3();
+      let frameId = 0;
+      let contextLost = false;
+
+      function afterDraw(cb) {
+        const gl = renderer.getContext();
+        if (gl && typeof gl.fenceSync === 'function') {
+          const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+          gl.flush();
+          const poll = () => {
+            const state = sync && gl.getSyncParameter(sync, gl.SYNC_STATUS);
+            if (state === gl.UNSIGNALED) frameId = window.setTimeout(poll, 5);
+            else {
+              if (sync) gl.deleteSync(sync);
+              frameId = window.setTimeout(cb, 80);
+            }
+          };
+          frameId = window.setTimeout(poll, 5);
+        } else {
+          frameId = window.setTimeout(cb, 80);
+        }
+      }
+
+      function tick() {
+        if (contextLost) return;
+        const dt = Math.min(clock.getDelta(), 0.1);
+
+        // 1. Update parabolic flying tile animations
+        for (let i = activeFlights.length - 1; i >= 0; i--) {
+          const f = activeFlights[i];
+          if (f.delay > 0) {
+            f.delay -= dt;
+            if (f.delay <= 0) {
+              f.mesh.visible = true;
+            }
+            continue;
+          }
+          f.mesh.visible = true;
+          f.elapsed += dt;
+          const rawP = Math.min(1, f.elapsed / f.duration);
+          // Smooth ease-in-out cubic for graceful take-off and crisp tactile settle
+          const p = rawP < 0.5 ? 4 * rawP * rawP * rawP : 1 - Math.pow(-2 * rawP + 2, 3) / 2;
+
+          // Parabolic arc interpolation
+          _tmpVec.lerpVectors(f.startPos, f.endPos, p);
+          const arcY = 4 * rawP * (1 - rawP) * f.arcHeight;
+          _tmpVec.y += arcY;
+          f.mesh.position.copy(_tmpVec);
+
+          // Slerp base orientation + smooth mid-air spin envelope (peaks at mid-flight, 0 at start & end)
+          _tmpQuat.slerpQuaternions(f.startQuat, f.endQuat, p);
+          const spinEnv = Math.sin(rawP * Math.PI);
+          _spinEuler.set(f.spinX * spinEnv, f.spinY * spinEnv, f.spinZ * spinEnv);
+          _spinQuat.setFromEuler(_spinEuler);
+          f.mesh.quaternion.copy(_tmpQuat).multiply(_spinQuat);
+
+          const sc = THREE.MathUtils.lerp(f.startScale, f.endScale, p);
+          f.mesh.scale.setScalar(sc);
+
+          if (rawP >= 1) {
+            flightGroup.remove(f.mesh);
+            activeFlights.splice(i, 1);
+            if (f.hideTargetId !== null) {
+              revealTileVisual(f.hideTargetId);
+            }
+            if (typeof f.onComplete === 'function') {
+              f.onComplete();
+            }
+          }
+        }
+
+        // 2. Update touchdown dust & golden light ring effects
+        for (let i = impactEffects.length - 1; i >= 0; i--) {
+          const fx = impactEffects[i];
+          fx.elapsed += dt;
+          const p = Math.min(1, fx.elapsed / fx.duration);
+          const easeOut = 1 - Math.pow(1 - p, 3);
+
+          const ringScale = 0.55 + easeOut * 2.35;
+          fx.ring.scale.setScalar(ringScale);
+          fx.ringMat.opacity = (1 - p) * 0.9;
+
+          const posAttr = fx.dustGeo.attributes.position;
+          for (let k = 0; k < fx.vels.length; k++) {
+            const v = fx.vels[k];
+            const nx = posAttr.getX(k) + v.vx * dt;
+            const ny = Math.max(0.02, posAttr.getY(k) + v.vy * dt);
+            const nz = posAttr.getZ(k) + v.vz * dt;
+            v.vy -= 1.65 * dt;
+            posAttr.setXYZ(k, nx, ny, nz);
+          }
+          posAttr.needsUpdate = true;
+          fx.dustMat.opacity = (1 - p) * 0.85;
+
+          if (p >= 1) {
+            flightGroup.remove(fx.group);
+            fx.ring.geometry.dispose();
+            fx.ringMat.dispose();
+            fx.dustGeo.dispose();
+            fx.dustMat.dispose();
+            impactEffects.splice(i, 1);
+          }
+        }
+
+        // 3. Dynamic turn-aware camera framing (adaptive to viewport aspect ratio)
+        if (centerFocusTimer > 0) centerFocusTimer = Math.max(0, centerFocusTimer - dt);
+        const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+        const narrowBoost = aspect < 1.5 ? (1.5 - aspect) * 4.4 : 0;
+
+        if (cameraMode === 'overview') {
+          _desiredCamPos.set(0, 12.6 + narrowBoost * 0.7, 7.6 + narrowBoost * 0.6);
+          _desiredCamLook.set(0, 0, 0.25);
+        } else if (cameraMode === 'rack') {
+          _desiredCamPos.set(0, 7.05 + narrowBoost * 0.52, 9.95 + narrowBoost * 0.82);
+          _desiredCamLook.set(0, 0.36, 1.92);
+        } else {
+          // Automatic Dinamik Kamera:
+          // - Human turn: intimate focus on the lacquered walnut ıstaka (slightly wider during draw or meld cascade)
+          // - Bot turns: cinematic wide table overview gently tracking active bot side
+          if (game.turn === 0 && game.phase !== 'ended') {
+            if (centerFocusTimer > 0) {
+              _desiredCamPos.set(0, 10.2 + narrowBoost * 0.6, 9.2 + narrowBoost * 0.65);
+              _desiredCamLook.set(0, 0.08, 0.45);
+            } else if (game.phase === 'draw') {
+              _desiredCamPos.set(0, 7.85 + narrowBoost * 0.55, 10.6 + narrowBoost * 0.85);
+              _desiredCamLook.set(0, 0.22, 1.38);
+            } else {
+              _desiredCamPos.set(0, 7.12 + narrowBoost * 0.52, 10.05 + narrowBoost * 0.82);
+              _desiredCamLook.set(0, 0.34, 1.86);
+            }
+          } else {
+            const botPanX = game.turn === 1 ? 0.65 : game.turn === 3 ? -0.65 : 0;
+            const botLookX = game.turn === 1 ? 0.45 : game.turn === 3 ? -0.45 : 0;
+            _desiredCamPos.set(botPanX, 11.45 + narrowBoost * 0.68, 8.65 + narrowBoost * 0.58);
+            _desiredCamLook.set(botLookX, 0.05, -0.2);
+          }
+        }
+
+        const camEase = 1 - Math.exp(-3.6 * dt);
+        camPosCurrent.lerp(_desiredCamPos, camEase);
+        camLookCurrent.lerp(_desiredCamLook, camEase);
+        camera.position.copy(camPosCurrent);
+        camera.lookAt(camLookCurrent);
+
+        // 4. Smoothly damp all rack tiles toward their slot / selection / hover positions
+        for (const [id, rec] of rackTileVisuals.entries()) {
+          if (dragState && dragState.active && dragState.tileId === id) continue;
+
+          const isSelected = game.selectedTileId === id || game.multiSelectedIds.has(id);
+          const isHovered = hoveredTileId === id;
+          const liftY = isSelected ? 0.24 : isHovered ? 0.09 : 0;
+          const liftZ = isSelected ? 0.18 : isHovered ? 0.06 : 0;
+
+          rec.mesh.position.x = THREE.MathUtils.damp(rec.mesh.position.x, rec.targetPos.x, 14, dt);
+          rec.mesh.position.y = THREE.MathUtils.damp(rec.mesh.position.y, rec.targetPos.y + liftY, 14, dt);
+          rec.mesh.position.z = THREE.MathUtils.damp(rec.mesh.position.z, rec.targetPos.z + liftZ, 14, dt);
+        }
+
+        // 5. Animate unmistakable neon green active-turn light ring around the active player's rack
+        const elapsed = clock.elapsedTime;
+        const neonPulse = 0.84 + Math.sin(elapsed * 3.8) * 0.16;
+        for (let p = 0; p < 4; p++) {
+          const entry = rackTurnRings[p];
+          const isActiveTurn = game.phase !== 'ended' && game.turn === p;
+          entry.primary.level = THREE.MathUtils.damp(entry.primary.level, isActiveTurn ? 1.0 : 0.0, 8.0, dt);
+          const lv = entry.primary.level;
+          const visible = lv > 0.008;
+
+          entry.primary.group.visible = visible;
+          if (visible) {
+            entry.primary.coreMat.opacity = lv * (0.94 * neonPulse);
+            entry.primary.outerMat.opacity = lv * (0.36 * neonPulse);
+            entry.primary.haloMat.opacity = lv * (0.64 * neonPulse);
+            const scaleBreath = 1 + (1 - neonPulse) * 0.014;
+            entry.primary.outerTube.scale.set(scaleBreath, scaleBreath, 1);
+          }
+
+          if (entry.base) {
+            entry.base.group.visible = visible;
+            if (visible) {
+              entry.base.coreMat.opacity = lv * (0.85 * neonPulse);
+              entry.base.outerMat.opacity = lv * (0.32 * neonPulse);
+              entry.base.haloMat.opacity = lv * (0.62 * neonPulse);
+            }
+          }
+
+          if (isActiveTurn) {
+            activeTurnLight.position.lerp(entry.lightPos, 1 - Math.exp(-8 * dt));
+            activeTurnLight.intensity = THREE.MathUtils.damp(activeTurnLight.intensity, 1.35 * neonPulse, 8.0, dt);
+          }
+        }
+        if (game.phase === 'ended') {
+          activeTurnLight.intensity = THREE.MathUtils.damp(activeTurnLight.intensity, 0, 8.0, dt);
+        }
+
+        // Pulse drag highlight gently on discard pad when dragging a tile
+        const discardPadMat = discardHolders[0].pad.material;
+        discardPadMat.opacity = dragState && dragState.overDiscard ? 0.65 : game.turn === 0 && game.phase === 'play' ? 0.28 : 0.14;
+
+        const sidePadMat = discardHolders[3].pad.material;
+        sidePadMat.opacity =
+          game.turn === 0 && game.phase === 'draw' && game.discards[3].length > 0 ? 0.48 : 0.16;
+
+        renderer.render(scene, camera);
+
+        if (isSoftwareGl) afterDraw(tick);
+        else frameId = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      });
+
+      renderer.domElement.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        contextLost = true;
+        cancelAnimationFrame(frameId);
+        clearTimeout(frameId);
+      });
+
+      renderer.domElement.addEventListener('webglcontextrestored', () => {
+        contextLost = false;
+        tick();
+      });
+
+      // Kick off Round 1!
+      startNewRound();
+      if (!isSoftwareGl) renderer.compile(scene, camera);
+      tick();
+      })();
+    </script>
+  </body>
+</html>

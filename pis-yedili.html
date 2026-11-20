@@ -1,0 +1,3675 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>3D Pis Yedili — Masa Oyunları 3D</title>
+    <meta
+      name="description"
+      content="Three.js ile prosedürel 52'lik 3D iskambil destesi, özel 7'li/Vale/As/10'lu kuralları, Tek Kart uyarısı ve 3 AI bot ile 3D Pis Yedili."
+    />
+    <style>
+      :root {
+        --bg-void: #07060d;
+        --panel-bg: rgba(13, 12, 24, 0.9);
+        --border-gold: rgba(212, 175, 55, 0.38);
+        --border-subtle: rgba(148, 163, 184, 0.22);
+        --gold: #f3d06b;
+        --emerald: #34d399;
+        --crimson: #f43f5e;
+        --cyan: #38bdf8;
+        --text-main: #f8fafc;
+        --text-dim: #cbd5e1;
+        --text-muted: #94a3b8;
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg-void);
+        color: var(--text-main);
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        user-select: none;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #canvas-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background: radial-gradient(ellipse 80% 70% at 50% 45%, #2b101d 0%, #101d1d 55%, #06060c 100%);
+        touch-action: none;
+      }
+
+      #canvas-wrap canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ================= TOP HUD BAR ================= */
+      .hud-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        padding: 10px 18px;
+        background: linear-gradient(180deg, rgba(10, 8, 18, 0.95) 0%, rgba(14, 12, 24, 0.84) 100%);
+        border-bottom: 1px solid var(--border-gold);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .hud-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+
+      .brand-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.06rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: var(--gold);
+        white-space: nowrap;
+      }
+
+      .suit-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        height: 34px;
+        padding: 0 11px;
+        border-radius: 9px;
+        background: rgba(24, 20, 38, 0.88);
+        border: 1px solid var(--border-gold);
+        font-size: 0.82rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .suit-symbol {
+        font-size: 1.15rem;
+        line-height: 1;
+      }
+
+      .penalty-counter {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        height: 34px;
+        padding: 0 11px;
+        border-radius: 9px;
+        background: rgba(159, 18, 57, 0.45);
+        border: 1px solid rgba(251, 113, 133, 0.78);
+        color: #fecdd3;
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.84rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .penalty-counter.active {
+        display: inline-flex;
+      }
+
+      /* 4-Player Status Strip */
+      .players-strip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow-x: auto;
+      }
+
+      .p-slot {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 10px;
+        border-radius: 9px;
+        background: rgba(20, 18, 32, 0.8);
+        border: 1px solid var(--border-subtle);
+        white-space: nowrap;
+        font-size: 0.78rem;
+        transition: border-color 160ms var(--ease), background-color 160ms var(--ease);
+      }
+
+      .p-slot.active {
+        border-color: var(--gold);
+        background: rgba(44, 32, 34, 0.92);
+        box-shadow: 0 0 14px rgba(243, 208, 107, 0.22);
+      }
+
+      .p-name {
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .p-cards {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.74rem;
+        color: var(--text-muted);
+      }
+
+      .p-cards.one-left {
+        color: #fda4af;
+        font-weight: 700;
+      }
+
+      /* Right HUD */
+      .hud-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .chip-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 11px;
+        border-radius: 9px;
+        background: rgba(26, 20, 34, 0.88);
+        border: 1px solid var(--border-gold);
+        white-space: nowrap;
+      }
+
+      .chip-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+
+      .chip-unit {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+      }
+
+      .hud-btn {
+        appearance: none;
+        height: 36px;
+        padding: 0 11px;
+        border-radius: 9px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(20, 18, 32, 0.85);
+        color: var(--text-dim);
+        font-family: inherit;
+        font-size: 0.77rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background-color 140ms var(--ease), border-color 140ms var(--ease), color 140ms var(--ease), transform 110ms var(--ease);
+      }
+
+      .hud-btn:hover {
+        background: rgba(36, 30, 52, 0.94);
+        border-color: rgba(243, 208, 107, 0.5);
+        color: var(--text-main);
+      }
+
+      .hud-btn:active {
+        transform: scale(0.96);
+      }
+
+      .hud-btn.lobby-link {
+        border-color: var(--border-gold);
+        color: var(--gold);
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(20, 18, 32, 0.92));
+      }
+
+      /* ================= TOAST ================= */
+      .toast {
+        position: fixed;
+        top: 68px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-10px);
+        z-index: 35;
+        padding: 9px 18px;
+        border-radius: 9px;
+        background: rgba(14, 12, 24, 0.96);
+        border: 1px solid var(--border-gold);
+        color: var(--text-main);
+        font-size: 0.84rem;
+        font-weight: 600;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.58);
+        transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .toast.success {
+        border-color: rgba(52, 211, 153, 0.72);
+        color: #a7f3d0;
+      }
+
+      .toast.danger {
+        border-color: rgba(244, 63, 94, 0.78);
+        color: #fecdd3;
+      }
+
+      /* ================= BOTTOM ACTION DOCK ================= */
+      .action-dock {
+        position: fixed;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        max-width: min(920px, 96vw);
+        padding: 8px 14px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(16, 14, 28, 0.92) 0%, rgba(10, 9, 18, 0.96) 100%);
+        border: 1px solid var(--border-gold);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+      }
+
+      .flow-msg {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-dim);
+        white-space: nowrap;
+        padding-right: 4px;
+        max-width: 310px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .flow-msg.your-turn {
+        color: var(--gold);
+      }
+
+      .dock-sep {
+        width: 1px;
+        height: 26px;
+        background: rgba(148, 163, 184, 0.22);
+        flex-shrink: 0;
+      }
+
+      .act-btn {
+        appearance: none;
+        height: 40px;
+        padding: 0 15px;
+        border-radius: 9px;
+        border: 1px solid rgba(148, 163, 184, 0.26);
+        background: rgba(28, 24, 44, 0.88);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.81rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background-color 140ms var(--ease), border-color 140ms var(--ease), transform 110ms var(--ease), opacity 140ms var(--ease);
+      }
+
+      .act-btn:hover:not(:disabled) {
+        background: rgba(44, 38, 68, 0.96);
+        border-color: rgba(243, 208, 107, 0.58);
+      }
+
+      .act-btn:active:not(:disabled) {
+        transform: scale(0.96);
+      }
+
+      .act-btn:disabled {
+        opacity: 0.38;
+        cursor: not-allowed;
+      }
+
+      .act-btn.primary {
+        background: linear-gradient(135deg, #f3d06b 0%, #c79820 100%);
+        border-color: rgba(254, 240, 138, 0.65);
+        color: #0a0910;
+      }
+
+      .act-btn.danger {
+        background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%);
+        border-color: rgba(253, 164, 175, 0.72);
+        color: #fff1f2;
+      }
+
+      .act-btn.tekkart-urgent {
+        background: linear-gradient(135deg, #f43f5e 0%, #d97706 100%);
+        border-color: #fef08a;
+        color: #ffffff;
+        box-shadow: 0 0 22px rgba(244, 63, 94, 0.55);
+      }
+
+      /* ================= MODALS (SUIT PICKER, RULES, ROUND END) ================= */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(5, 4, 10, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: 100%;
+        max-width: 480px;
+        padding: 24px;
+        border-radius: 16px;
+        background: linear-gradient(160deg, rgba(28, 20, 38, 0.97) 0%, rgba(12, 10, 20, 0.99) 100%);
+        border: 1px solid var(--border-gold);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.78);
+      }
+
+      .modal-kicker {
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 4px;
+      }
+
+      .modal-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 6px;
+      }
+
+      .modal-desc {
+        font-size: 0.86rem;
+        line-height: 1.5;
+        color: var(--text-dim);
+        margin-bottom: 18px;
+      }
+
+      /* Suit Picker 2x2 Grid */
+      .suit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .suit-choice {
+        appearance: none;
+        padding: 16px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(243, 208, 107, 0.34);
+        background: rgba(12, 10, 22, 0.86);
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 140ms var(--ease), border-color 140ms var(--ease), background-color 140ms var(--ease);
+      }
+
+      .suit-choice:hover {
+        transform: translateY(-3px);
+        border-color: var(--gold);
+        background: rgba(34, 24, 48, 0.95);
+      }
+
+      .suit-choice .sym {
+        font-size: 1.75rem;
+        line-height: 1;
+      }
+
+      /* Rules List */
+      .rules-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+        font-size: 0.84rem;
+        line-height: 1.5;
+        color: var(--text-dim);
+      }
+
+      .rules-list strong {
+        color: var(--gold);
+      }
+
+      /* Score Table */
+      .score-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+      }
+
+      .score-table th,
+      .score-table td {
+        padding: 9px 10px;
+        text-align: left;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        font-size: 0.83rem;
+      }
+
+      .score-table th {
+        color: var(--text-muted);
+        font-size: 0.74rem;
+      }
+
+      .score-table td.num,
+      .score-table th.num {
+        text-align: right;
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .score-table tr.winner-row td {
+        color: var(--gold);
+        font-weight: 700;
+      }
+
+      .reward-bar {
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(10, 9, 18, 0.86);
+        border: 1px solid rgba(243, 208, 107, 0.34);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        font-size: 0.88rem;
+      }
+
+      .reward-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        font-size: 1.04rem;
+      }
+
+      .reward-val.pos {
+        color: var(--emerald);
+      }
+
+      .reward-val.neg {
+        color: var(--crimson);
+      }
+
+      .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      @media (max-width: 1120px) {
+        .hud-top {
+          flex-wrap: wrap;
+          padding: 8px 12px;
+          gap: 8px;
+        }
+        .players-strip {
+          order: 3;
+          width: 100%;
+          justify-content: space-between;
+        }
+        .toast {
+          top: 108px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .hud-btn span {
+          display: none;
+        }
+        .hud-btn.lobby-link span {
+          display: inline;
+        }
+        .flow-msg {
+          display: none;
+        }
+        .act-btn {
+          height: 36px;
+          padding: 0 11px;
+          font-size: 0.76rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap" aria-label="3D Pis Yedili Kart Masası"></div>
+
+    <!-- TOP HUD BAR -->
+    <header class="hud-top">
+      <div class="hud-left">
+        <div class="brand-title">3D PİS YEDİLİ</div>
+        <div class="suit-indicator" id="hud-suit" title="Aktif Masa Türü">
+          <span class="suit-symbol" id="hud-suit-sym">♠</span>
+          <span id="hud-suit-name">Maça</span>
+        </div>
+        <div class="penalty-counter" id="hud-penalty" aria-live="polite">7'li Ceza: +0</div>
+      </div>
+
+      <div class="players-strip" id="players-strip" aria-label="Oyuncular"></div>
+
+      <div class="hud-right">
+        <div class="chip-box" title="Ortak Platform Çip Bakiyesi">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="rgba(243,208,107,0.18)" stroke="#F3D06B" stroke-width="1.8" />
+            <circle cx="12" cy="12" r="4.8" stroke="#D4AF37" stroke-width="1.4" stroke-dasharray="2.5 2" />
+          </svg>
+          <span class="chip-val" id="hud-chips">10.000</span>
+          <span class="chip-unit">Çip</span>
+        </div>
+
+        <button type="button" class="hud-btn" id="btn-rules">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+          <span>Kurallar</span>
+        </button>
+
+        <button type="button" class="hud-btn" id="btn-sound" title="Sesleri aç/kapat">
+          <svg id="ico-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          </svg>
+          <svg id="ico-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+          <span id="sound-label">Ses</span>
+        </button>
+
+        <a href="index.html" class="hud-btn lobby-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+            <path d="M3 12h18" />
+            <path d="M9 6l-6 6 6 6" />
+          </svg>
+          <span>Ana Lobiye Dön</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- BOTTOM ACTION DOCK -->
+    <nav class="action-dock" aria-label="Kart Aksiyonları">
+      <div class="flow-msg your-turn" id="flow-msg">Sıra sende — Oynanabilir bir karta tıkla</div>
+      <div class="dock-sep" aria-hidden="true"></div>
+      <button type="button" class="act-btn primary" id="btn-draw">Desteden Çek</button>
+      <button type="button" class="act-btn" id="btn-pass">Pas Geç</button>
+      <button type="button" class="act-btn danger" id="btn-tekkart">TEK KART! (Bildir)</button>
+    </nav>
+
+    <!-- VALE (J) SUIT PICKER MODAL -->
+    <div class="modal-backdrop" id="suit-modal" role="dialog" aria-modal="true" aria-labelledby="suit-title">
+      <div class="modal-card" style="max-width:400px">
+        <div class="modal-kicker">VALE (J) OYNANDI</div>
+        <h2 class="modal-title" id="suit-title">Yeni Türü Seç</h2>
+        <p class="modal-desc">Masada geçerli olacak yeni kart türünü seç.</p>
+        <div class="suit-grid">
+          <button type="button" class="suit-choice" data-suit="spades">
+            <span class="sym" style="color:#e2e8f0">♠</span><span>Maça</span>
+          </button>
+          <button type="button" class="suit-choice" data-suit="hearts">
+            <span class="sym" style="color:#fb7185">♥</span><span>Kupa</span>
+          </button>
+          <button type="button" class="suit-choice" data-suit="diamonds">
+            <span class="sym" style="color:#fb7185">♦</span><span>Karo</span>
+          </button>
+          <button type="button" class="suit-choice" data-suit="clubs">
+            <span class="sym" style="color:#e2e8f0">♣</span><span>Sinek</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULES MODAL -->
+    <div class="modal-backdrop" id="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <div class="modal-card">
+        <div class="modal-kicker">OYUN REHBERİ</div>
+        <h2 class="modal-title" id="rules-title">Pis Yedili Kuralları</h2>
+        <ul class="rules-list">
+          <li><strong>Temel Kural:</strong> Ortadaki açık kartla aynı türden veya aynı değerden bir kart at. Uygun kartın yoksa desteden 1 kart çek; çektiğin kart uyarsa atabilirsin, uymazsa Pas Geç.</li>
+          <li><strong>7'li (+2 Ceza Katlama):</strong> Sıradaki oyuncuya +2 kart çektirir. Sıradaki oyuncuda da 7 varsa üstüne atıp cezayı katlar (+4, +6, +8...).</li>
+          <li><strong>Vale (J — Tür Değiştirici):</strong> Aktif 7'li cezası yokken herhangi bir kartın üzerine atılabilir ve yeni türü belirler.</li>
+          <li><strong>As (A) ve 10'lu:</strong> Atıldığında sıradaki oyuncuyu pas geçirtir (tur atlatır).</li>
+          <li><strong>TEK KART! Uyarısı:</strong> Elinde 1 kart kaldığında 3 saniye içinde <strong>TEK KART!</strong> butonuna basmazsan +2 ceza kartı çekersin.</li>
+          <li><strong>Ödül:</strong> Tüm kartlarını ilk bitiren eli kazanır. İnsan oyuncu kazanırsa bakiyeye <strong>+1.500 Çip</strong> eklenir.</li>
+        </ul>
+        <div class="modal-actions">
+          <button type="button" class="act-btn primary" id="btn-close-rules">Anladım</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROUND END SCOREBOARD MODAL -->
+    <div class="modal-backdrop" id="end-modal" role="dialog" aria-modal="true" aria-labelledby="end-title">
+      <div class="modal-card">
+        <div class="modal-kicker" id="end-kicker">EL SONU</div>
+        <h2 class="modal-title" id="end-title">Tebrikler!</h2>
+        <p class="modal-desc" id="end-desc">El puanları ve Pis Yedili cezaları hesaplandı.</p>
+        <table class="score-table">
+          <thead>
+            <tr>
+              <th>Oyuncu</th>
+              <th class="num">Kalan Kart</th>
+              <th>Not</th>
+              <th class="num">Ceza Puanı</th>
+            </tr>
+          </thead>
+          <tbody id="end-tbody"></tbody>
+        </table>
+        <div class="reward-bar">
+          <span>Platform Çip Ödülü</span>
+          <span class="reward-val" id="end-reward">+1.500 Çip</span>
+        </div>
+        <div class="modal-actions">
+          <a href="index.html" class="hud-btn lobby-link">Ana Lobiye Dön</a>
+          <button type="button" class="act-btn primary" id="btn-next-round">Yeni El Başlat</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./three.min.js"></script>
+    <script>
+      (() => {
+        'use strict';
+
+        function createStudioEnvScene() {
+          const env = new THREE.Scene();
+          env.add(
+            new THREE.Mesh(
+              new THREE.BoxGeometry(28, 18, 28),
+              new THREE.MeshStandardMaterial({
+                color: 0x1c1420,
+                roughness: 0.9,
+                metalness: 0.05,
+                side: THREE.BackSide,
+              })
+            )
+          );
+          env.add(new THREE.AmbientLight(0xffffff, 0.72));
+          const addPanel = (hex, intensity, pos, rot, w, h) => {
+            const p = new THREE.Mesh(
+              new THREE.PlaneGeometry(w, h),
+              new THREE.MeshBasicMaterial({
+                color: new THREE.Color(hex).multiplyScalar(intensity),
+                side: THREE.DoubleSide,
+                toneMapped: false,
+              })
+            );
+            p.position.set(pos[0], pos[1], pos[2]);
+            p.rotation.set(rot[0], rot[1], rot[2]);
+            env.add(p);
+          };
+          addPanel(0xfff4e0, 1.25, [0, 8.6, 0], [Math.PI / 2, 0, 0], 11, 7);
+          addPanel(0xffdba6, 0.95, [11, 4.5, 6], [0, -Math.PI * 0.65, 0], 8, 4.5);
+          addPanel(0xc4a4e8, 0.78, [-11, 4.2, -6], [0, Math.PI * 0.35, 0], 8, 4.5);
+          return env;
+        }
+
+        function disposeEnvScene(env) {
+          env.traverse((obj) => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+              else obj.material.dispose();
+            }
+          });
+        }
+
+      /* =========================================================================
+       * 1. SHARED LOCALSTORAGE CHIPS (masaOyunlariChips + lobby sync)
+       * ========================================================================= */
+      const CHIPS_KEY = 'masaOyunlariChips';
+      const PROFILE_KEY = 'masa_oyunlari_3d_profile';
+      const DEFAULT_CHIPS = 10000;
+      const WIN_REWARD = 1500;
+      const fmt = (n) => new Intl.NumberFormat('tr-TR').format(Math.floor(n));
+
+      function readChips() {
+        try {
+          const direct = localStorage.getItem(CHIPS_KEY);
+          if (direct !== null && Number.isFinite(Number(direct))) {
+            return Math.max(0, Math.floor(Number(direct)));
+          }
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+          if (prof && Number.isFinite(Number(prof.chips))) {
+            const c = Math.max(0, Math.floor(Number(prof.chips)));
+            localStorage.setItem(CHIPS_KEY, String(c));
+            return c;
+          }
+        } catch {}
+        localStorage.setItem(CHIPS_KEY, String(DEFAULT_CHIPS));
+        return DEFAULT_CHIPS;
+      }
+
+      function readPlayerName() {
+        try {
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+          if (prof && prof.username && String(prof.username).trim()) {
+            return String(prof.username).trim().slice(0, 14);
+          }
+        } catch {}
+        return 'Sen';
+      }
+
+      function writeChips(val, won = false) {
+        const c = Math.max(0, Math.floor(val));
+        try {
+          localStorage.setItem(CHIPS_KEY, String(c));
+          localStorage.setItem('mo3d_chips', String(c));
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+          prof.chips = c;
+          if (!prof.username) prof.username = readPlayerName();
+          if (won) {
+            prof.wins = (Number(prof.wins) || 0) + 1;
+            localStorage.setItem('mo3d_wins', String(prof.wins));
+          }
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(prof));
+        } catch {}
+        document.getElementById('hud-chips').textContent = fmt(c);
+      }
+
+      let playerChips = readChips();
+      const humanName = readPlayerName();
+      document.getElementById('hud-chips').textContent = fmt(playerChips);
+
+      /* =========================================================================
+       * 2. PROCEDURAL WEB AUDIO API SOUND ENGINE
+       * ========================================================================= */
+      class CardSound {
+        constructor() {
+          this.ctx = null;
+          this.enabled = true;
+          try {
+            const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+            if (p.soundEnabled === false) this.enabled = false;
+          } catch {}
+        }
+
+        ensure() {
+          if (!this.enabled) return null;
+          if (!this.ctx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return null;
+            this.ctx = new Ctx();
+          }
+          if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+          return this.ctx;
+        }
+
+        playCardDraw() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          // Crisp papery card swish
+          const len = Math.floor(ctx.sampleRate * 0.085);
+          const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) {
+            const env = Math.sin((i / len) * Math.PI);
+            data[i] = (Math.random() * 2 - 1) * env * 0.5;
+          }
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+
+          const bp = ctx.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.setValueAtTime(1600, now);
+          bp.frequency.exponentialRampToValueAtTime(3400, now + 0.08);
+          bp.Q.setValueAtTime(1.4, now);
+
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.24, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
+          src.connect(bp);
+          bp.connect(g);
+          g.connect(ctx.destination);
+          src.start(now);
+        }
+
+        playCardSlap(pitch = 1.0) {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+
+          const len = Math.floor(ctx.sampleRate * 0.038);
+          const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.22));
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+
+          const lp = ctx.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.setValueAtTime(2200 * pitch, now);
+
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.32, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          src.connect(lp);
+          lp.connect(g);
+          g.connect(ctx.destination);
+          src.start(now);
+
+          const osc = ctx.createOscillator();
+          const og = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(280 * pitch, now);
+          osc.frequency.exponentialRampToValueAtTime(95, now + 0.05);
+          og.gain.setValueAtTime(0.18, now);
+          og.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+          osc.connect(og);
+          og.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.06);
+        }
+
+        playPenaltySeven() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [440, 587.33, 415.3].forEach((f, i) => {
+            const t = now + i * 0.065;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(f, t);
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.setValueAtTime(1100, t);
+            g.gain.setValueAtTime(0.08, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+            osc.connect(lp);
+            lp.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.15);
+          });
+        }
+
+        playSuitSelect() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [659.25, 880, 1174.66].forEach((f, i) => {
+            const t = now + i * 0.045;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.075, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.19);
+          });
+        }
+
+        playSkip() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(980, now + 0.11);
+          g.gain.setValueAtTime(0.08, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.14);
+        }
+
+        playTekKart() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [880, 1318.51].forEach((f, i) => {
+            const t = now + i * 0.06;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.1, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.25);
+          });
+        }
+
+        playVictory() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((f, i) => {
+            const t = now + i * 0.08;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = i >= 3 ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.001, t);
+            g.gain.linearRampToValueAtTime(0.09, t + 0.015);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.42);
+          });
+        }
+
+        playError() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [220, 165].forEach((f, i) => {
+            const t = now + i * 0.08;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.09, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.12);
+          });
+        }
+      }
+
+      const sound = new CardSound();
+
+      /* =========================================================================
+       * 3. PİS YEDİLİ DECK & RULES ENGINE
+       * ========================================================================= */
+      const SUITS = ['spades', 'hearts', 'diamonds', 'clubs'];
+      const SUIT_META = {
+        spades: { sym: '♠', name: 'Maça', isRed: false, hex: '#e2e8f0', ink: '#0f172a' },
+        hearts: { sym: '♥', name: 'Kupa', isRed: true, hex: '#fb7185', ink: '#c81e3a' },
+        diamonds: { sym: '♦', name: 'Karo', isRed: true, hex: '#fb7185', ink: '#c81e3a' },
+        clubs: { sym: '♣', name: 'Sinek', isRed: false, hex: '#e2e8f0', ink: '#0f172a' },
+      };
+      const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      const SPECIAL_RANKS = new Set(['7', 'J', 'A', '10']);
+
+      function createDeck52() {
+        const deck = [];
+        let id = 1;
+        for (const suit of SUITS) {
+          for (const rank of RANKS) {
+            deck.push({ id: id++, suit, rank });
+          }
+        }
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        return deck;
+      }
+
+      function cardPenaltyPoints(card) {
+        if (card.rank === '7') return 25;
+        if (card.rank === 'J') return 20;
+        if (card.rank === 'A') return 11;
+        if (card.rank === 'K' || card.rank === 'Q' || card.rank === '10') return 10;
+        return Number(card.rank) || 5;
+      }
+
+      const game = {
+        round: 1,
+        players: [
+          { id: 0, name: humanName, isBot: false, hand: [] },
+          { id: 1, name: 'Deniz', isBot: true, hand: [] },
+          { id: 2, name: 'Emre', isBot: true, hand: [] },
+          { id: 3, name: 'Selin', isBot: true, hand: [] },
+        ],
+        drawPile: [],
+        discardPile: [],
+        activeSuit: 'spades',
+        pendingPenalty: 0,
+        turn: 0,
+        phase: 'play', // 'play' | 'choose-suit' | 'anim' | 'bot' | 'ended'
+        hasDrawnThisTurn: false,
+        tekKart: {
+          active: false,
+          deadline: 0,
+          declared: false,
+        },
+        botTimer: null,
+      };
+
+      function getTopDiscard() {
+        return game.discardPile[game.discardPile.length - 1] || null;
+      }
+
+      function isCardPlayable(card) {
+        const top = getTopDiscard();
+        if (!top) return true;
+        if (game.pendingPenalty > 0) {
+          return card.rank === '7';
+        }
+        if (card.rank === 'J') return true;
+        return card.suit === game.activeSuit || card.rank === top.rank;
+      }
+
+      function ensureDrawPileHasCards() {
+        if (game.drawPile.length > 0) return true;
+        if (game.discardPile.length <= 1) return false;
+        const top = game.discardPile.pop();
+        const recycled = game.discardPile.splice(0, game.discardPile.length);
+        for (let i = recycled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [recycled[i], recycled[j]] = [recycled[j], recycled[i]];
+        }
+        game.drawPile = recycled;
+        game.discardPile = [top];
+        showToast('Açık deste karıştırılarak yeni çekme destesi oluşturuldu.');
+        return true;
+      }
+
+      function popFromDrawPile() {
+        if (!ensureDrawPileHasCards()) return null;
+        return game.drawPile.pop();
+      }
+
+      /* =========================================================================
+       * 4. THREE.JS 3D VELVET OCTAGONAL TABLE & 52 PROCEDURAL CARDS
+       * ========================================================================= */
+      const canvasWrap = document.getElementById('canvas-wrap');
+
+      const isSoftwareGl = (() => {
+        try {
+          const probe = document.createElement('canvas');
+          const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+          if (!gl) return true;
+          const ext = gl.getExtension('WEBGL_debug_renderer_info');
+          const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
+          const gpu = String(gl.getParameter(param) || '');
+          gl.getExtension('WEBGL_lose_context')?.loseContext();
+          return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
+        } catch {
+          return true;
+        }
+      })();
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: !isSoftwareGl,
+        powerPreference: 'high-performance',
+      });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 0.85;
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = !isSoftwareGl;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      canvasWrap.appendChild(renderer.domElement);
+
+      const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x07050c);
+      scene.fog = new THREE.FogExp2(0x07050c, 0.02);
+
+      // Soft, glare-free studio PMREM environment (keeps brass trim rich without blowing out card faces)
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const roomEnv = createStudioEnvScene();
+      scene.environment = pmrem.fromScene(roomEnv, 0.05).texture;
+      if ('environmentIntensity' in scene) {
+        scene.environmentIntensity = 0.42;
+      }
+      disposeEnvScene(roomEnv);
+      pmrem.dispose();
+
+      const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 8.2, 10.6);
+      camera.lookAt(0, 0.1, 1.4);
+
+      // Balanced Anti-Glare Lighting Rig (Soft Ambient + Oblique Key Light + Subtle Crimson Rim)
+      const ambientLight = new THREE.AmbientLight(0xfff4e6, 0.45);
+      scene.add(ambientLight);
+
+      const hemi = new THREE.HemisphereLight(0x8fa9d6, 0x1e0a14, 0.26);
+      scene.add(hemi);
+
+      // Oblique top-side directional key light illuminates table & fanned hand cards without reflecting glare into camera
+      const mainKeyLight = new THREE.DirectionalLight(0xfff0d4, 0.92);
+      mainKeyLight.position.set(-6.8, 12.8, 1.8);
+      mainKeyLight.target.position.set(0, 0, 0.6);
+      mainKeyLight.castShadow = !isSoftwareGl;
+      if (!isSoftwareGl) {
+        mainKeyLight.shadow.mapSize.set(2048, 2048);
+        mainKeyLight.shadow.camera.near = 2;
+        mainKeyLight.shadow.camera.far = 30;
+        const d = 10.5;
+        mainKeyLight.shadow.camera.left = -d;
+        mainKeyLight.shadow.camera.right = d;
+        mainKeyLight.shadow.camera.top = d;
+        mainKeyLight.shadow.camera.bottom = -d;
+        mainKeyLight.shadow.bias = -0.0004;
+        mainKeyLight.shadow.normalBias = 0.018;
+        mainKeyLight.shadow.radius = 3.5;
+      }
+      scene.add(mainKeyLight);
+      scene.add(mainKeyLight.target);
+
+      const rimLight = new THREE.DirectionalLight(0xf43f5e, 0.3);
+      rimLight.position.set(8.2, 6.4, -7.8);
+      scene.add(rimLight);
+
+      /* ------------------ PROCEDURAL PBR TEXTURES (VELVET, MAHOGANY, ROUNDED CARDS) ------------------ */
+      function makeTex(canvas) {
+        const t = new THREE.CanvasTexture(canvas);
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = maxAniso;
+        t.needsUpdate = true;
+        return t;
+      }
+
+      function makeDataTex(canvas, repeat = false) {
+        const t = new THREE.CanvasTexture(canvas);
+        t.colorSpace = THREE.NoColorSpace;
+        t.anisotropy = maxAniso;
+        if (repeat) {
+          t.wrapS = THREE.RepeatWrapping;
+          t.wrapT = THREE.RepeatWrapping;
+        }
+        t.needsUpdate = true;
+        return t;
+      }
+
+      function createVelvetTablePBR() {
+        const s = 1024;
+        const cCol = document.createElement('canvas');
+        const cBmp = document.createElement('canvas');
+        cCol.width = cBmp.width = s;
+        cCol.height = cBmp.height = s;
+        const gCol = cCol.getContext('2d');
+        const gBmp = cBmp.getContext('2d');
+
+        // Rich royal emerald velvet core flowing into deep burgundy velvet outer ring
+        const g = gCol.createRadialGradient(s / 2, s / 2, 36, s / 2, s / 2, s * 0.51);
+        g.addColorStop(0, '#0e5846');
+        g.addColorStop(0.38, '#0b4236');
+        g.addColorStop(0.66, '#1a272a');
+        g.addColorStop(0.82, '#4a1126');
+        g.addColorStop(1, '#290715');
+        gCol.fillStyle = g;
+        gCol.fillRect(0, 0, s, s);
+
+        // Woven velvet cloth nap base for bumpMap
+        gBmp.fillStyle = 'rgb(124,124,124)';
+        gBmp.fillRect(0, 0, s, s);
+
+        // Fine velvet micro-fibers & directional plush nap
+        for (let i = 0; i < 16000; i++) {
+          const x = Math.random() * s;
+          const y = Math.random() * s;
+          const bright = Math.random() > 0.48;
+          gCol.fillStyle = bright ? 'rgba(255, 248, 224, 0.028)' : 'rgba(4, 12, 10, 0.042)';
+          gCol.fillRect(x, y, 2.2, 1.2);
+          const bv = bright ? 156 : 94;
+          gBmp.fillStyle = `rgb(${bv},${bv},${bv})`;
+          gBmp.fillRect(x, y, 2, 1.5);
+        }
+
+        // Subtle cross-weave velvet texture bands
+        gBmp.strokeStyle = 'rgba(105,105,105,0.22)';
+        gBmp.lineWidth = 1;
+        for (let i = 0; i < s; i += 6) {
+          gBmp.beginPath();
+          gBmp.moveTo(0, i);
+          gBmp.lineTo(s, i);
+          gBmp.stroke();
+        }
+
+        // Gold-leaf embroidered octagonal trim lines & center compass motif
+        const drawOct = (ctx, r) => {
+          ctx.beginPath();
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4 + Math.PI / 8;
+            if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+          }
+          ctx.closePath();
+        };
+
+        gCol.save();
+        gCol.translate(s / 2, s / 2);
+        gBmp.save();
+        gBmp.translate(s / 2, s / 2);
+
+        // Outer & inner double gold-leaf octagonal strips on felt
+        [s * 0.452, s * 0.432].forEach((r, idx) => {
+          drawOct(gCol, r);
+          gCol.strokeStyle = idx === 0 ? 'rgba(245, 208, 104, 0.72)' : 'rgba(245, 208, 104, 0.34)';
+          gCol.lineWidth = idx === 0 ? 5 : 2.2;
+          gCol.stroke();
+
+          drawOct(gBmp, r);
+          gBmp.strokeStyle = 'rgb(218,218,218)';
+          gBmp.lineWidth = idx === 0 ? 6 : 3;
+          gBmp.stroke();
+        });
+
+        // Subtle ornamental corner gold diamonds on each of the 8 vertices
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4 + Math.PI / 8;
+          const rx = Math.cos(a) * s * 0.412;
+          const ry = Math.sin(a) * s * 0.412;
+          gCol.save();
+          gCol.translate(rx, ry);
+          gCol.rotate(a);
+          gCol.fillStyle = 'rgba(243, 208, 107, 0.52)';
+          gCol.beginPath();
+          gCol.moveTo(10, 0);
+          gCol.lineTo(0, 6);
+          gCol.lineTo(-10, 0);
+          gCol.lineTo(0, -6);
+          gCol.closePath();
+          gCol.fill();
+          gCol.restore();
+        }
+
+        // Center golden play-zone rings
+        gCol.strokeStyle = 'rgba(243, 208, 107, 0.34)';
+        gCol.lineWidth = 3;
+        gCol.beginPath();
+        gCol.arc(0, 0, s * 0.23, 0, Math.PI * 2);
+        gCol.stroke();
+
+        gCol.strokeStyle = 'rgba(243, 208, 107, 0.16)';
+        gCol.lineWidth = 2;
+        gCol.setLineDash([12, 8]);
+        gCol.beginPath();
+        gCol.arc(0, 0, s * 0.25, 0, Math.PI * 2);
+        gCol.stroke();
+        gCol.setLineDash([]);
+
+        gBmp.strokeStyle = 'rgb(200,200,200)';
+        gBmp.lineWidth = 4;
+        gBmp.beginPath();
+        gBmp.arc(0, 0, s * 0.23, 0, Math.PI * 2);
+        gBmp.stroke();
+
+        gCol.restore();
+        gBmp.restore();
+
+        return {
+          map: makeTex(cCol),
+          bumpMap: makeDataTex(cBmp, false),
+        };
+      }
+
+      function createMahoganyPBR() {
+        const S = 512;
+        const cCol = document.createElement('canvas');
+        const cBmp = document.createElement('canvas');
+        cCol.width = cBmp.width = S;
+        cCol.height = cBmp.height = S;
+        const gCol = cCol.getContext('2d');
+        const gBmp = cBmp.getContext('2d');
+
+        gCol.fillStyle = '#33120e';
+        gCol.fillRect(0, 0, S, S);
+        gBmp.fillStyle = 'rgb(128,128,128)';
+        gBmp.fillRect(0, 0, S, S);
+
+        for (let y = 0; y < S; y += 2) {
+          const wv = Math.sin(y * 0.036) * 14 + Math.cos(y * 0.09) * 5;
+          const v = Math.sin((y + wv) * 0.082);
+          const d = Math.round(v * 14);
+          gCol.fillStyle = `rgb(${54 + d}, ${20 + Math.round(d * 0.45)}, ${16 + Math.round(d * 0.35)})`;
+          gCol.fillRect(0, y, S, 2);
+          const bv = Math.round(128 + v * 32);
+          gBmp.fillStyle = `rgb(${bv},${bv},${bv})`;
+          gBmp.fillRect(0, y, S, 2);
+        }
+
+        const map = makeTex(cCol);
+        map.wrapS = THREE.RepeatWrapping;
+        map.wrapT = THREE.RepeatWrapping;
+        return { map, bumpMap: makeDataTex(cBmp, true) };
+      }
+
+      /**
+       * Helper: draws a smooth rounded rectangle path on a 2D canvas
+       */
+      function traceRoundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+        ctx.closePath();
+      }
+
+      /**
+       * Luxury Gold-Embossed Card Back (512x768) with matching bumpMap & roughnessMap
+       */
+      function createCardBackPBR() {
+        const w = 512;
+        const h = 768;
+        const cCol = document.createElement('canvas');
+        const cBmp = document.createElement('canvas');
+        const cRgh = document.createElement('canvas');
+        cCol.width = cBmp.width = cRgh.width = w;
+        cCol.height = cBmp.height = cRgh.height = h;
+
+        const gCol = cCol.getContext('2d');
+        const gBmp = cBmp.getContext('2d');
+        const gRgh = cRgh.getContext('2d');
+
+        // Crisp ivory outer rounded card margin
+        gCol.fillStyle = '#fbf7ec';
+        gCol.fillRect(0, 0, w, h);
+        gBmp.fillStyle = 'rgb(118,118,118)';
+        gBmp.fillRect(0, 0, w, h);
+        gRgh.fillStyle = 'rgb(108,108,108)';
+        gRgh.fillRect(0, 0, w, h);
+
+        // Deep royal midnight navy & plum velvet card back field
+        const pad = 22;
+        const bg = gCol.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, h * 0.56);
+        bg.addColorStop(0, '#142352');
+        bg.addColorStop(0.55, '#0b1536');
+        bg.addColorStop(1, '#070c22');
+        traceRoundRect(gCol, pad, pad, w - pad * 2, h - pad * 2, 26);
+        gCol.fillStyle = bg;
+        gCol.fill();
+
+        // Double ornate gold-foil border
+        const drawGoldBorder = (inset, lw, rad) => {
+          traceRoundRect(gCol, inset, inset, w - inset * 2, h - inset * 2, rad);
+          gCol.strokeStyle = '#f3d06b';
+          gCol.lineWidth = lw;
+          gCol.stroke();
+
+          traceRoundRect(gBmp, inset, inset, w - inset * 2, h - inset * 2, rad);
+          gBmp.strokeStyle = 'rgb(235,235,235)';
+          gBmp.lineWidth = lw + 2;
+          gBmp.stroke();
+
+          traceRoundRect(gRgh, inset, inset, w - inset * 2, h - inset * 2, rad);
+          gRgh.strokeStyle = 'rgb(36,36,36)';
+          gRgh.lineWidth = lw + 2;
+          gRgh.stroke();
+        };
+        drawGoldBorder(30, 6, 22);
+        drawGoldBorder(44, 2.5, 16);
+
+        // Intricate Art Deco diamond & floral guilloche lattice inside inner frame
+        gCol.save();
+        traceRoundRect(gCol, 52, 52, w - 104, h - 104, 14);
+        gCol.clip();
+        gBmp.save();
+        traceRoundRect(gBmp, 52, 52, w - 104, h - 104, 14);
+        gBmp.clip();
+
+        const step = 36;
+        for (let y = 52; y <= h - 52; y += step) {
+          for (let x = 52; x <= w - 52; x += step) {
+            gCol.strokeStyle = 'rgba(243, 208, 107, 0.34)';
+            gCol.lineWidth = 2;
+            gCol.beginPath();
+            gCol.moveTo(x, y - 14);
+            gCol.lineTo(x + 14, y);
+            gCol.lineTo(x, y + 14);
+            gCol.lineTo(x - 14, y);
+            gCol.closePath();
+            gCol.stroke();
+
+            gCol.fillStyle = 'rgba(243, 208, 107, 0.42)';
+            gCol.beginPath();
+            gCol.arc(x, y, 2.6, 0, Math.PI * 2);
+            gCol.fill();
+
+            gBmp.strokeStyle = 'rgb(184,184,184)';
+            gBmp.lineWidth = 2;
+            gBmp.beginPath();
+            gBmp.moveTo(x, y - 14);
+            gBmp.lineTo(x + 14, y);
+            gBmp.lineTo(x, y + 14);
+            gBmp.lineTo(x - 14, y);
+            gBmp.closePath();
+            gBmp.stroke();
+          }
+        }
+        gCol.restore();
+        gBmp.restore();
+
+        // Ornate gold corner scrolls (4 symmetrical filigree flourishes)
+        const corners = [
+          [72, 72, 1, 1],
+          [w - 72, 72, -1, 1],
+          [72, h - 72, 1, -1],
+          [w - 72, h - 72, -1, -1],
+        ];
+        corners.forEach(([cx, cy, sx, sy]) => {
+          gCol.save();
+          gCol.translate(cx, cy);
+          gCol.scale(sx, sy);
+          gCol.fillStyle = '#f3d06b';
+          gCol.beginPath();
+          gCol.moveTo(-14, -14);
+          gCol.lineTo(18, -14);
+          gCol.lineTo(-14, 18);
+          gCol.closePath();
+          gCol.fill();
+          gCol.strokeStyle = '#fef08a';
+          gCol.lineWidth = 3;
+          gCol.beginPath();
+          gCol.arc(4, 4, 14, Math.PI, Math.PI * 1.5);
+          gCol.stroke();
+          gCol.restore();
+        });
+
+        // Central Embossed Royal Sunburst & Crowned "7" Medallion
+        gCol.save();
+        gCol.translate(w / 2, h / 2);
+        gBmp.save();
+        gBmp.translate(w / 2, h / 2);
+        gRgh.save();
+        gRgh.translate(w / 2, h / 2);
+
+        // 16-ray gold sunburst petals
+        for (let i = 0; i < 16; i++) {
+          gCol.rotate(Math.PI / 8);
+          gCol.fillStyle = i % 2 === 0 ? '#f3d06b' : 'rgba(212, 175, 55, 0.65)';
+          gCol.beginPath();
+          gCol.moveTo(0, -128);
+          gCol.lineTo(11, -86);
+          gCol.lineTo(-11, -86);
+          gCol.closePath();
+          gCol.fill();
+
+          gBmp.rotate(Math.PI / 8);
+          gBmp.fillStyle = 'rgb(225,225,225)';
+          gBmp.beginPath();
+          gBmp.moveTo(0, -128);
+          gBmp.lineTo(11, -86);
+          gBmp.lineTo(-11, -86);
+          gBmp.closePath();
+          gBmp.fill();
+        }
+
+        // Deep royal burgundy inner medallion
+        gCol.fillStyle = '#2d0818';
+        gCol.beginPath();
+        gCol.arc(0, 0, 88, 0, Math.PI * 2);
+        gCol.fill();
+        gCol.strokeStyle = '#f3d06b';
+        gCol.lineWidth = 7;
+        gCol.stroke();
+
+        gCol.strokeStyle = 'rgba(254, 240, 138, 0.55)';
+        gCol.lineWidth = 2.5;
+        gCol.beginPath();
+        gCol.arc(0, 0, 74, 0, Math.PI * 2);
+        gCol.stroke();
+
+        // Embossed glossy gold "7" crest
+        const goldGrad = gCol.createLinearGradient(-40, -60, 40, 60);
+        goldGrad.addColorStop(0, '#fff7cc');
+        goldGrad.addColorStop(0.45, '#f3d06b');
+        goldGrad.addColorStop(1, '#b68618');
+        gCol.fillStyle = goldGrad;
+        gCol.font = '800 94px Outfit, sans-serif';
+        gCol.textAlign = 'center';
+        gCol.textBaseline = 'middle';
+        gCol.fillText('7', 0, 6);
+
+        gBmp.fillStyle = 'rgb(245,245,245)';
+        gBmp.font = '800 94px Outfit, sans-serif';
+        gBmp.textAlign = 'center';
+        gBmp.textBaseline = 'middle';
+        gBmp.fillText('7', 0, 6);
+
+        gRgh.fillStyle = 'rgb(30,30,30)';
+        gRgh.beginPath();
+        gRgh.arc(0, 0, 92, 0, Math.PI * 2);
+        gRgh.fill();
+
+        gCol.restore();
+        gBmp.restore();
+        gRgh.restore();
+
+        return {
+          map: makeTex(cCol),
+          bumpMap: makeDataTex(cBmp, false),
+          roughnessMap: makeDataTex(cRgh, false),
+        };
+      }
+
+      // Shared linen paper micro-bump for crisp card fronts
+      const cardLinenBumpTex = (() => {
+        const s = 256;
+        const c = document.createElement('canvas');
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = 'rgb(128,128,128)';
+        ctx.fillRect(0, 0, s, s);
+        for (let y = 0; y < s; y += 3) {
+          ctx.fillStyle = y % 6 === 0 ? 'rgba(154,154,154,0.35)' : 'rgba(104,104,104,0.35)';
+          ctx.fillRect(0, y, s, 1);
+        }
+        for (let x = 0; x < s; x += 3) {
+          ctx.fillStyle = x % 6 === 0 ? 'rgba(150,150,150,0.28)' : 'rgba(108,108,108,0.28)';
+          ctx.fillRect(x, 0, 1, s);
+        }
+        return makeDataTex(c, true);
+      })();
+
+      const cardFrontTexCache = new Map();
+      function getCardFrontTex(suit, rank) {
+        const key = `${suit}-${rank}`;
+        if (cardFrontTexCache.has(key)) return cardFrontTexCache.get(key);
+
+        const w = 512;
+        const h = 768;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        const meta = SUIT_META[suit];
+        const isSpecial = SPECIAL_RANKS.has(rank);
+
+        // Warm anti-glare linen-ivory casino card stock
+        const bg = ctx.createLinearGradient(0, 0, w, h);
+        bg.addColorStop(0, '#f5efe0');
+        bg.addColorStop(0.55, '#f0e7d4');
+        bg.addColorStop(1, '#e2d5bc');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle linen paper grain
+        ctx.fillStyle = 'rgba(130, 110, 80, 0.03)';
+        for (let y = 0; y < h; y += 6) ctx.fillRect(0, y, w, 1);
+
+        // Rounded corner inner gold/ivory frame (echoes the rounded 3D card silhouette!)
+        traceRoundRect(ctx, 18, 18, w - 36, h - 36, 30);
+        ctx.strokeStyle = isSpecial ? 'rgba(212, 175, 55, 0.88)' : 'rgba(182, 160, 122, 0.36)';
+        ctx.lineWidth = isSpecial ? 10 : 5;
+        ctx.stroke();
+
+        if (isSpecial) {
+          traceRoundRect(ctx, 32, 32, w - 64, h - 64, 22);
+          ctx.strokeStyle = 'rgba(212, 175, 55, 0.34)';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = meta.ink;
+
+        // Top-left sharp corner index
+        ctx.font = rank === '10' ? '800 76px Outfit, sans-serif' : '800 88px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(rank, 82, 120);
+        ctx.font = '74px serif';
+        ctx.fillText(meta.sym, 82, 194);
+
+        // Bottom-right rotated corner index
+        ctx.save();
+        ctx.translate(w - 82, h - 120);
+        ctx.rotate(Math.PI);
+        ctx.font = rank === '10' ? '800 76px Outfit, sans-serif' : '800 88px Outfit, sans-serif';
+        ctx.fillText(rank, 0, 0);
+        ctx.font = '74px serif';
+        ctx.fillText(meta.sym, 0, 74);
+        ctx.restore();
+
+        // Center high-DPI card artwork
+        ctx.save();
+        ctx.translate(w / 2, h / 2);
+
+        if (rank === '7') {
+          // Signature Pis Yedili +2 Royal Medallion
+          const rg = ctx.createRadialGradient(0, 0, 14, 0, 0, 134);
+          rg.addColorStop(0, meta.isRed ? 'rgba(225, 29, 72, 0.16)' : 'rgba(15, 23, 42, 0.12)');
+          rg.addColorStop(1, 'rgba(212, 175, 55, 0.04)');
+          ctx.fillStyle = rg;
+          ctx.beginPath();
+          ctx.arc(0, -10, 130, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#d4af37';
+          ctx.lineWidth = 7;
+          ctx.stroke();
+
+          ctx.strokeStyle = 'rgba(225, 29, 72, 0.45)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, -10, 114, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = meta.ink;
+          ctx.font = '184px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(meta.sym, 0, -14);
+
+          // Crisp crimson pill banner for +2 CEZA
+          traceRoundRect(ctx, -112, 146, 224, 54, 16);
+          ctx.fillStyle = '#9f1239';
+          ctx.fill();
+          ctx.strokeStyle = '#f3d06b';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.fillStyle = '#fff7ed';
+          ctx.font = '800 34px Outfit, sans-serif';
+          ctx.fillText('+2 CEZA', 0, 175);
+        } else if (rank === 'J' || rank === 'Q' || rank === 'K') {
+          // Ornate Royal Court Frame
+          traceRoundRect(ctx, -118, -172, 236, 344, 18);
+          ctx.fillStyle = meta.isRed ? 'rgba(200, 30, 58, 0.04)' : 'rgba(15, 23, 42, 0.04)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(212, 175, 55, 0.72)';
+          ctx.lineWidth = 5;
+          ctx.stroke();
+
+          // Small golden crown icon at top of court box
+          ctx.fillStyle = '#d4af37';
+          ctx.beginPath();
+          ctx.moveTo(-34, -124);
+          ctx.lineTo(-24, -152);
+          ctx.lineTo(-8, -134);
+          ctx.lineTo(0, -158);
+          ctx.lineTo(8, -134);
+          ctx.lineTo(24, -152);
+          ctx.lineTo(34, -124);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = meta.ink;
+          ctx.font = '800 156px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(rank, 0, -24);
+
+          ctx.font = '110px serif';
+          ctx.fillText(meta.sym, 0, 92);
+
+          if (rank === 'J') {
+            traceRoundRect(ctx, -108, 196, 216, 50, 14);
+            ctx.fillStyle = '#0369a1';
+            ctx.fill();
+            ctx.strokeStyle = '#f3d06b';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = '#f0f9ff';
+            ctx.font = '800 32px Outfit, sans-serif';
+            ctx.fillText('TÜR SEÇ', 0, 223);
+          }
+        } else if (rank === 'A' || rank === '10') {
+          ctx.fillStyle = meta.ink;
+          ctx.font = rank === 'A' ? '238px serif' : '188px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(meta.sym, 0, -12);
+
+          traceRoundRect(ctx, -118, 152, 236, 52, 14);
+          ctx.fillStyle = '#0f766e';
+          ctx.fill();
+          ctx.strokeStyle = '#f3d06b';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.fillStyle = '#f0fdfa';
+          ctx.font = '800 32px Outfit, sans-serif';
+          ctx.fillText('PAS GEÇİR', 0, 180);
+        } else {
+          ctx.fillStyle = meta.ink;
+          ctx.font = '210px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(meta.sym, 0, 8);
+        }
+
+        ctx.restore();
+
+        const t = makeTex(c);
+        cardFrontTexCache.set(key, t);
+        return t;
+      }
+
+      function createDeckCountBadgeTex(count) {
+        const w = 512;
+        const h = 768;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+
+        ctx.fillStyle = '#fbf7ec';
+        ctx.fillRect(0, 0, w, h);
+
+        traceRoundRect(ctx, 20, 20, w - 40, h - 40, 26);
+        ctx.fillStyle = '#091434';
+        ctx.fill();
+        ctx.strokeStyle = '#f3d06b';
+        ctx.lineWidth = 10;
+        ctx.stroke();
+
+        ctx.fillStyle = '#050b1d';
+        ctx.beginPath();
+        ctx.arc(w / 2, h * 0.44, 134, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f3d06b';
+        ctx.lineWidth = 9;
+        ctx.stroke();
+
+        ctx.fillStyle = '#f3d06b';
+        ctx.font = '800 156px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(count), w / 2, h * 0.45);
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '800 54px Outfit, sans-serif';
+        ctx.fillText('DESTE', w / 2, h * 0.78);
+
+        return makeTex(c);
+      }
+
+      function createBotBadgeTex(name, count) {
+        const w = 256;
+        const h = 96;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.fillStyle = count === 1 ? 'rgba(159, 18, 57, 0.92)' : 'rgba(12, 12, 24, 0.88)';
+        ctx.beginPath();
+        ctx.roundRect(8, 8, w - 16, h - 16, 18);
+        ctx.fill();
+        ctx.strokeStyle = count === 1 ? '#fda4af' : '#f3d06b';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '700 28px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${name} · ${count}`, w / 2, h / 2 + 2);
+
+        return makeTex(c);
+      }
+
+      function createSuitEmblemTex(suit, holographic = false) {
+        const s = 512;
+        const c = document.createElement('canvas');
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, s, s);
+
+        const meta = SUIT_META[suit];
+        if (holographic) {
+          // Luminous radiant halo backdrop for 3D rising Vale hologram
+          const glow = ctx.createRadialGradient(256, 256, 24, 256, 256, 240);
+          glow.addColorStop(0, meta.isRed ? 'rgba(255, 110, 145, 0.85)' : 'rgba(120, 220, 255, 0.82)');
+          glow.addColorStop(0.42, meta.isRed ? 'rgba(244, 63, 94, 0.34)' : 'rgba(243, 208, 107, 0.32)');
+          glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = glow;
+          ctx.fillRect(0, 0, s, s);
+
+          // Fine glowing holographic circle rings
+          ctx.strokeStyle = meta.isRed ? 'rgba(254, 205, 211, 0.9)' : 'rgba(254, 240, 138, 0.92)';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.arc(256, 256, 198, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+          ctx.lineWidth = 3;
+          ctx.setLineDash([18, 12]);
+          ctx.beginPath();
+          ctx.arc(256, 256, 218, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.shadowColor = meta.isRed ? '#ff2a6d' : '#f3d06b';
+          ctx.shadowBlur = 32;
+          ctx.fillStyle = meta.isRed ? '#fff1f2' : '#fffbeb';
+          ctx.font = '265px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(meta.sym, 256, 268);
+        } else {
+          ctx.fillStyle = 'rgba(10, 10, 22, 0.86)';
+          ctx.beginPath();
+          ctx.arc(256, 256, 214, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = meta.isRed ? '#fb7185' : '#f3d06b';
+          ctx.lineWidth = 14;
+          ctx.stroke();
+
+          ctx.fillStyle = meta.isRed ? '#fb7185' : '#f8fafc';
+          ctx.font = '272px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(meta.sym, 256, 268);
+        }
+
+        return makeTex(c);
+      }
+
+      /* ------------------ BUILD OCTAGONAL VELVET 3D CARD TABLE WITH GOLD-LEAF TRIM ------------------ */
+      function createOctShape(r) {
+        const sh = new THREE.Shape();
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4 + Math.PI / 8;
+          if (i === 0) sh.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+          else sh.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        }
+        sh.closePath();
+        return sh;
+      }
+
+      const tableGroup = new THREE.Group();
+      scene.add(tableGroup);
+
+      const mahoganyPBR = createMahoganyPBR();
+      const velvetPBR = createVelvetTablePBR();
+
+      const mahoganyMat = new THREE.MeshPhysicalMaterial({
+        map: mahoganyPBR.map,
+        bumpMap: mahoganyPBR.bumpMap,
+        bumpScale: 0.022,
+        roughness: 0.68,
+        metalness: 0.05,
+        clearcoat: 0,
+        envMapIntensity: 0.45,
+      });
+      const velvetMat = new THREE.MeshPhysicalMaterial({
+        map: velvetPBR.map,
+        bumpMap: velvetPBR.bumpMap,
+        bumpScale: 0.024,
+        roughness: 0.9,
+        metalness: 0.0,
+        clearcoat: 0,
+        sheen: 0.16,
+        sheenRoughness: 0.88,
+        sheenColor: new THREE.Color(0x1f6e62),
+        specularIntensity: 0.15,
+        envMapIntensity: 0.22,
+      });
+      const brassMat = new THREE.MeshPhysicalMaterial({
+        color: 0xdcb44e,
+        metalness: 0.9,
+        roughness: 0.32,
+        clearcoat: 0.15,
+        envMapIntensity: 0.95,
+      });
+
+      const railGeo = new THREE.ExtrudeGeometry(createOctShape(7.65), {
+        depth: 0.44,
+        bevelEnabled: true,
+        bevelSegments: 3,
+        bevelSize: 0.14,
+        bevelThickness: 0.12,
+      });
+      railGeo.rotateX(-Math.PI / 2);
+      const railMesh = new THREE.Mesh(railGeo, mahoganyMat);
+      railMesh.position.y = -0.46;
+      railMesh.receiveShadow = !isSoftwareGl;
+      tableGroup.add(railMesh);
+
+      const feltGeo = new THREE.CylinderGeometry(6.72, 6.72, 0.08, 8);
+      feltGeo.rotateY(Math.PI / 8);
+      const feltMesh = new THREE.Mesh(feltGeo, velvetMat);
+      feltMesh.position.y = -0.02;
+      feltMesh.receiveShadow = !isSoftwareGl;
+      tableGroup.add(feltMesh);
+
+      // Inner Gold-Leaf Octagonal Rim Bezel
+      const trimInner = createOctShape(6.96);
+      trimInner.holes.push(createOctShape(6.68));
+      const trimInnerGeo = new THREE.ExtrudeGeometry(trimInner, {
+        depth: 0.065,
+        bevelEnabled: true,
+        bevelSegments: 2,
+        bevelSize: 0.015,
+        bevelThickness: 0.015,
+      });
+      trimInnerGeo.rotateX(-Math.PI / 2);
+      const trimInnerMesh = new THREE.Mesh(trimInnerGeo, brassMat);
+      trimInnerMesh.position.y = 0.02;
+      trimInnerMesh.castShadow = !isSoftwareGl;
+      trimInnerMesh.receiveShadow = !isSoftwareGl;
+      tableGroup.add(trimInnerMesh);
+
+      // Outer Gold-Leaf Marquetry Strip along the mahogany armrest crest
+      const trimOuter = createOctShape(7.52);
+      trimOuter.holes.push(createOctShape(7.4));
+      const trimOuterGeo = new THREE.ExtrudeGeometry(trimOuter, { depth: 0.03, bevelEnabled: false });
+      trimOuterGeo.rotateX(-Math.PI / 2);
+      const trimOuterMesh = new THREE.Mesh(trimOuterGeo, brassMat);
+      trimOuterMesh.position.y = 0.095;
+      tableGroup.add(trimOuterMesh);
+
+      // 8 Decorative Gold-Leaf Corner Studs on the octagonal rail vertices
+      const studGeo = new THREE.CylinderGeometry(0.11, 0.14, 0.06, 16);
+      for (let i = 0; i < 8; i++) {
+        const a = (i * Math.PI) / 4 + Math.PI / 8;
+        const stud = new THREE.Mesh(studGeo, brassMat);
+        stud.position.set(Math.cos(a) * 7.18, 0.11, Math.sin(a) * 7.18);
+        tableGroup.add(stud);
+      }
+
+      const loungeFloor = new THREE.Mesh(
+        new THREE.PlaneGeometry(60, 60),
+        new THREE.MeshStandardMaterial({ color: 0x05050a, roughness: 0.94 })
+      );
+      loungeFloor.rotation.x = -Math.PI / 2;
+      loungeFloor.position.y = -2.4;
+      scene.add(loungeFloor);
+
+      /* ------------------ TRUE ROUNDED-CORNER 3D CARD FACTORY ------------------ */
+      const CARD_W = 1.24;
+      const CARD_H = 1.82;
+      const CARD_T = 0.026;
+      const CARD_R = 0.092;
+
+      function createRoundedCardShape(w, h, r) {
+        const hw = w / 2;
+        const hh = h / 2;
+        const sh = new THREE.Shape();
+        sh.moveTo(-hw + r, -hh);
+        sh.lineTo(hw - r, -hh);
+        sh.quadraticCurveTo(hw, -hh, hw, -hh + r);
+        sh.lineTo(hw, hh - r);
+        sh.quadraticCurveTo(hw, hh, hw - r, hh);
+        sh.lineTo(-hw + r, hh);
+        sh.quadraticCurveTo(-hw, hh, -hw, hh - r);
+        sh.lineTo(-hw, -hh + r);
+        sh.quadraticCurveTo(-hw, -hh, -hw + r, -hh);
+        return sh;
+      }
+
+      function normalizeShapeUVs(geo, w, h) {
+        const pos = geo.attributes.position;
+        const uvs = new Float32Array(pos.count * 2);
+        for (let i = 0; i < pos.count; i++) {
+          uvs[i * 2] = (pos.getX(i) + w / 2) / w;
+          uvs[i * 2 + 1] = (pos.getY(i) + h / 2) / h;
+        }
+        geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+        return geo;
+      }
+
+      const roundedCardShape = createRoundedCardShape(CARD_W, CARD_H, CARD_R);
+      const cardFaceGeo = normalizeShapeUVs(new THREE.ShapeGeometry(roundedCardShape, 8), CARD_W, CARD_H);
+      const cardRimGeo = new THREE.ExtrudeGeometry(roundedCardShape, {
+        depth: CARD_T,
+        bevelEnabled: false,
+        curveSegments: 8,
+      });
+      cardRimGeo.translate(0, 0, -CARD_T / 2);
+
+      const cardAuraShape = createRoundedCardShape(CARD_W + 0.14, CARD_H + 0.14, CARD_R + 0.04);
+      const cardAuraGeo = new THREE.ShapeGeometry(cardAuraShape, 8);
+
+      const cardBackPBR = createCardBackPBR();
+      const cardEdgeMat = new THREE.MeshStandardMaterial({
+        color: 0xd8b24c,
+        metalness: 0.72,
+        roughness: 0.42,
+        envMapIntensity: 0.75,
+      });
+      const cardBackMat = new THREE.MeshPhysicalMaterial({
+        map: cardBackPBR.map,
+        bumpMap: cardBackPBR.bumpMap,
+        bumpScale: 0.016,
+        roughness: 0.68,
+        metalness: 0.1,
+        clearcoat: 0,
+        specularIntensity: 0.3,
+        envMapIntensity: 0.32,
+      });
+
+      const cardFrontMatCache = new Map();
+      function getCardFrontMat(suit, rank) {
+        const key = `${suit}-${rank}`;
+        if (cardFrontMatCache.has(key)) return cardFrontMatCache.get(key);
+        const m = new THREE.MeshPhysicalMaterial({
+          map: getCardFrontTex(suit, rank),
+          bumpMap: cardLinenBumpTex,
+          bumpScale: 0.008,
+          roughness: 0.72,
+          metalness: 0.03,
+          clearcoat: 0,
+          specularIntensity: 0.28,
+          envMapIntensity: 0.28,
+        });
+        cardFrontMatCache.set(key, m);
+        return m;
+      }
+
+      function buildRoundedCardBody(card, showFront = true) {
+        const body = new THREE.Group();
+
+        const rim = new THREE.Mesh(cardRimGeo, cardEdgeMat);
+        rim.castShadow = !isSoftwareGl;
+        rim.receiveShadow = !isSoftwareGl;
+        body.add(rim);
+
+        const front = new THREE.Mesh(
+          cardFaceGeo,
+          showFront && card ? getCardFrontMat(card.suit, card.rank) : cardBackMat
+        );
+        front.position.z = CARD_T / 2 + 0.0012;
+        front.receiveShadow = !isSoftwareGl;
+        body.add(front);
+
+        const back = new THREE.Mesh(cardFaceGeo, cardBackMat);
+        back.rotation.y = Math.PI;
+        back.position.z = -CARD_T / 2 - 0.0012;
+        back.receiveShadow = !isSoftwareGl;
+        body.add(back);
+
+        body.userData.frontMesh = front;
+        return body;
+      }
+
+      function createStandingCardMesh(card) {
+        const g = new THREE.Group();
+        const body = buildRoundedCardBody(card, true);
+        body.userData.frontMesh.userData = { cardId: card.id };
+        g.add(body);
+
+        // Rounded luminous emerald/gold playable rim aura behind card
+        const aura = new THREE.Mesh(
+          cardAuraGeo,
+          new THREE.MeshBasicMaterial({
+            color: 0x34d399,
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+          })
+        );
+        aura.position.z = -CARD_T / 2 - 0.009;
+        g.add(aura);
+
+        g.userData = { cardId: card.id, mesh: body.userData.frontMesh, body, aura };
+        return g;
+      }
+
+      function createFlatCardMesh(card, faceUp = true) {
+        const wrap = new THREE.Group();
+        const body = buildRoundedCardBody(card, faceUp);
+        body.rotation.x = faceUp ? -Math.PI / 2 : Math.PI / 2;
+        wrap.add(body);
+        return wrap;
+      }
+
+      // Center Rounded Draw Stack (Clickable in 3D)
+      const drawStackGroup = new THREE.Group();
+      drawStackGroup.position.set(-1.35, 0.03, -0.55);
+      scene.add(drawStackGroup);
+
+      const drawStackGeo = new THREE.ExtrudeGeometry(roundedCardShape, {
+        depth: 0.5,
+        bevelEnabled: false,
+        curveSegments: 8,
+      });
+      drawStackGeo.rotateX(-Math.PI / 2);
+      const drawStackBody = new THREE.Mesh(drawStackGeo, cardEdgeMat);
+      drawStackBody.position.y = 0;
+      drawStackBody.castShadow = !isSoftwareGl;
+      drawStackBody.receiveShadow = !isSoftwareGl;
+      drawStackBody.userData = { kind: 'draw-pile' };
+      drawStackGroup.add(drawStackBody);
+
+      const drawStackTopBadge = new THREE.Mesh(
+        cardFaceGeo,
+        new THREE.MeshBasicMaterial({ map: createDeckCountBadgeTex(24) })
+      );
+      drawStackTopBadge.rotation.x = -Math.PI / 2;
+      drawStackTopBadge.position.y = 0.506;
+      drawStackTopBadge.userData = { kind: 'draw-pile' };
+      drawStackGroup.add(drawStackTopBadge);
+
+      // Center Discard Pile
+      const discardGroup = new THREE.Group();
+      discardGroup.position.set(1.25, 0.03, -0.55);
+      scene.add(discardGroup);
+
+      // Floating Glowing Active-Suit Emblem in Table Center
+      const suitEmblemGroup = new THREE.Group();
+      suitEmblemGroup.position.set(-0.05, 0.2, -2.35);
+      scene.add(suitEmblemGroup);
+
+      const suitEmblemPlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.18, 1.18),
+        new THREE.MeshBasicMaterial({
+          map: createSuitEmblemTex('spades', false),
+          transparent: true,
+          depthWrite: false,
+        })
+      );
+      suitEmblemPlane.rotation.x = -Math.PI / 2;
+      suitEmblemGroup.add(suitEmblemPlane);
+
+      const suitEmblemRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.65, 0.036, 12, 36),
+        brassMat
+      );
+      suitEmblemRing.rotation.x = Math.PI / 2;
+      suitEmblemGroup.add(suitEmblemRing);
+
+      function update3DSuitEmblem() {
+        if (suitEmblemPlane.material.map) suitEmblemPlane.material.map.dispose();
+        suitEmblemPlane.material.map = createSuitEmblemTex(game.activeSuit, false);
+        suitEmblemPlane.material.needsUpdate = true;
+      }
+
+      // Human 3D Hand Fan Container
+      const humanHandGroup = new THREE.Group();
+      humanHandGroup.position.set(0, 1.35, 5.45);
+      humanHandGroup.rotation.x = -0.54; // Angled squarely toward player camera
+      scene.add(humanHandGroup);
+
+      const humanCardVisuals = new Map(); // cardId -> { group, card, index, targetPos, targetRotZ, scale, scaleVel, liftY, liftYVel, liftZ, liftZVel, spreadX, spreadXVel, flipY }
+
+      // 3 Bot Fans + Floating Badges
+      const botAnchors = [
+        null,
+        { pos: [5.4, 0.65, -0.35], rotY: -Math.PI / 2, badgePos: [4.85, 1.85, -0.35] }, // Bot 1 Right
+        { pos: [0, 0.65, -5.25], rotY: Math.PI, badgePos: [0, 1.9, -4.65] }, // Bot 2 Top
+        { pos: [-5.4, 0.65, -0.35], rotY: Math.PI / 2, badgePos: [-4.85, 1.85, -0.35] }, // Bot 3 Left
+      ];
+      const botFanGroups = [null, new THREE.Group(), new THREE.Group(), new THREE.Group()];
+      const botBadgeSprites = [null];
+
+      for (let p = 1; p <= 3; p++) {
+        const g = botFanGroups[p];
+        g.position.set(...botAnchors[p].pos);
+        g.rotation.y = botAnchors[p].rotY;
+        scene.add(g);
+
+        const spMat = new THREE.SpriteMaterial({
+          map: createBotBadgeTex(game.players[p].name, 7),
+          transparent: true,
+        });
+        const sp = new THREE.Sprite(spMat);
+        sp.position.set(...botAnchors[p].badgePos);
+        sp.scale.set(2.1, 0.78, 1);
+        scene.add(sp);
+        botBadgeSprites[p] = sp;
+      }
+
+      /* ------------------ CINEMATIC FX: FLYING/TUMBLING CARDS, 7-PENALTY SHOCKWAVE, VALE HOLOGRAM ------------------ */
+      const flyingCards = [];
+      const shockwaveFXList = [];
+      const hologramFXList = [];
+      const activeTimers = [];
+
+      const cameraShake = { time: 0, duration: 0.45, intensity: 0 };
+      const shockRingGeo = new THREE.RingGeometry(0.42, 0.72, 48);
+      const shockOuterGeo = new THREE.RingGeometry(0.62, 0.76, 48);
+      const shockPillarGeo = new THREE.CylinderGeometry(0.85, 1.25, 3.2, 24, 1, true);
+      const emberGeo = new THREE.SphereGeometry(0.055, 8, 6);
+      const holoBeamGeo = new THREE.CylinderGeometry(1.15, 0.55, 3.6, 28, 1, true);
+      const holoRingGeo = new THREE.TorusGeometry(0.95, 0.035, 12, 40);
+      const holoSymbolGeo = new THREE.PlaneGeometry(2.15, 2.15);
+
+      // Visible subsets during opening dealing riffle
+      let dealingActive = false;
+      const dealtHumanIds = new Set();
+      const dealtBotCounts = [0, 0, 0, 0];
+
+      function scheduleFX(fn, ms) {
+        const id = setTimeout(() => {
+          const i = activeTimers.indexOf(id);
+          if (i !== -1) activeTimers.splice(i, 1);
+          fn();
+        }, ms);
+        activeTimers.push(id);
+        return id;
+      }
+
+      function clearAllAnimations() {
+        while (activeTimers.length > 0) clearTimeout(activeTimers.pop());
+        while (flyingCards.length > 0) {
+          const fc = flyingCards.pop();
+          scene.remove(fc.mesh);
+        }
+        while (shockwaveFXList.length > 0) {
+          const fx = shockwaveFXList.pop();
+          scene.remove(fx.group);
+          fx.mats.forEach((m) => m.dispose());
+        }
+        while (hologramFXList.length > 0) {
+          const hx = hologramFXList.pop();
+          scene.remove(hx.group);
+          hx.mats.forEach((m) => m.dispose());
+          if (hx.tex) hx.tex.dispose();
+        }
+        cameraShake.time = 0;
+        cameraShake.intensity = 0;
+        dealingActive = false;
+        dealtHumanIds.clear();
+        dealtBotCounts.fill(0);
+      }
+
+      function triggerCameraShake(intensity = 0.34, duration = 0.52) {
+        cameraShake.intensity = Math.max(cameraShake.intensity, intensity);
+        cameraShake.duration = duration;
+        cameraShake.time = duration;
+      }
+
+      /**
+       * Spawns a dramatic Red & Gold Shockwave + Camera Shake when 7'li penalty explodes (+2, +4, +6...)
+       */
+      function spawnPenaltyShockwave(worldPos, penaltyLevel = 2) {
+        const scalePower = 1.0 + Math.min(0.85, (penaltyLevel - 2) * 0.16);
+        const group = new THREE.Group();
+        group.position.set(worldPos.x, 0.06, worldPos.z);
+        const mats = [];
+
+        // Core Crimson Shockwave Ring
+        const redRingMat = new THREE.MeshBasicMaterial({
+          color: 0xf43f5e,
+          transparent: true,
+          opacity: 0.96,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        mats.push(redRingMat);
+        const redRing = new THREE.Mesh(shockRingGeo, redRingMat);
+        redRing.rotation.x = -Math.PI / 2;
+        group.add(redRing);
+
+        // Outer Golden Shockwave Halo
+        const goldRingMat = new THREE.MeshBasicMaterial({
+          color: 0xf3d06b,
+          transparent: true,
+          opacity: 0.92,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        mats.push(goldRingMat);
+        const goldRing = new THREE.Mesh(shockOuterGeo, goldRingMat);
+        goldRing.rotation.x = -Math.PI / 2;
+        goldRing.position.y = 0.025;
+        group.add(goldRing);
+
+        // Brief Crimson-Gold Energy Pillar Flash
+        const pillarMat = new THREE.MeshBasicMaterial({
+          color: 0xff4d6d,
+          transparent: true,
+          opacity: 0.42,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        mats.push(pillarMat);
+        const pillar = new THREE.Mesh(shockPillarGeo, pillarMat);
+        pillar.position.y = 1.6;
+        group.add(pillar);
+
+        // 18 Rising Crimson & Gold Sparks/Embers
+        const embers = [];
+        for (let i = 0; i < 18; i++) {
+          const isGold = i % 2 === 0;
+          const eMat = new THREE.MeshBasicMaterial({
+            color: isGold ? 0xf3d06b : 0xfb7185,
+            transparent: true,
+            opacity: 0.96,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          mats.push(eMat);
+          const sp = new THREE.Mesh(emberGeo, eMat);
+          const ang = (i / 18) * Math.PI * 2 + (Math.random() - 0.5) * 0.28;
+          const speed = (2.6 + Math.random() * 2.2) * scalePower;
+          sp.position.set(Math.cos(ang) * 0.35, 0.1, Math.sin(ang) * 0.35);
+          group.add(sp);
+          embers.push({
+            mesh: sp,
+            mat: eMat,
+            vx: Math.cos(ang) * speed,
+            vy: (2.8 + Math.random() * 2.2) * scalePower,
+            vz: Math.sin(ang) * speed,
+          });
+        }
+
+        scene.add(group);
+        shockwaveFXList.push({
+          group,
+          redRing,
+          redRingMat,
+          goldRing,
+          goldRingMat,
+          pillar,
+          pillarMat,
+          embers,
+          mats,
+          scalePower,
+          elapsed: 0,
+          duration: 0.85,
+        });
+
+        triggerCameraShake(0.28 + Math.min(0.36, penaltyLevel * 0.055), 0.54);
+      }
+
+      /**
+       * Spawns a 3D Glowing Suit Hologram rising above the table center when Vale (J) changes suit
+       */
+      function spawnSuitHologram(suit) {
+        const meta = SUIT_META[suit];
+        const accentHex = meta.isRed ? 0xf43f5e : 0x38bdf8;
+        const group = new THREE.Group();
+        group.position.set(0.0, 0.08, -0.55);
+        const mats = [];
+
+        // Volumetric Holographic Light Beam
+        const beamMat = new THREE.MeshBasicMaterial({
+          color: accentHex,
+          transparent: true,
+          opacity: 0.24,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        mats.push(beamMat);
+        const beam = new THREE.Mesh(holoBeamGeo, beamMat);
+        beam.position.y = 1.8;
+        group.add(beam);
+
+        // Counter-rotating Holographic Rings
+        const ringAMat = new THREE.MeshBasicMaterial({
+          color: 0xf3d06b,
+          transparent: true,
+          opacity: 0.85,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        mats.push(ringAMat);
+        const ringA = new THREE.Mesh(holoRingGeo, ringAMat);
+        ringA.rotation.x = Math.PI / 2;
+        ringA.position.y = 0.25;
+        group.add(ringA);
+
+        const ringBMat = new THREE.MeshBasicMaterial({
+          color: accentHex,
+          transparent: true,
+          opacity: 0.72,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        mats.push(ringBMat);
+        const ringB = new THREE.Mesh(holoRingGeo, ringBMat);
+        ringB.rotation.x = Math.PI / 2;
+        ringB.scale.setScalar(1.22);
+        ringB.position.y = 0.55;
+        group.add(ringB);
+
+        // Double-crossed / rotating luminous 3D Suit Hologram Symbol
+        const symTex = createSuitEmblemTex(suit, true);
+        const symMat = new THREE.MeshBasicMaterial({
+          map: symTex,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        mats.push(symMat);
+
+        const symGroup = new THREE.Group();
+        symGroup.position.y = 0.65;
+        const planeA = new THREE.Mesh(holoSymbolGeo, symMat);
+        symGroup.add(planeA);
+        const planeB = new THREE.Mesh(holoSymbolGeo, symMat);
+        planeB.rotation.y = Math.PI / 2;
+        symGroup.add(planeB);
+        group.add(symGroup);
+
+        // Rising holographic light motes
+        const motes = [];
+        for (let i = 0; i < 14; i++) {
+          const mMat = new THREE.MeshBasicMaterial({
+            color: i % 2 === 0 ? 0xfef08a : accentHex,
+            transparent: true,
+            opacity: 0.85,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          mats.push(mMat);
+          const mote = new THREE.Mesh(emberGeo, mMat);
+          const ang = (i / 14) * Math.PI * 2;
+          const rad = 0.45 + Math.random() * 0.72;
+          mote.position.set(Math.cos(ang) * rad, 0.1 + Math.random() * 0.6, Math.sin(ang) * rad);
+          mote.scale.setScalar(0.65);
+          group.add(mote);
+          motes.push({ mesh: mote, mat: mMat, ang, rad, speedY: 1.15 + Math.random() * 0.9 });
+        }
+
+        scene.add(group);
+        hologramFXList.push({
+          group,
+          beam,
+          beamMat,
+          ringA,
+          ringAMat,
+          ringB,
+          ringBMat,
+          symGroup,
+          symMat,
+          motes,
+          mats,
+          tex: symTex,
+          elapsed: 0,
+          duration: 2.15,
+        });
+      }
+
+      /**
+       * Spawns a 3D rounded card flying along a parabolic arc with optional somersault tumble or dealer spin.
+       */
+      function spawnFlyingCard({
+        card,
+        startPos,
+        endPos,
+        faceUp = true,
+        mode = 'play', // 'play' (somersault tumble) | 'deal' (rapid dealer spin) | 'flip-open'
+        duration = 0.42,
+        arcHeight = 1.95,
+        endYaw = (Math.random() - 0.5) * 0.42,
+        onLand = null,
+      }) {
+        const mesh = createFlatCardMesh(card, faceUp);
+        mesh.position.copy(startPos);
+        scene.add(mesh);
+        flyingCards.push({
+          mesh,
+          startPos: startPos.clone(),
+          endPos: endPos.clone(),
+          mode,
+          elapsed: 0,
+          duration,
+          arcHeight,
+          endYaw,
+          spinSign: Math.random() > 0.5 ? 1 : -1,
+          onLand: () => {
+            scene.remove(mesh);
+            if (onLand) onLand();
+          },
+        });
+      }
+
+      function rebuildHumanHand3D(immediate = false) {
+        const fullHand = game.players[0].hand;
+        const hand = dealingActive ? fullHand.filter((c) => dealtHumanIds.has(c.id)) : fullHand;
+        const activeIds = new Set(hand.map((c) => c.id));
+        const n = hand.length;
+
+        // Fan spacing adapts gracefully to hand size
+        const maxSpan = Math.min(8.6, Math.max(2.6, n * 0.92));
+
+        hand.forEach((card, idx) => {
+          const norm = n > 1 ? idx / (n - 1) - 0.5 : 0; // -0.5 .. +0.5
+          const tx = norm * maxSpan;
+          const ty = -Math.pow(norm * 2, 2) * 0.24;
+          const tz = idx * 0.036; // Slight Z-layering so cards overlap cleanly left-to-right!
+          const rotZ = -norm * Math.min(0.42, n * 0.045);
+
+          let rec = humanCardVisuals.get(card.id);
+          if (!rec) {
+            const group = createStandingCardMesh(card);
+            if (immediate) {
+              group.position.set(tx, ty, tz);
+              group.rotation.z = rotZ;
+            } else {
+              // Newly arrived card springs smoothly from deck direction while flipping face-up
+              group.position.set(tx * 0.4 - 1.35, ty + 1.15, -2.6);
+              group.rotation.y = Math.PI;
+            }
+            humanHandGroup.add(group);
+            rec = {
+              group,
+              card,
+              index: idx,
+              targetPos: new THREE.Vector3(tx, ty, tz),
+              targetRotZ: rotZ,
+              scale: 1,
+              scaleVel: 0,
+              liftY: 0,
+              liftYVel: 0,
+              liftZ: 0,
+              liftZVel: 0,
+              spreadX: 0,
+              spreadXVel: 0,
+              flipY: immediate ? 0 : Math.PI,
+            };
+            humanCardVisuals.set(card.id, rec);
+          } else {
+            rec.index = idx;
+            rec.targetPos.set(tx, ty, tz);
+            rec.targetRotZ = rotZ;
+          }
+        });
+
+        for (const [id, rec] of humanCardVisuals.entries()) {
+          if (!activeIds.has(id)) {
+            humanHandGroup.remove(rec.group);
+            humanCardVisuals.delete(id);
+          }
+        }
+      }
+
+      function rebuildBotFans3D() {
+        for (let p = 1; p <= 3; p++) {
+          const grp = botFanGroups[p];
+          while (grp.children.length > 0) grp.remove(grp.children[0]);
+
+          const count = dealingActive ? dealtBotCounts[p] : game.players[p].hand.length;
+          const visible = Math.min(count, 12);
+          const span = Math.min(3.4, visible * 0.34);
+
+          for (let i = 0; i < visible; i++) {
+            const norm = visible > 1 ? i / (visible - 1) - 0.5 : 0;
+            const m = buildRoundedCardBody(null, false);
+            m.scale.setScalar(0.68);
+            m.position.set(norm * span, -Math.pow(norm * 2, 2) * 0.14, i * 0.024);
+            m.rotation.z = -norm * 0.35;
+            m.rotation.x = -0.25;
+            grp.add(m);
+          }
+
+          const sp = botBadgeSprites[p];
+          if (sp.material.map) sp.material.map.dispose();
+          sp.material.map = createBotBadgeTex(game.players[p].name, count);
+          sp.material.needsUpdate = true;
+        }
+      }
+
+      function rebuildCenterStacks3D(overrideDrawCount = null) {
+        const dCount = overrideDrawCount !== null ? overrideDrawCount : game.drawPile.length;
+        drawStackGroup.visible = dCount > 0;
+        if (dCount > 0) {
+          const h = Math.max(0.12, Math.min(0.85, 0.08 + dCount * 0.015));
+          drawStackBody.scale.y = h / 0.5;
+          drawStackTopBadge.position.y = h + 0.008;
+          if (drawStackTopBadge.material.map) drawStackTopBadge.material.map.dispose();
+          drawStackTopBadge.material.map = createDeckCountBadgeTex(dCount);
+          drawStackTopBadge.material.needsUpdate = true;
+        }
+
+        // Discard pile: show top 8 rounded cards with slight natural angle scatter
+        while (discardGroup.children.length > 0) discardGroup.remove(discardGroup.children[0]);
+        const shown = game.discardPile.slice(-8);
+        shown.forEach((card, i) => {
+          const m = createFlatCardMesh(card, true);
+          const seed = ((card.id * 9301 + 49297) % 233280) / 233280;
+          m.position.set((seed - 0.5) * 0.12, i * 0.03 + 0.015, ((seed * 7) % 1 - 0.5) * 0.12);
+          m.rotation.y = (seed - 0.5) * 0.42;
+          discardGroup.add(m);
+        });
+      }
+
+      /* =========================================================================
+       * 5. GAMEPLAY FLOW, SPECIAL CARDS, TEK KART TIMER & AI BOTS
+       * ========================================================================= */
+      const toastEl = document.getElementById('toast');
+      let toastTimer = null;
+      function showToast(msg, kind = 'default') {
+        toastEl.textContent = msg;
+        toastEl.className = `toast visible ${kind}`;
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2500);
+      }
+
+      function startNewRound() {
+        if (game.botTimer) clearTimeout(game.botTimer);
+        clearAllAnimations();
+        document.getElementById('end-modal').classList.remove('open');
+        document.getElementById('suit-modal').classList.remove('open');
+
+        // Clear existing human card meshes
+        for (const rec of humanCardVisuals.values()) humanHandGroup.remove(rec.group);
+        humanCardVisuals.clear();
+
+        const deck = createDeck52();
+        game.players.forEach((p) => {
+          p.hand = deck.splice(0, 7);
+        });
+
+        // Sort human hand nicely by suit & rank before dealing
+        sortHumanHand();
+
+        // Pick a non-special opening card for center discard pile
+        const nonSpecialIdx = deck.findIndex((c) => !SPECIAL_RANKS.has(c.rank));
+        const openingCard = deck.splice(nonSpecialIdx >= 0 ? nonSpecialIdx : 0, 1)[0];
+
+        game.drawPile = deck;
+        game.discardPile = [];
+        game.activeSuit = openingCard.suit;
+        game.pendingPenalty = 0;
+        game.turn = 0;
+        game.phase = 'dealing';
+        game.hasDrawnThisTurn = false;
+        game.tekKart = { active: false, deadline: 0, declared: false };
+
+        dealingActive = true;
+        dealtHumanIds.clear();
+        dealtBotCounts.fill(0);
+
+        let visualDeckCount = 52;
+        rebuildHumanHand3D(true);
+        rebuildBotFans3D();
+        rebuildCenterStacks3D(visualDeckCount);
+        updateHUD();
+
+        // Staggered spinning deal: 28 cards dealt round-robin from center draw deck!
+        const deckOrigin = new THREE.Vector3(-1.35, 0.72, -0.55);
+        const humanDestBase = new THREE.Vector3(0, 1.38, 4.95);
+        const dealStepMs = 42;
+        let step = 0;
+
+        for (let cardIdx = 0; cardIdx < 7; cardIdx++) {
+          for (let pIdx = 0; pIdx < 4; pIdx++) {
+            const dealOrder = step++;
+            const c = game.players[pIdx].hand[cardIdx];
+            scheduleFX(() => {
+              if (game.phase !== 'dealing') return;
+              visualDeckCount = Math.max(game.drawPile.length, visualDeckCount - 1);
+              rebuildCenterStacks3D(visualDeckCount);
+              if (dealOrder % 2 === 0) sound.playCardDraw();
+
+              const targetPos =
+                pIdx === 0
+                  ? new THREE.Vector3(humanDestBase.x + (cardIdx - 3) * 0.85, humanDestBase.y, humanDestBase.z)
+                  : new THREE.Vector3(...botAnchors[pIdx].pos);
+
+              spawnFlyingCard({
+                card: c,
+                startPos: deckOrigin,
+                endPos: targetPos,
+                faceUp: false,
+                mode: 'deal',
+                duration: 0.34,
+                arcHeight: 1.45,
+                endYaw: pIdx === 0 ? 0 : botAnchors[pIdx].rotY,
+                onLand: () => {
+                  if (game.phase !== 'dealing') return;
+                  if (pIdx === 0) {
+                    dealtHumanIds.add(c.id);
+                    rebuildHumanHand3D(false);
+                  } else {
+                    dealtBotCounts[pIdx]++;
+                    rebuildBotFans3D();
+                  }
+                },
+              });
+            }, dealOrder * dealStepMs);
+          }
+        }
+
+        // Flip opening card onto discard pile right after the 28 cards are dealt!
+        scheduleFX(() => {
+          if (game.phase !== 'dealing') return;
+          sound.playCardDraw();
+          spawnFlyingCard({
+            card: openingCard,
+            startPos: deckOrigin,
+            endPos: new THREE.Vector3(1.25, 0.12, -0.55),
+            faceUp: true,
+            mode: 'flip-open',
+            duration: 0.44,
+            arcHeight: 1.85,
+            endYaw: (Math.random() - 0.5) * 0.35,
+            onLand: () => {
+              if (game.phase !== 'dealing') return;
+              dealingActive = false;
+              game.discardPile = [openingCard];
+              game.phase = 'play';
+              sound.playCardSlap(1.05);
+              rebuildHumanHand3D(false);
+              rebuildBotFans3D();
+              rebuildCenterStacks3D();
+              update3DSuitEmblem();
+              updateHUD();
+              showToast(
+                `El ${game.round} başladı! Açılış kartı: ${SUIT_META[openingCard.suit].sym} ${openingCard.rank}`,
+                'success'
+              );
+            },
+          });
+        }, 28 * dealStepMs + 180);
+      }
+
+      function sortHumanHand() {
+        game.players[0].hand.sort((a, b) => {
+          const s = SUITS.indexOf(a.suit) - SUITS.indexOf(b.suit);
+          return s !== 0 ? s : RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank);
+        });
+      }
+
+      function triggerTekKartWindow() {
+        game.tekKart.active = true;
+        game.tekKart.declared = false;
+        game.tekKart.deadline = performance.now() + 3000;
+        showToast('SON 1 KART! 3 saniye içinde "TEK KART!" butonuna bas!', 'danger');
+      }
+
+      function humanDeclareTekKart() {
+        if (!game.tekKart.active || game.tekKart.declared) return;
+        game.tekKart.declared = true;
+        game.tekKart.active = false;
+        sound.playTekKart();
+        showToast('TEK KART! Güvenle bildirildi!', 'success');
+        updateHUD();
+      }
+
+      function penalizeMissedTekKart() {
+        game.tekKart.active = false;
+        game.tekKart.declared = false;
+        if (game.phase === 'ended' || game.players[0].hand.length !== 1) return;
+
+        sound.playPenaltySeven();
+        showToast('Yakalandın! Tek Kart demediğin için +2 ceza kartı çektin!', 'danger');
+        for (let i = 0; i < 2; i++) {
+          const c = popFromDrawPile();
+          if (c) game.players[0].hand.push(c);
+        }
+        sortHumanHand();
+        rebuildHumanHand3D();
+        rebuildCenterStacks3D();
+        updateHUD();
+      }
+
+      function playCard(playerIdx, cardId, chosenSuitForBot = null) {
+        const p = game.players[playerIdx];
+        const idx = p.hand.findIndex((c) => c.id === cardId);
+        if (idx === -1) return;
+
+        const card = p.hand[idx];
+        if (!isCardPlayable(card)) {
+          if (playerIdx === 0) {
+            sound.playError();
+            showToast(
+              game.pendingPenalty > 0
+                ? `Aktif +${game.pendingPenalty} ceza var! Sadece 7'li atabilir veya cezayı çekebilirsin.`
+                : 'Bu kart ortadaki kartla eşleşmiyor.',
+              'error'
+            );
+          }
+          return;
+        }
+
+        // Capture exact 3D launch origin before removing from hand
+        const originPos = new THREE.Vector3();
+        if (playerIdx === 0) {
+          const rec = humanCardVisuals.get(card.id);
+          if (rec) {
+            rec.group.getWorldPosition(originPos);
+          } else {
+            originPos.set(0, 1.4, 4.6);
+          }
+        } else {
+          originPos.set(...botAnchors[playerIdx].pos);
+        }
+
+        // Remove card from hand
+        p.hand.splice(idx, 1);
+
+        const destPos = new THREE.Vector3(
+          1.25,
+          0.08 + Math.min(game.discardPile.length, 8) * 0.03,
+          -0.55
+        );
+
+        if (playerIdx === 0) {
+          rebuildHumanHand3D();
+        } else {
+          rebuildBotFans3D();
+        }
+
+        game.phase = 'anim';
+        sound.playCardDraw();
+
+        spawnFlyingCard({
+          card,
+          startPos: originPos,
+          endPos: destPos,
+          faceUp: true,
+          mode: 'play',
+          duration: 0.44,
+          arcHeight: 2.15,
+          endYaw: (Math.random() - 0.5) * 0.44,
+          onLand: () => {
+            game.discardPile.push(card);
+            sound.playCardSlap(playerIdx === 0 ? 1.04 : 0.94);
+            rebuildCenterStacks3D();
+
+            // Check instant Win!
+            if (p.hand.length === 0) {
+              finishRound(playerIdx);
+              return;
+            }
+
+            // Check Tek Kart!
+            if (p.hand.length === 1) {
+              if (playerIdx === 0) {
+                triggerTekKartWindow();
+              } else {
+                // Bot calls Tek Kart 85% of time, occasionally forgets (+2 penalty!)
+                if (Math.random() < 0.85) {
+                  sound.playTekKart();
+                  showToast(`${p.name}: "TEK KART!"`, 'success');
+                } else {
+                  sound.playPenaltySeven();
+                  spawnPenaltyShockwave(new THREE.Vector3(...botAnchors[playerIdx].pos), 2);
+                  showToast(`${p.name} Tek Kart demeyi unuttu! +2 ceza kartı çekti!`, 'danger');
+                  for (let k = 0; k < 2; k++) {
+                    const pen = popFromDrawPile();
+                    if (pen) p.hand.push(pen);
+                  }
+                  rebuildBotFans3D();
+                  rebuildCenterStacks3D();
+                }
+              }
+            }
+
+            // Handle Special Card Effects
+            if (card.rank === '7') {
+              game.activeSuit = card.suit;
+              game.pendingPenalty += 2;
+              update3DSuitEmblem();
+              sound.playPenaltySeven();
+              spawnPenaltyShockwave(destPos, game.pendingPenalty);
+              showToast(`${p.name} 7'li attı! Ceza +${game.pendingPenalty} oldu!`, 'danger');
+              advanceTurn(1);
+              return;
+            }
+
+            if (card.rank === 'J') {
+              if (playerIdx === 0) {
+                game.phase = 'choose-suit';
+                document.getElementById('suit-modal').classList.add('open');
+                updateHUD();
+                return;
+              } else {
+                const newSuit = chosenSuitForBot || pickBestSuitForBot(p.hand);
+                game.activeSuit = newSuit;
+                update3DSuitEmblem();
+                spawnSuitHologram(newSuit);
+                sound.playSuitSelect();
+                showToast(`${p.name} Vale attı — Yeni tür: ${SUIT_META[newSuit].sym} ${SUIT_META[newSuit].name}`);
+                advanceTurn(1);
+                return;
+              }
+            }
+
+            if (card.rank === 'A' || card.rank === '10') {
+              game.activeSuit = card.suit;
+              update3DSuitEmblem();
+              sound.playSkip();
+              const skippedName = game.players[(playerIdx + 1) % 4].name;
+              showToast(`${p.name} ${card.rank} attı — ${skippedName} pas geçiyor!`);
+              advanceTurn(2);
+              return;
+            }
+
+            // Regular card
+            game.activeSuit = card.suit;
+            update3DSuitEmblem();
+            advanceTurn(1);
+          },
+        });
+      }
+
+      function humanChooseSuit(suit) {
+        if (game.phase !== 'choose-suit') return;
+        document.getElementById('suit-modal').classList.remove('open');
+        game.activeSuit = suit;
+        update3DSuitEmblem();
+        spawnSuitHologram(suit);
+        sound.playSuitSelect();
+        showToast(`Yeni tür seçildi: ${SUIT_META[suit].sym} ${SUIT_META[suit].name}`, 'success');
+        advanceTurn(1);
+      }
+
+      function humanDrawAction() {
+        if (game.turn !== 0 || game.phase !== 'play') return;
+
+        // If 7'li penalty is active -> draw all pendingPenalty cards with shockwave & camera shake!
+        if (game.pendingPenalty > 0) {
+          const count = game.pendingPenalty;
+          game.pendingPenalty = 0;
+          spawnPenaltyShockwave(new THREE.Vector3(0.0, 0.1, -0.55), count + 2);
+          for (let i = 0; i < count; i++) {
+            const c = popFromDrawPile();
+            if (c) game.players[0].hand.push(c);
+          }
+          sound.playPenaltySeven();
+          sortHumanHand();
+          rebuildHumanHand3D();
+          rebuildCenterStacks3D();
+          showToast(`+${count} ceza kartı çektin! Sıra sonraki oyuncuya geçti.`, 'danger');
+          advanceTurn(1);
+          return;
+        }
+
+        if (game.hasDrawnThisTurn) {
+          sound.playError();
+          showToast('Bu tur zaten kart çektin. Uygun kart at veya "Pas Geç".', 'error');
+          return;
+        }
+
+        const card = popFromDrawPile();
+        if (!card) {
+          showToast('Destede kart kalmadı, pas geçebilirsin.');
+          game.hasDrawnThisTurn = true;
+          updateHUD();
+          return;
+        }
+
+        game.players[0].hand.push(card);
+        game.hasDrawnThisTurn = true;
+        sound.playCardDraw();
+        sortHumanHand();
+        rebuildHumanHand3D();
+        rebuildCenterStacks3D();
+        updateHUD();
+
+        if (isCardPlayable(card)) {
+          showToast(`Çektiğin ${SUIT_META[card.suit].sym} ${card.rank} oynanabilir! Atabilir veya Pas Geçebilirsin.`, 'success');
+        } else {
+          showToast(`Çektiğin ${SUIT_META[card.suit].sym} ${card.rank} uymadı — "Pas Geç" butonuna bas.`);
+        }
+      }
+
+      function humanPassAction() {
+        if (game.turn !== 0 || game.phase !== 'play') return;
+        if (game.pendingPenalty > 0) {
+          sound.playError();
+          showToast('Aktif 7\'li cezasını çekmeden pas geçemezsin!', 'error');
+          return;
+        }
+        if (!game.hasDrawnThisTurn) {
+          sound.playError();
+          showToast('Pas geçmeden önce desteden 1 kart çekmelisin.', 'error');
+          return;
+        }
+        sound.playCardSlap(0.85);
+        advanceTurn(1);
+      }
+
+      function advanceTurn(step = 1) {
+        if (game.phase === 'ended') return;
+        game.turn = (game.turn + step) % 4;
+        game.hasDrawnThisTurn = false;
+
+        if (game.turn === 0) {
+          game.phase = 'play';
+          updateHUD();
+        } else {
+          game.phase = 'bot';
+          updateHUD();
+          if (game.botTimer) clearTimeout(game.botTimer);
+          game.botTimer = setTimeout(executeBotTurn, 780);
+        }
+      }
+
+      function pickBestSuitForBot(hand) {
+        const counts = { spades: 0, hearts: 0, diamonds: 0, clubs: 0 };
+        for (const c of hand) {
+          if (c.rank !== 'J') counts[c.suit]++;
+        }
+        return SUITS.slice().sort((a, b) => counts[b] - counts[a])[0];
+      }
+
+      function executeBotTurn() {
+        if (game.phase === 'ended' || game.turn === 0) return;
+        const pIdx = game.turn;
+        const bot = game.players[pIdx];
+
+        // 1. Handle active 7'li penalty
+        if (game.pendingPenalty > 0) {
+          const seven = bot.hand.find((c) => c.rank === '7');
+          if (seven) {
+            playCard(pIdx, seven.id);
+            return;
+          }
+          const count = game.pendingPenalty;
+          game.pendingPenalty = 0;
+          spawnPenaltyShockwave(new THREE.Vector3(0.0, 0.1, -0.55), count + 2);
+          const deckOrigin = new THREE.Vector3(-1.35, 0.65, -0.55);
+          const botDest = new THREE.Vector3(...botAnchors[pIdx].pos);
+          for (let i = 0; i < count; i++) {
+            const c = popFromDrawPile();
+            if (c) {
+              bot.hand.push(c);
+              scheduleFX(() => {
+                spawnFlyingCard({
+                  card: c,
+                  startPos: deckOrigin,
+                  endPos: botDest,
+                  faceUp: false,
+                  mode: 'deal',
+                  duration: 0.32,
+                  arcHeight: 1.5,
+                  endYaw: botAnchors[pIdx].rotY,
+                });
+              }, i * 65);
+            }
+          }
+          sound.playCardDraw();
+          rebuildBotFans3D();
+          rebuildCenterStacks3D();
+          showToast(`${bot.name} +${count} ceza kartı çekti!`);
+          advanceTurn(1);
+          return;
+        }
+
+        // 2. Find playable cards & choose smartly
+        const playables = bot.hand.filter((c) => isCardPlayable(c));
+        if (playables.length > 0) {
+          const chosen = chooseSmartBotCard(playables, bot.hand);
+          playCard(pIdx, chosen.id, pickBestSuitForBot(bot.hand.filter((c) => c.id !== chosen.id)));
+          return;
+        }
+
+        // 3. Draw 1 card with spinning deck flight; if playable, play it immediately, else pass!
+        const drawn = popFromDrawPile();
+        if (drawn) {
+          bot.hand.push(drawn);
+          sound.playCardDraw();
+          spawnFlyingCard({
+            card: drawn,
+            startPos: new THREE.Vector3(-1.35, 0.65, -0.55),
+            endPos: new THREE.Vector3(...botAnchors[pIdx].pos),
+            faceUp: false,
+            mode: 'deal',
+            duration: 0.34,
+            arcHeight: 1.4,
+            endYaw: botAnchors[pIdx].rotY,
+            onLand: () => {
+              rebuildBotFans3D();
+            },
+          });
+          rebuildCenterStacks3D();
+          if (isCardPlayable(drawn)) {
+            scheduleFX(() => {
+              if (game.phase !== 'ended') {
+                playCard(pIdx, drawn.id, pickBestSuitForBot(bot.hand.filter((c) => c.id !== drawn.id)));
+              }
+            }, 460);
+            return;
+          }
+        }
+
+        showToast(`${bot.name} kart çekip pas geçti.`);
+        advanceTurn(1);
+      }
+
+      function chooseSmartBotCard(playables, fullHand) {
+        // Save Vale (J) for last if regular matching cards exist; prioritize 7 / A / 10 when opponent has few cards!
+        const nonJacks = playables.filter((c) => c.rank !== 'J');
+        const pool = nonJacks.length > 0 ? nonJacks : playables;
+        const nextPlayerCards = game.players[(game.turn + 1) % 4].hand.length;
+
+        return pool.slice().sort((a, b) => {
+          const score = (c) => {
+            let s = cardPenaltyPoints(c);
+            if (c.rank === '7' && nextPlayerCards <= 3) s += 30;
+            if ((c.rank === 'A' || c.rank === '10') && nextPlayerCards <= 2) s += 28;
+            if (c.rank === 'J') s -= 25;
+            return s;
+          };
+          return score(b) - score(a);
+        })[0];
+      }
+
+      function finishRound(winnerIdx) {
+        if (game.botTimer) clearTimeout(game.botTimer);
+        game.phase = 'ended';
+        game.tekKart.active = false;
+
+        const humanWon = winnerIdx === 0;
+        const winner = game.players[winnerIdx];
+
+        if (humanWon) {
+          playerChips += WIN_REWARD;
+          writeChips(playerChips, true);
+          sound.playVictory();
+        } else {
+          sound.playError();
+        }
+
+        const rows = game.players.map((p, idx) => {
+          const hasSeven = p.hand.some((c) => c.rank === '7');
+          const pts =
+            idx === winnerIdx
+              ? 0
+              : p.hand.reduce((sum, c) => sum + cardPenaltyPoints(c), 0) + (hasSeven ? 25 : 0);
+          return {
+            idx,
+            name: p.name,
+            count: p.hand.length,
+            note: idx === winnerIdx ? 'Kazanan ★' : hasSeven ? 'Pis Yedili (+25)' : '-',
+            pts,
+          };
+        });
+
+        document.getElementById('end-kicker').textContent = `EL ${game.round} SONUCU`;
+        document.getElementById('end-title').textContent = humanWon ? 'ELİ KAZANDIN!' : `${winner.name} Eli Kazandı`;
+        document.getElementById('end-desc').textContent = humanWon
+          ? 'Elindeki tüm kartları ilk bitiren sen oldun ve ödül çiplerini kazandın!'
+          : `${winner.name} tüm kartlarını bitirdi. Elinde 7'li kalan oyunculara ekstra Pis Yedili cezası yazıldı.`;
+
+        document.getElementById('end-tbody').innerHTML = rows
+          .map(
+            (r) => `
+              <tr class="${r.idx === winnerIdx ? 'winner-row' : ''}">
+                <td>${r.name}</td>
+                <td class="num">${r.count}</td>
+                <td>${r.note}</td>
+                <td class="num">${r.pts}</td>
+              </tr>
+            `
+          )
+          .join('');
+
+        const rew = document.getElementById('end-reward');
+        rew.textContent = humanWon ? `+${fmt(WIN_REWARD)} Çip` : '0 Çip';
+        rew.className = `reward-val ${humanWon ? 'pos' : 'neg'}`;
+        document.getElementById('end-modal').classList.add('open');
+        updateHUD();
+      }
+
+      /* =========================================================================
+       * 6. RAYCASTING (HOVER LIFT & CLICK PLAY / DRAW) + HUD BINDINGS
+       * ========================================================================= */
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let hoveredCardId = null;
+
+      function updatePointer(e) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      }
+
+      function getHumanCardMeshes() {
+        const list = [];
+        for (const rec of humanCardVisuals.values()) list.push(rec.group.userData.mesh);
+        return list;
+      }
+
+      let lastHoverAt = 0;
+      renderer.domElement.addEventListener('pointermove', (e) => {
+        const now = performance.now();
+        if (now - lastHoverAt < 30) return;
+        lastHoverAt = now;
+
+        updatePointer(e);
+        raycaster.setFromCamera(pointer, camera);
+
+        const hits = raycaster.intersectObjects(getHumanCardMeshes(), false);
+        if (hits.length > 0) {
+          // Pick closest front-most overlapping card
+          hoveredCardId = hits[0].object.userData.cardId;
+          renderer.domElement.style.cursor = 'pointer';
+        } else {
+          hoveredCardId = null;
+          const deckHits = raycaster.intersectObjects([drawStackBody, drawStackTopBadge], false);
+          renderer.domElement.style.cursor = deckHits.length > 0 ? 'pointer' : 'default';
+        }
+      });
+
+      renderer.domElement.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 || game.phase !== 'play' || game.turn !== 0) return;
+        updatePointer(e);
+        raycaster.setFromCamera(pointer, camera);
+
+        const cardHits = raycaster.intersectObjects(getHumanCardMeshes(), false);
+        if (cardHits.length > 0) {
+          playCard(0, cardHits[0].object.userData.cardId);
+          return;
+        }
+
+        const deckHits = raycaster.intersectObjects([drawStackBody, drawStackTopBadge], false);
+        if (deckHits.length > 0) {
+          humanDrawAction();
+        }
+      });
+
+      function updateHUD() {
+        const meta = SUIT_META[game.activeSuit];
+        const symEl = document.getElementById('hud-suit-sym');
+        symEl.textContent = meta.sym;
+        symEl.style.color = meta.hex;
+        document.getElementById('hud-suit-name').textContent = meta.name;
+
+        const penEl = document.getElementById('hud-penalty');
+        penEl.classList.toggle('active', game.pendingPenalty > 0);
+        penEl.textContent = `7'li Ceza: +${game.pendingPenalty}`;
+
+        document.getElementById('players-strip').innerHTML = game.players
+          .map(
+            (p, idx) => `
+              <div class="p-slot ${game.turn === idx && game.phase !== 'ended' ? 'active' : ''}">
+                <span class="p-name">${p.name}</span>
+                <span class="p-cards ${p.hand.length === 1 ? 'one-left' : ''}">${p.hand.length} kart</span>
+              </div>
+            `
+          )
+          .join('');
+
+        const flow = document.getElementById('flow-msg');
+        const isMyTurn = game.turn === 0 && game.phase === 'play';
+        flow.className = `flow-msg ${isMyTurn ? 'your-turn' : ''}`;
+
+        if (game.phase === 'ended') {
+          flow.textContent = 'El sona erdi.';
+        } else if (game.phase === 'dealing') {
+          flow.textContent = 'Kartlar dağıtılıyor...';
+        } else if (game.phase === 'choose-suit') {
+          flow.textContent = 'Vale oynadın — Yeni kart türünü seç!';
+        } else if (isMyTurn) {
+          if (game.pendingPenalty > 0) {
+            flow.textContent = `Aktif +${game.pendingPenalty} ceza! 7'li at veya cezayı çek.`;
+          } else if (game.hasDrawnThisTurn) {
+            flow.textContent = 'Kart çektin — Oynanabilir kart at veya Pas Geç.';
+          } else {
+            flow.textContent = 'Sıra sende — Parlayan bir kart at veya desteden çek.';
+          }
+        } else {
+          flow.textContent = `${game.players[game.turn].name} oynuyor...`;
+        }
+
+        const drawBtn = document.getElementById('btn-draw');
+        drawBtn.disabled = !isMyTurn || (game.pendingPenalty === 0 && game.hasDrawnThisTurn);
+        drawBtn.textContent = game.pendingPenalty > 0 ? `Cezayı Çek (+${game.pendingPenalty})` : 'Desteden Çek';
+
+        document.getElementById('btn-pass').disabled = !isMyTurn || game.pendingPenalty > 0 || !game.hasDrawnThisTurn;
+
+        const tkBtn = document.getElementById('btn-tekkart');
+        tkBtn.disabled = !game.tekKart.active;
+        tkBtn.classList.toggle('tekkart-urgent', game.tekKart.active);
+        if (!game.tekKart.active) {
+          tkBtn.textContent = 'TEK KART! (Bildir)';
+        }
+      }
+
+      // Bind DOM Events
+      document.getElementById('btn-draw').addEventListener('click', humanDrawAction);
+      document.getElementById('btn-pass').addEventListener('click', humanPassAction);
+      document.getElementById('btn-tekkart').addEventListener('click', humanDeclareTekKart);
+      document.getElementById('btn-next-round').addEventListener('click', () => {
+        game.round++;
+        startNewRound();
+      });
+
+      document.querySelectorAll('.suit-choice').forEach((btn) => {
+        btn.addEventListener('click', () => humanChooseSuit(btn.dataset.suit));
+      });
+
+      document.getElementById('btn-rules').addEventListener('click', () => {
+        document.getElementById('rules-modal').classList.add('open');
+      });
+      document.getElementById('btn-close-rules').addEventListener('click', () => {
+        document.getElementById('rules-modal').classList.remove('open');
+      });
+
+      function syncSoundUI() {
+        document.getElementById('ico-on').style.display = sound.enabled ? 'block' : 'none';
+        document.getElementById('ico-off').style.display = sound.enabled ? 'none' : 'block';
+        document.getElementById('sound-label').textContent = sound.enabled ? 'Ses' : 'Sessiz';
+      }
+      syncSoundUI();
+
+      document.getElementById('btn-sound').addEventListener('click', () => {
+        sound.enabled = !sound.enabled;
+        syncSoundUI();
+        if (sound.enabled) sound.playCardSlap(1.1);
+      });
+
+      /* =========================================================================
+       * 7. ANIMATION LOOP (HOVER LIFT, PLAYABLE AURA, FLIGHT ARCS, TEK KART CLOCK)
+       * ========================================================================= */
+      const clock = new THREE.Clock();
+      let frameId = 0;
+      let contextLost = false;
+
+      function afterDraw(cb) {
+        const gl = renderer.getContext();
+        if (gl && typeof gl.fenceSync === 'function') {
+          const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+          gl.flush();
+          const poll = () => {
+            const st = sync && gl.getSyncParameter(sync, gl.SYNC_STATUS);
+            if (st === gl.UNSIGNALED) frameId = window.setTimeout(poll, 5);
+            else {
+              if (sync) gl.deleteSync(sync);
+              frameId = window.setTimeout(cb, 80);
+            }
+          };
+          frameId = window.setTimeout(poll, 5);
+        } else {
+          frameId = window.setTimeout(cb, 80);
+        }
+      }
+
+      function stepSpring(val, vel, target, stiffness, damping, dt) {
+        const force = (target - val) * stiffness;
+        vel += force * dt;
+        vel *= Math.exp(-damping * dt);
+        val += vel * dt;
+        return [val, vel];
+      }
+
+      function tick() {
+        if (contextLost) return;
+        const dt = Math.min(clock.getDelta(), 0.05);
+        const elapsed = clock.getElapsedTime();
+
+        // Adaptive camera distance + damped 7'li penalty camera shake
+        const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+        const narrowPull = aspect < 1.45 ? (1.45 - aspect) * 4.5 : 0;
+        let shakeX = 0;
+        let shakeY = 0;
+        let shakeZ = 0;
+        if (cameraShake.time > 0) {
+          cameraShake.time = Math.max(0, cameraShake.time - dt);
+          const ratio = cameraShake.time / Math.max(0.01, cameraShake.duration);
+          const amp = cameraShake.intensity * ratio * ratio;
+          shakeX = Math.sin(elapsed * 58) * amp + Math.cos(elapsed * 91) * amp * 0.45;
+          shakeY = Math.cos(elapsed * 64) * amp * 0.72;
+          shakeZ = Math.sin(elapsed * 49) * amp * 0.4;
+        }
+        camera.position.set(
+          shakeX,
+          8.2 + narrowPull * 0.6 + shakeY,
+          10.6 + narrowPull * 0.9 + shakeZ
+        );
+        camera.lookAt(shakeX * 0.35, 0.1 + shakeY * 0.25, 1.4);
+
+        // Rotate glowing center active-suit ring
+        suitEmblemRing.rotation.z += dt * 0.95;
+        suitEmblemGroup.position.y = 0.18 + Math.sin(elapsed * 2.6) * 0.04;
+
+        // Subtle fluid parallax breathing on Human Hand Fan following pointer X
+        const targetFanRotY = THREE.MathUtils.clamp(-pointer.x * 0.065, -0.07, 0.07);
+        humanHandGroup.rotation.y = THREE.MathUtils.damp(humanHandGroup.rotation.y, targetFanRotY, 7, dt);
+
+        // Spring/Lerp Human 3D Hand Fan Interaction (scale zoom, forward pop, neighbor parting)
+        const canHumanPlay = game.turn === 0 && game.phase === 'play';
+        const hoveredRec = hoveredCardId !== null ? humanCardVisuals.get(hoveredCardId) : null;
+        const hoveredIdx = hoveredRec ? hoveredRec.index : -1;
+
+        for (const [id, rec] of humanCardVisuals.entries()) {
+          const isHovered = hoveredCardId === id;
+          const playable = canHumanPlay && isCardPlayable(rec.card);
+
+          // Neighbor spreading when a card is hovered so the inspected card is 100% unobstructed
+          let goalSpreadX = 0;
+          let neighborLiftY = 0;
+          let goalScale = 1.0;
+
+          if (isHovered) {
+            goalScale = 1.22;
+          } else if (hoveredIdx !== -1) {
+            const diff = rec.index - hoveredIdx;
+            const absD = Math.abs(diff);
+            const sign = diff > 0 ? 1 : -1;
+            if (absD === 1) {
+              goalSpreadX = sign * 0.44;
+              neighborLiftY = 0.11;
+              goalScale = 1.04;
+            } else if (absD === 2) {
+              goalSpreadX = sign * 0.21;
+              neighborLiftY = 0.04;
+            } else {
+              goalSpreadX = sign * 0.08;
+            }
+          }
+
+          const goalLiftY = isHovered ? 0.56 : (playable ? 0.1 : 0) + neighborLiftY;
+          const goalLiftZ = isHovered ? 0.72 : playable ? 0.08 : 0;
+
+          [rec.scale, rec.scaleVel] = stepSpring(rec.scale, rec.scaleVel, goalScale, 210, 14, dt);
+          [rec.liftY, rec.liftYVel] = stepSpring(rec.liftY, rec.liftYVel, goalLiftY, 220, 15, dt);
+          [rec.liftZ, rec.liftZVel] = stepSpring(rec.liftZ, rec.liftZVel, goalLiftZ, 200, 15, dt);
+          [rec.spreadX, rec.spreadXVel] = stepSpring(rec.spreadX, rec.spreadXVel, goalSpreadX, 180, 14, dt);
+
+          rec.group.position.x = THREE.MathUtils.damp(rec.group.position.x, rec.targetPos.x + rec.spreadX, 14, dt);
+          rec.group.position.y = THREE.MathUtils.damp(rec.group.position.y, rec.targetPos.y + rec.liftY, 16, dt);
+          rec.group.position.z = THREE.MathUtils.damp(rec.group.position.z, rec.targetPos.z + rec.liftZ, 16, dt);
+          rec.group.scale.setScalar(rec.scale);
+
+          // Newly dealt/drawn cards flip smoothly from back to front into hand
+          rec.flipY = THREE.MathUtils.damp(rec.flipY, 0, 11, dt);
+          rec.group.rotation.y = rec.flipY;
+          rec.group.rotation.z = THREE.MathUtils.damp(rec.group.rotation.z, isHovered ? 0 : rec.targetRotZ, 13, dt);
+          rec.group.rotation.x = THREE.MathUtils.damp(rec.group.rotation.x, isHovered ? 0.2 : 0, 13, dt);
+
+          const auraMat = rec.group.userData.aura.material;
+          if (playable) {
+            auraMat.color.setHex(rec.card.rank === '7' ? 0xf43f5e : isHovered ? 0xf3d06b : 0x34d399);
+            auraMat.opacity = isHovered ? 0.92 : 0.48;
+          } else if (isHovered) {
+            auraMat.color.setHex(0xe2e8f0);
+            auraMat.opacity = 0.22;
+          } else {
+            auraMat.opacity = 0;
+          }
+        }
+
+        // Animate flying cards (dealing spin, play somersault tumble, opening flip)
+        for (let i = flyingCards.length - 1; i >= 0; i--) {
+          const fc = flyingCards[i];
+          fc.elapsed += dt;
+          const t = Math.min(1, fc.elapsed / fc.duration);
+          const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+          fc.mesh.position.lerpVectors(fc.startPos, fc.endPos, ease);
+          fc.mesh.position.y += 4 * t * (1 - t) * fc.arcHeight;
+
+          if (fc.mode === 'play') {
+            // Dramatic mid-air somersault tumble onto center discard pile
+            fc.mesh.rotation.x = ease * Math.PI * 2.0;
+            fc.mesh.rotation.z = Math.sin(t * Math.PI) * 0.42 * fc.spinSign;
+            fc.mesh.rotation.y = ease * (fc.endYaw + Math.PI * 2 * fc.spinSign);
+          } else if (fc.mode === 'deal') {
+            // Brisk casino-dealer horizontal spin toward each player
+            fc.mesh.rotation.y = ease * (fc.endYaw + Math.PI * 3.0 * fc.spinSign);
+            fc.mesh.rotation.z = Math.sin(t * Math.PI) * 0.24 * fc.spinSign;
+            fc.mesh.rotation.x = Math.sin(t * Math.PI) * 0.16;
+          } else if (fc.mode === 'flip-open') {
+            // Opening card flips cleanly 180 deg face-up from deck to discard
+            fc.mesh.rotation.z = (1 - ease) * Math.PI;
+            fc.mesh.rotation.y = ease * fc.endYaw;
+          }
+
+          if (t >= 1) {
+            flyingCards.splice(i, 1);
+            fc.onLand();
+          }
+        }
+
+        // Update 7'li Red & Gold Shockwave Bursts
+        for (let i = shockwaveFXList.length - 1; i >= 0; i--) {
+          const fx = shockwaveFXList[i];
+          fx.elapsed += dt;
+          const p = Math.min(1, fx.elapsed / fx.duration);
+          const easeOut = 1 - Math.pow(1 - p, 3);
+
+          const sRed = (0.45 + easeOut * 6.8) * fx.scalePower;
+          fx.redRing.scale.set(sRed, sRed, 1);
+          fx.redRingMat.opacity = 0.96 * Math.pow(1 - p, 1.45);
+
+          const pGold = Math.max(0, (p - 0.06) / 0.94);
+          const sGold = (0.35 + (1 - Math.pow(1 - pGold, 3)) * 8.2) * fx.scalePower;
+          fx.goldRing.scale.set(sGold, sGold, 1);
+          fx.goldRingMat.opacity = 0.92 * Math.pow(1 - pGold, 1.6);
+
+          fx.pillar.scale.set(1 + easeOut * 2.2, 1 + easeOut * 0.4, 1 + easeOut * 2.2);
+          fx.pillarMat.opacity = 0.42 * Math.pow(1 - p, 2.2);
+
+          for (let j = 0; j < fx.embers.length; j++) {
+            const em = fx.embers[j];
+            em.mesh.position.x += em.vx * dt;
+            em.mesh.position.y = Math.max(0.02, em.mesh.position.y + em.vy * dt);
+            em.mesh.position.z += em.vz * dt;
+            em.vy -= 6.8 * dt;
+            em.mat.opacity = 0.95 * (1 - p);
+            em.mesh.scale.setScalar(Math.max(0.01, 1 - p * 0.7));
+          }
+
+          if (p >= 1) {
+            scene.remove(fx.group);
+            fx.mats.forEach((m) => m.dispose());
+            shockwaveFXList.splice(i, 1);
+          }
+        }
+
+        // Update Vale (J) 3D Glowing Rising Suit Hologram
+        for (let i = hologramFXList.length - 1; i >= 0; i--) {
+          const hx = hologramFXList[i];
+          hx.elapsed += dt;
+          const p = Math.min(1, hx.elapsed / hx.duration);
+
+          // Fast fade-in -> heroic hover -> graceful holographic dissolve
+          const alphaEnv =
+            p < 0.16 ? p / 0.16 : p > 0.72 ? Math.max(0, (1 - p) / 0.28) : 1.0;
+          const riseEase = 1 - Math.pow(1 - Math.min(1, p * 1.45), 3);
+
+          hx.symGroup.position.y = 0.55 + riseEase * 2.25 + Math.sin(elapsed * 4.5) * 0.08;
+          hx.symGroup.rotation.y += dt * 2.2;
+          const sc = 0.55 + riseEase * 0.65;
+          hx.symGroup.scale.setScalar(sc);
+          hx.symMat.opacity = 0.95 * alphaEnv;
+
+          hx.beam.scale.set(0.75 + riseEase * 0.45, 0.35 + riseEase * 0.85, 0.75 + riseEase * 0.45);
+          hx.beamMat.opacity = 0.24 * alphaEnv;
+
+          hx.ringA.rotation.z += dt * 2.4;
+          hx.ringA.position.y = 0.22 + riseEase * 1.1;
+          hx.ringA.scale.setScalar(0.85 + riseEase * 0.55);
+          hx.ringAMat.opacity = 0.82 * alphaEnv;
+
+          hx.ringB.rotation.z -= dt * 1.9;
+          hx.ringB.position.y = 0.45 + riseEase * 1.75;
+          hx.ringB.scale.setScalar(1.0 + riseEase * 0.42);
+          hx.ringBMat.opacity = 0.68 * alphaEnv;
+
+          for (let j = 0; j < hx.motes.length; j++) {
+            const mt = hx.motes[j];
+            mt.ang += dt * 1.6;
+            mt.mesh.position.x = Math.cos(mt.ang) * mt.rad;
+            mt.mesh.position.z = Math.sin(mt.ang) * mt.rad;
+            mt.mesh.position.y += mt.speedY * dt;
+            mt.mat.opacity = 0.85 * alphaEnv;
+          }
+
+          if (p >= 1) {
+            scene.remove(hx.group);
+            hx.mats.forEach((m) => m.dispose());
+            if (hx.tex) hx.tex.dispose();
+            hologramFXList.splice(i, 1);
+          }
+        }
+
+        // Update 3-second TEK KART! live countdown
+        if (game.tekKart.active && !game.tekKart.declared) {
+          const remMs = game.tekKart.deadline - performance.now();
+          if (remMs <= 0) {
+            penalizeMissedTekKart();
+          } else {
+            document.getElementById('btn-tekkart').textContent = `TEK KART! (${(remMs / 1000).toFixed(1)}s)`;
+          }
+        }
+
+        renderer.render(scene, camera);
+        if (isSoftwareGl) afterDraw(tick);
+        else frameId = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      });
+
+      renderer.domElement.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        contextLost = true;
+        cancelAnimationFrame(frameId);
+        clearTimeout(frameId);
+      });
+
+      renderer.domElement.addEventListener('webglcontextrestored', () => {
+        contextLost = false;
+        tick();
+      });
+
+      startNewRound();
+      if (!isSoftwareGl) renderer.compile(scene, camera);
+      tick();
+      })();
+    </script>
+  </body>
+</html>

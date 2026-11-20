@@ -1,0 +1,4451 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>3D Business Tour — Masa Oyunları 3D</title>
+    <meta
+      name="description"
+      content="Three.js ile 24 kareli 3D Business Tour strateji kutu oyunu. 3D binalar, festival alanı, açık artırma, devralma ve anında tekel zaferleri."
+    />
+    <style>
+      :root {
+        --bg-void: #050814;
+        --panel-bg: rgba(9, 15, 32, 0.9);
+        --panel-soft: rgba(14, 24, 48, 0.84);
+        --border-subtle: rgba(148, 163, 184, 0.22);
+        --border-gold: rgba(243, 208, 107, 0.42);
+        --human: #00d2ff;
+        --bot: #ff2a5f;
+        --gold: #f3d06b;
+        --emerald: #34d399;
+        --text-main: #f8fafc;
+        --text-dim: #cbd5e1;
+        --text-muted: #8ea1c2;
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg-void);
+        color: var(--text-main);
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        user-select: none;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #canvas-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background: radial-gradient(ellipse 75% 65% at 50% 48%, #101c3d 0%, #070d20 58%, #040712 100%);
+        touch-action: none;
+      }
+
+      #canvas-wrap canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ================= TOP HUD BAR ================= */
+      .hud-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        padding: 10px 18px;
+        background: linear-gradient(180deg, rgba(5, 9, 22, 0.95) 0%, rgba(9, 15, 32, 0.84) 100%);
+        border-bottom: 1px solid rgba(0, 210, 255, 0.24);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .brand-zone {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex-shrink: 0;
+      }
+
+      .brand-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.08rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        background: linear-gradient(90deg, #00d2ff 0%, #f3d06b 65%, #ff2a5f 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        white-space: nowrap;
+      }
+
+      .brand-sub {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+
+      .brand-sub strong {
+        color: var(--gold);
+      }
+
+      /* Players Cash & Monopoly Progress Strip */
+      .players-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .p-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px;
+        border-radius: 10px;
+        background: rgba(12, 21, 44, 0.85);
+        border: 1px solid var(--border-subtle);
+        white-space: nowrap;
+        transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease);
+      }
+
+      .p-card.human.active {
+        border-color: var(--human);
+        box-shadow: 0 0 16px rgba(0, 210, 255, 0.25);
+      }
+
+      .p-card.bot.active {
+        border-color: var(--bot);
+        box-shadow: 0 0 16px rgba(255, 42, 95, 0.25);
+      }
+
+      .p-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .p-dot.human {
+        background: var(--human);
+        box-shadow: 0 0 8px var(--human);
+      }
+
+      .p-dot.bot {
+        background: var(--bot);
+        box-shadow: 0 0 8px var(--bot);
+      }
+
+      .p-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+
+      .p-top-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .p-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      .p-cash {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+
+      .p-monopoly {
+        font-size: 0.69rem;
+        color: var(--text-muted);
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Right HUD Controls */
+      .hud-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .chip-box {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 11px;
+        border-radius: 9px;
+        background: rgba(18, 28, 56, 0.88);
+        border: 1px solid var(--border-gold);
+        white-space: nowrap;
+      }
+
+      .chip-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+
+      .chip-unit {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+      }
+
+      .hud-btn {
+        appearance: none;
+        height: 36px;
+        padding: 0 11px;
+        border-radius: 9px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(14, 24, 48, 0.86);
+        color: var(--text-dim);
+        font-family: inherit;
+        font-size: 0.77rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease), transform 120ms var(--ease);
+      }
+
+      .hud-btn:hover {
+        background: rgba(24, 40, 78, 0.95);
+        border-color: rgba(0, 210, 255, 0.5);
+        color: var(--text-main);
+      }
+
+      .hud-btn:active {
+        transform: scale(0.96);
+      }
+
+      .hud-btn.lobby-link {
+        border-color: var(--border-gold);
+        color: var(--gold);
+        background: linear-gradient(135deg, rgba(243, 208, 107, 0.16), rgba(14, 24, 48, 0.92));
+      }
+
+      /* ================= STATUS BANNER & TOAST ================= */
+      .status-banner {
+        position: fixed;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 18;
+        padding: 6px 16px;
+        border-radius: 9px;
+        background: rgba(8, 14, 30, 0.88);
+        border: 1px solid rgba(0, 210, 255, 0.36);
+        color: var(--text-main);
+        font-size: 0.82rem;
+        font-weight: 600;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      }
+
+      .status-banner.world-tour {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+
+      .toast {
+        position: fixed;
+        top: 108px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-10px);
+        z-index: 35;
+        padding: 9px 18px;
+        border-radius: 9px;
+        background: rgba(8, 14, 30, 0.96);
+        border: 1px solid var(--border-gold);
+        color: var(--text-main);
+        font-size: 0.82rem;
+        font-weight: 600;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.58);
+        transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+      }
+
+      .toast.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .toast.success {
+        border-color: rgba(52, 211, 153, 0.72);
+        color: #a7f3d0;
+      }
+
+      .toast.danger {
+        border-color: rgba(255, 42, 95, 0.72);
+        color: #fecdd3;
+      }
+
+      /* ================= BOTTOM-LEFT GAME LOG ================= */
+      .log-panel {
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        z-index: 20;
+        width: 310px;
+        max-width: calc(44vw - 24px);
+        padding: 12px 14px;
+        border-radius: 13px;
+        background: var(--panel-bg);
+        border: 1px solid var(--border-subtle);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.58);
+      }
+
+      .log-header {
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .log-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        max-height: 148px;
+        overflow-y: auto;
+        font-size: 0.76rem;
+        line-height: 1.4;
+      }
+
+      .log-item {
+        color: var(--text-dim);
+        padding-bottom: 4px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      }
+
+      .log-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .log-item.human {
+        color: #bae6fd;
+      }
+
+      .log-item.bot {
+        color: #fecdd3;
+      }
+
+      .log-item.event {
+        color: var(--gold);
+      }
+
+      /* ================= BOTTOM-RIGHT ACTION CARD ================= */
+      .action-card {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        z-index: 20;
+        width: 344px;
+        max-width: calc(56vw - 24px);
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: linear-gradient(160deg, rgba(14, 24, 52, 0.94) 0%, rgba(7, 12, 28, 0.96) 100%);
+        border: 1px solid rgba(0, 210, 255, 0.34);
+        box-shadow: 0 16px 42px rgba(0, 0, 0, 0.65);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .tile-preview {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 11px;
+        border-radius: 10px;
+        background: rgba(5, 10, 24, 0.78);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+      }
+
+      .tile-preview-left {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .tile-swatch {
+        width: 10px;
+        height: 32px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        background: var(--human);
+      }
+
+      .tile-name {
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.94rem;
+        font-weight: 700;
+        color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .tile-sub {
+        font-size: 0.73rem;
+        color: var(--text-muted);
+      }
+
+      .dice-mini {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-shrink: 0;
+      }
+
+      .die-pill {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background: #f8fafc;
+        color: #090e1c;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        font-size: 0.95rem;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--gold);
+      }
+
+      .die-pill.empty {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-muted);
+        border-color: rgba(148, 163, 184, 0.25);
+      }
+
+      .action-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .act-btn {
+        appearance: none;
+        height: 38px;
+        padding: 0 11px;
+        border-radius: 9px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(20, 34, 68, 0.88);
+        color: var(--text-main);
+        font-family: inherit;
+        font-size: 0.77rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color 140ms var(--ease), border-color 140ms var(--ease), transform 110ms var(--ease), opacity 140ms var(--ease);
+      }
+
+      .act-btn.span-2 {
+        grid-column: span 2;
+      }
+
+      .act-btn:hover:not(:disabled) {
+        background: rgba(30, 52, 100, 0.96);
+        border-color: rgba(0, 210, 255, 0.6);
+      }
+
+      .act-btn:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+
+      .act-btn:disabled {
+        opacity: 0.36;
+        cursor: not-allowed;
+      }
+
+      .act-btn.primary {
+        background: linear-gradient(135deg, #00d2ff 0%, #0284c7 100%);
+        border-color: rgba(186, 230, 253, 0.6);
+        color: #041022;
+      }
+
+      .act-btn.gold {
+        background: linear-gradient(135deg, #f3d06b 0%, #c79820 100%);
+        border-color: rgba(254, 240, 138, 0.65);
+        color: #080d1c;
+      }
+
+      .act-btn.emerald {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.32), rgba(6, 78, 59, 0.8));
+        border-color: rgba(52, 211, 153, 0.65);
+        color: #a7f3d0;
+      }
+
+      .act-btn.danger {
+        background: linear-gradient(135deg, rgba(255, 42, 95, 0.3), rgba(110, 14, 42, 0.84));
+        border-color: rgba(255, 42, 95, 0.65);
+        color: #fecdd3;
+      }
+
+      /* ================= MODALS (AUCTION + VICTORY) ================= */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(3, 6, 16, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: 100%;
+        max-width: 460px;
+        padding: 24px;
+        border-radius: 16px;
+        background: linear-gradient(160deg, rgba(15, 25, 54, 0.97) 0%, rgba(6, 11, 26, 0.99) 100%);
+        border: 1px solid var(--border-gold);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.78);
+      }
+
+      .modal-kicker {
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 4px;
+      }
+
+      .modal-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 6px;
+      }
+
+      .modal-desc {
+        font-size: 0.86rem;
+        line-height: 1.5;
+        color: var(--text-dim);
+        margin-bottom: 16px;
+      }
+
+      .auction-box {
+        padding: 14px;
+        border-radius: 12px;
+        background: rgba(5, 10, 24, 0.85);
+        border: 1px solid rgba(0, 210, 255, 0.28);
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .auction-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.85rem;
+      }
+
+      .auction-price {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--gold);
+      }
+
+      .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .reward-pill {
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(5, 10, 24, 0.86);
+        border: 1px solid rgba(52, 211, 153, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        font-size: 0.88rem;
+      }
+
+      .reward-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+
+      .reward-val.pos {
+        color: var(--emerald);
+      }
+
+      .reward-val.neg {
+        color: var(--bot);
+      }
+
+      @media (max-width: 1120px) {
+        .hud-top {
+          flex-wrap: wrap;
+          padding: 8px 12px;
+          gap: 8px;
+        }
+        .players-bar {
+          order: 3;
+          width: 100%;
+          justify-content: center;
+        }
+        .status-banner {
+          top: 112px;
+        }
+        .toast {
+          top: 150px;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .log-panel {
+          display: none;
+        }
+        .action-card {
+          width: calc(100vw - 24px);
+          max-width: none;
+          right: 12px;
+          bottom: 12px;
+        }
+        .hud-btn span {
+          display: none;
+        }
+        .hud-btn.lobby-link span {
+          display: inline;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-wrap" aria-label="3D Business Tour Tahtası"></div>
+
+    <!-- TOP HUD -->
+    <header class="hud-top">
+      <div class="brand-zone">
+        <div class="brand-title">3D BUSINESS TOUR</div>
+        <div class="brand-sub" id="festival-hud">Tur 1 · Festival: <strong>-</strong> (2× Kira)</div>
+      </div>
+
+      <div class="players-bar" aria-label="Oyuncu Ekonomisi ve Tekel İlerlemesi">
+        <div class="p-card human active" id="card-human">
+          <span class="p-dot human" aria-hidden="true"></span>
+          <div class="p-info">
+            <div class="p-top-row">
+              <span class="p-name" id="name-human">Sen</span>
+              <span class="p-cash" id="cash-human">2.000K</span>
+            </div>
+            <div class="p-monopoly" id="mono-human">Renk:0/3 · Ada:0/2 · Hat:0/4</div>
+          </div>
+        </div>
+
+        <div class="p-card bot" id="card-bot">
+          <span class="p-dot bot" aria-hidden="true"></span>
+          <div class="p-info">
+            <div class="p-top-row">
+              <span class="p-name">AI Rakip</span>
+              <span class="p-cash" id="cash-bot">2.000K</span>
+            </div>
+            <div class="p-monopoly" id="mono-bot">Renk:0/3 · Ada:0/2 · Hat:0/4</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-right">
+        <div class="chip-box" title="Ortak Platform Çip Bakiyesi">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="rgba(243,208,107,0.18)" stroke="#F3D06B" stroke-width="1.8" />
+            <circle cx="12" cy="12" r="4.8" stroke="#D4AF37" stroke-width="1.4" stroke-dasharray="2.5 2" />
+          </svg>
+          <span class="chip-val" id="hud-chips">10.000</span>
+          <span class="chip-unit">Çip</span>
+        </div>
+
+        <button type="button" class="hud-btn" id="btn-reset-cam" title="Kamerayı sıfırla (R)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          <span>Kamerayı Sıfırla</span>
+        </button>
+
+        <button type="button" class="hud-btn" id="btn-sound" title="Sesleri aç/kapat">
+          <svg id="ico-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          </svg>
+          <svg id="ico-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+          <span id="sound-label">Ses</span>
+        </button>
+
+        <a href="index.html" class="hud-btn lobby-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+            <path d="M3 12h18" />
+            <path d="M9 6l-6 6 6 6" />
+          </svg>
+          <span>Ana Lobiye Dön</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Status Banner & Toast -->
+    <div class="status-banner" id="status-banner">Sıra sende — Zar At!</div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- BOTTOM-LEFT GAME LOG -->
+    <aside class="log-panel" aria-label="Oyun Günlüğü">
+      <div class="log-header">
+        <span>OYUN GÜNLÜĞÜ</span>
+        <span id="log-turn">Tur 1</span>
+      </div>
+      <ul class="log-list" id="log-list"></ul>
+    </aside>
+
+    <!-- BOTTOM-RIGHT ACTION CARD -->
+    <section class="action-card" aria-label="Hamle Aksiyonları">
+      <div class="tile-preview">
+        <div class="tile-preview-left">
+          <div class="tile-swatch" id="prev-swatch"></div>
+          <div style="min-width:0">
+            <div class="tile-name" id="prev-name">BAŞLANGIÇ</div>
+            <div class="tile-sub" id="prev-sub">Geçerken +300K Maaş</div>
+          </div>
+        </div>
+        <div class="dice-mini" id="dice-mini">
+          <div class="die-pill empty">-</div>
+          <div class="die-pill empty">-</div>
+        </div>
+      </div>
+
+      <div class="action-grid">
+        <button type="button" class="act-btn primary span-2" id="btn-roll">Zar At</button>
+        <button type="button" class="act-btn danger span-2" id="btn-bail" style="display:none">Kefalet Öde (150K)</button>
+        <button type="button" class="act-btn gold" id="btn-buy">Mülkü Satın Al</button>
+        <button type="button" class="act-btn" id="btn-auction">Açık Artırma</button>
+        <button type="button" class="act-btn emerald" id="btn-upgrade">Bina Yükselt</button>
+        <button type="button" class="act-btn danger" id="btn-buyout">Devral (Buyout)</button>
+        <button type="button" class="act-btn span-2" id="btn-end-turn">Turu Bitir</button>
+      </div>
+    </section>
+
+    <!-- MINI AUCTION MODAL -->
+    <div class="modal-backdrop" id="auction-modal" role="dialog" aria-modal="true" aria-labelledby="auc-title">
+      <div class="modal-card">
+        <div class="modal-kicker">AÇIK ARTIRMA</div>
+        <h2 class="modal-title" id="auc-title">Şehir Adı</h2>
+        <p class="modal-desc" id="auc-desc">Mülkü reddettin! AI Rakip ile teklif yarışına katıl.</p>
+        <div class="auction-box">
+          <div class="auction-row">
+            <span>Güncel En Yüksek Teklif</span>
+            <span class="auction-price" id="auc-price">120K</span>
+          </div>
+          <div class="auction-row">
+            <span>Öndeki Teklif Sahibi</span>
+            <strong id="auc-leader">-</strong>
+          </div>
+          <div class="auction-row">
+            <span>Senin Nakdin</span>
+            <span id="auc-cash" style="font-family:'JetBrains Mono',monospace;color:var(--gold)">2.000K</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="act-btn danger" id="btn-auc-fold">Çekil (Pas)</button>
+          <button type="button" class="act-btn" id="btn-auc-50">+50K Teklif</button>
+          <button type="button" class="act-btn gold" id="btn-auc-100">+100K Teklif</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VICTORY / GAME OVER MODAL -->
+    <div class="modal-backdrop" id="victory-modal" role="dialog" aria-modal="true" aria-labelledby="vic-title">
+      <div class="modal-card">
+        <div class="modal-kicker" id="vic-kicker">ZAFER</div>
+        <h2 class="modal-title" id="vic-title">Kazandın!</h2>
+        <p class="modal-desc" id="vic-desc">Stratejik hamlelerinle oyunu tamamladın.</p>
+        <div class="reward-pill">
+          <span>Platform Çip Ödülü</span>
+          <span class="reward-val pos" id="vic-reward">+2.500 Çip</span>
+        </div>
+        <div class="modal-actions">
+          <a href="index.html" class="hud-btn lobby-link">Ana Lobiye Dön</a>
+          <button type="button" class="act-btn primary" id="btn-restart">Yeni Oyun Başlat</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./three.min.js"></script>
+    <script>
+      (() => {
+        'use strict';
+
+        function createStudioEnvScene() {
+          const env = new THREE.Scene();
+          env.add(
+            new THREE.Mesh(
+              new THREE.BoxGeometry(34, 22, 34),
+              new THREE.MeshStandardMaterial({
+                color: 0x10182b,
+                roughness: 0.9,
+                metalness: 0.05,
+                side: THREE.BackSide,
+              })
+            )
+          );
+          env.add(new THREE.AmbientLight(0xffffff, 0.7));
+          return env;
+        }
+
+        function disposeEnvScene(env) {
+          env.traverse((obj) => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+              else obj.material.dispose();
+            }
+          });
+        }
+
+        class OrbitControls {
+          constructor(camera, domElement) {
+            this.object = camera;
+            this.domElement = domElement;
+            this.enabled = true;
+            this.target = new THREE.Vector3();
+            this.enableDamping = false;
+            this.dampingFactor = 0.06;
+            this.enablePan = true;
+            this.minDistance = 2;
+            this.maxDistance = 100;
+            this.minPolarAngle = 0.05;
+            this.maxPolarAngle = Math.PI - 0.05;
+            this.rotateSpeed = 0.85;
+            this.zoomSpeed = 1.0;
+            this.panSpeed = 0.85;
+
+            this._listeners = {};
+            this._spherical = new THREE.Spherical();
+            this._sphericalDelta = new THREE.Spherical();
+            this._panOffset = new THREE.Vector3();
+            this._offset = new THREE.Vector3();
+            this._scale = 1;
+            this._pointers = new Map();
+            this._prevPinchDist = 0;
+            this._prevMid = { x: 0, y: 0 };
+            this._dragButton = -1;
+
+            this._onPointerDown = (e) => {
+              if (!this.enabled) return;
+              this._pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+              if (this._pointers.size === 1) {
+                this._dragButton = e.button;
+                this._dispatch('start');
+              } else if (this._pointers.size === 2) {
+                const pts = Array.from(this._pointers.values());
+                this._prevPinchDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+                this._prevMid = { x: (pts[0].x + pts[1].x) * 0.5, y: (pts[0].y + pts[1].y) * 0.5 };
+                this._dispatch('start');
+              }
+            };
+
+            this._onPointerMove = (e) => {
+              if (!this.enabled || !this._pointers.has(e.pointerId)) return;
+              const prev = this._pointers.get(e.pointerId);
+              const dx = e.clientX - prev.x;
+              const dy = e.clientY - prev.y;
+              this._pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+              const rect = this.domElement.getBoundingClientRect();
+              const h = Math.max(rect.height, 1);
+
+              if (this._pointers.size === 1) {
+                if (this._dragButton === 2 && this.enablePan) {
+                  this._pan(dx, dy, h);
+                } else {
+                  this._sphericalDelta.theta -= (2 * Math.PI * dx * this.rotateSpeed) / h;
+                  this._sphericalDelta.phi -= (2 * Math.PI * dy * this.rotateSpeed) / h;
+                }
+              } else if (this._pointers.size === 2) {
+                const pts = Array.from(this._pointers.values());
+                const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+                const mid = { x: (pts[0].x + pts[1].x) * 0.5, y: (pts[0].y + pts[1].y) * 0.5 };
+                if (this._prevPinchDist > 1 && dist > 1) {
+                  this._scale *= Math.pow(this._prevPinchDist / dist, this.zoomSpeed);
+                }
+                if (this.enablePan) {
+                  this._pan(mid.x - this._prevMid.x, mid.y - this._prevMid.y, h);
+                }
+                this._prevPinchDist = dist;
+                this._prevMid = mid;
+              }
+            };
+
+            this._onPointerUp = (e) => {
+              this._pointers.delete(e.pointerId);
+              if (this._pointers.size < 2) this._prevPinchDist = 0;
+              if (this._pointers.size === 0) this._dragButton = -1;
+            };
+
+            this._onWheel = (e) => {
+              if (!this.enabled) return;
+              e.preventDefault();
+              this._dispatch('start');
+              const factor = Math.pow(0.95, this.zoomSpeed);
+              if (e.deltaY < 0) this._scale *= factor;
+              else if (e.deltaY > 0) this._scale /= factor;
+            };
+
+            this._onContextMenu = (e) => {
+              if (this.enablePan) e.preventDefault();
+            };
+
+            domElement.style.touchAction = 'none';
+            domElement.addEventListener('pointerdown', this._onPointerDown);
+            window.addEventListener('pointermove', this._onPointerMove);
+            window.addEventListener('pointerup', this._onPointerUp);
+            window.addEventListener('pointercancel', this._onPointerUp);
+            domElement.addEventListener('wheel', this._onWheel, { passive: false });
+            domElement.addEventListener('contextmenu', this._onContextMenu);
+          }
+
+          _pan(deltaX, deltaY, clientHeight) {
+            const dist = this.object.position.distanceTo(this.target);
+            const fovRad = (this.object.fov * Math.PI) / 180;
+            const targetDist = dist * Math.tan(fovRad * 0.5);
+            const panX = (2 * deltaX * targetDist * this.panSpeed) / clientHeight;
+            const panY = (2 * deltaY * targetDist * this.panSpeed) / clientHeight;
+            const right = new THREE.Vector3().setFromMatrixColumn(this.object.matrix, 0).multiplyScalar(-panX);
+            const up = new THREE.Vector3().setFromMatrixColumn(this.object.matrix, 1).multiplyScalar(panY);
+            this._panOffset.add(right).add(up);
+          }
+
+          addEventListener(type, fn) {
+            if (!this._listeners[type]) this._listeners[type] = [];
+            this._listeners[type].push(fn);
+          }
+
+          removeEventListener(type, fn) {
+            if (!this._listeners[type]) return;
+            this._listeners[type] = this._listeners[type].filter((f) => f !== fn);
+          }
+
+          _dispatch(type) {
+            const list = this._listeners[type];
+            if (list) list.forEach((fn) => fn({ type, target: this }));
+          }
+
+          update() {
+            this._offset.copy(this.object.position).sub(this.target);
+            this._spherical.setFromVector3(this._offset);
+
+            if (this.enableDamping) {
+              this._spherical.theta += this._sphericalDelta.theta * this.dampingFactor;
+              this._spherical.phi += this._sphericalDelta.phi * this.dampingFactor;
+              this._sphericalDelta.theta *= 1 - this.dampingFactor;
+              this._sphericalDelta.phi *= 1 - this.dampingFactor;
+            } else {
+              this._spherical.theta += this._sphericalDelta.theta;
+              this._spherical.phi += this._sphericalDelta.phi;
+              this._sphericalDelta.set(0, 0, 0);
+            }
+
+            this._spherical.phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, this._spherical.phi));
+            this._spherical.makeSafe();
+
+            this._spherical.radius *= this._scale;
+            this._spherical.radius = Math.max(this.minDistance, Math.min(this.maxDistance, this._spherical.radius));
+            this._scale = 1;
+
+            if (this.enableDamping) {
+              this.target.addScaledVector(this._panOffset, this.dampingFactor);
+              this._panOffset.multiplyScalar(1 - this.dampingFactor);
+            } else {
+              this.target.add(this._panOffset);
+              this._panOffset.set(0, 0, 0);
+            }
+
+            this._offset.setFromSpherical(this._spherical);
+            this.object.position.copy(this.target).add(this._offset);
+            this.object.lookAt(this.target);
+            return true;
+          }
+        }
+
+      /* =========================================================================
+       * 1. SHARED PLATFORM CHIPS (localStorage: masaOyunlariChips + lobby sync)
+       * ========================================================================= */
+      const CHIPS_KEY = 'masaOyunlariChips';
+      const PROFILE_KEY = 'masa_oyunlari_3d_profile';
+      const DEFAULT_CHIPS = 10000;
+      const WIN_CHIP_REWARD = 2500;
+      const fmt = (n) => new Intl.NumberFormat('tr-TR').format(Math.floor(n));
+      const fmtK = (n) => `${fmt(n)}K`;
+
+      function readSharedChips() {
+        try {
+          const direct = localStorage.getItem(CHIPS_KEY);
+          if (direct !== null && Number.isFinite(Number(direct))) {
+            return Math.max(0, Math.floor(Number(direct)));
+          }
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+          if (prof && Number.isFinite(Number(prof.chips))) {
+            const c = Math.max(0, Math.floor(Number(prof.chips)));
+            localStorage.setItem(CHIPS_KEY, String(c));
+            return c;
+          }
+        } catch {}
+        localStorage.setItem(CHIPS_KEY, String(DEFAULT_CHIPS));
+        return DEFAULT_CHIPS;
+      }
+
+      function readPlayerName() {
+        try {
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+          if (prof && prof.username && String(prof.username).trim()) {
+            return String(prof.username).trim().slice(0, 14);
+          }
+        } catch {}
+        return 'Sen';
+      }
+
+      function saveSharedChips(val, humanWon = false) {
+        const c = Math.max(0, Math.floor(val));
+        try {
+          localStorage.setItem(CHIPS_KEY, String(c));
+          localStorage.setItem('mo3d_chips', String(c));
+          const prof = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+          prof.chips = c;
+          if (!prof.username) prof.username = readPlayerName();
+          if (humanWon) {
+            prof.wins = (Number(prof.wins) || 0) + 1;
+            localStorage.setItem('mo3d_wins', String(prof.wins));
+          }
+          localStorage.setItem(PROFILE_KEY, JSON.stringify(prof));
+        } catch {}
+        document.getElementById('hud-chips').textContent = fmt(c);
+      }
+
+      let platformChips = readSharedChips();
+      const humanName = readPlayerName();
+      document.getElementById('hud-chips').textContent = fmt(platformChips);
+      document.getElementById('name-human').textContent = humanName;
+
+      /* =========================================================================
+       * 2. PROCEDURAL WEB AUDIO API SOUND ENGINE
+       * ========================================================================= */
+      class BusinessSound {
+        constructor() {
+          this.ctx = null;
+          this.enabled = true;
+          try {
+            const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+            if (p.soundEnabled === false) this.enabled = false;
+          } catch {}
+        }
+
+        ensure() {
+          if (!this.enabled) return null;
+          if (!this.ctx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return null;
+            this.ctx = new Ctx();
+          }
+          if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+          return this.ctx;
+        }
+
+        playDiceBounce(strength = 1) {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const len = Math.floor(ctx.sampleRate * 0.025);
+          const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.18));
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+
+          const bp = ctx.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.setValueAtTime(2100 + Math.random() * 650, now);
+          bp.Q.setValueAtTime(2.2, now);
+
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.24 * strength, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.028);
+          src.connect(bp);
+          bp.connect(g);
+          g.connect(ctx.destination);
+          src.start(now);
+        }
+
+        playHop(step = 0) {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const base = 390 + (step % 8) * 32;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(base, now);
+          osc.frequency.exponentialRampToValueAtTime(base * 1.25, now + 0.06);
+          g.gain.setValueAtTime(0.085, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.085);
+        }
+
+        playCashGain() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [987.77, 1318.51, 1567.98].forEach((f, i) => {
+            const t = now + i * 0.045;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.075, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.2);
+          });
+        }
+
+        playCashPay() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [520, 380].forEach((f, i) => {
+            const t = now + i * 0.055;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.09, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.13);
+          });
+        }
+
+        playBuild(level = 1) {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const notes = [440, 554.37, 659.25 + level * 60];
+          notes.forEach((f, i) => {
+            const t = now + i * 0.05;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.09, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.24);
+          });
+        }
+
+        playAlert() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          [260, 195].forEach((f, i) => {
+            const t = now + i * 0.095;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(f, t);
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.setValueAtTime(520, t);
+            g.gain.setValueAtTime(0.08, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+            osc.connect(lp);
+            lp.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.15);
+          });
+        }
+
+        playVictory() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98];
+          notes.forEach((f, i) => {
+            const t = now + i * 0.075;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = i >= 3 ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(f, t);
+            g.gain.setValueAtTime(0.001, t);
+            g.gain.linearRampToValueAtTime(0.095, t + 0.015);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.44);
+          });
+        }
+
+        playFireworkBoom() {
+          const ctx = this.ensure();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          // Deep festive pop
+          const osc = ctx.createOscillator();
+          const og = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(145, now);
+          osc.frequency.exponentialRampToValueAtTime(42, now + 0.24);
+          og.gain.setValueAtTime(0.18, now);
+          og.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+          osc.connect(og);
+          og.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.28);
+
+          // Sparkling crackle burst
+          const len = Math.floor(ctx.sampleRate * 0.34);
+          const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) {
+            const env = Math.exp(-i / (len * 0.36));
+            d[i] = (Math.random() * 2 - 1) * env * (Math.random() > 0.72 ? 1.0 : 0.25);
+          }
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          const hp = ctx.createBiquadFilter();
+          hp.type = 'highpass';
+          hp.frequency.setValueAtTime(1800, now);
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.16, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+          src.connect(hp);
+          hp.connect(g);
+          g.connect(ctx.destination);
+          src.start(now);
+        }
+      }
+
+      const sound = new BusinessSound();
+
+      /* =========================================================================
+       * 3. 24-TILE BOARD DEFINITION & MONOPOLY RULES
+       *    Edges:
+       *      Edge 0 (Bottom, right->left): 0(corner), 1, 2, 3, 4, 5, 6(corner)
+       *      Edge 1 (Left,   bottom->top): 6(corner), 7, 8, 9, 10, 11, 12(corner)
+       *      Edge 2 (Top,    left->right): 12(corner), 13, 14, 15, 16, 17, 18(corner)
+       *      Edge 3 (Right,  top->bottom): 18(corner), 19, 20, 21, 22, 23, 0(corner)
+       * ========================================================================= */
+      const GROUP_COLORS = {
+        1: '#f59e0b', // Amber
+        2: '#10b981', // Emerald
+        3: '#3b82f6', // Royal Blue
+        4: '#a855f7', // Violet
+        5: '#ec4899', // Fuchsia
+        6: '#f97316', // Solar Orange
+        island: '#06b6d4', // Tropical Cyan
+      };
+
+      function buildBoardSchema() {
+        return [
+          { idx: 0, type: 'start', name: 'BAŞLANGIÇ', sub: '+300K Maaş', color: '#f3d06b', edge: -1 },
+          { idx: 1, type: 'city', name: 'İstanbul', group: 1, edge: 0, price: 140, baseRent: 45, buildCost: 90, color: GROUP_COLORS[1] },
+          { idx: 2, type: 'city', name: 'Atina', group: 1, edge: 0, price: 160, baseRent: 50, buildCost: 100, color: GROUP_COLORS[1] },
+          { idx: 3, type: 'chance', name: 'ŞANS', sub: 'Kader Kartı', color: '#38bdf8', edge: 0 },
+          { idx: 4, type: 'city', name: 'Roma', group: 2, edge: 0, price: 190, baseRent: 60, buildCost: 110, color: GROUP_COLORS[2] },
+          { idx: 5, type: 'city', name: 'Madrid', group: 2, edge: 0, price: 210, baseRent: 68, buildCost: 120, color: GROUP_COLORS[2] },
+
+          { idx: 6, type: 'jail', name: 'KAYIP DÜNYA', sub: '2 Tur / 150K', color: '#f43f5e', edge: -1 },
+          { idx: 7, type: 'island', name: 'Maldivler', group: 'island', edge: 1, price: 260, baseRent: 170, buildCost: 0, color: GROUP_COLORS.island },
+          { idx: 8, type: 'city', name: 'Berlin', group: 3, edge: 1, price: 230, baseRent: 75, buildCost: 130, color: GROUP_COLORS[3] },
+          { idx: 9, type: 'city', name: 'Paris', group: 3, edge: 1, price: 250, baseRent: 82, buildCost: 140, color: GROUP_COLORS[3] },
+          { idx: 10, type: 'tax', name: 'VERGİ', sub: '-200K Öde', color: '#fb7185', edge: 1 },
+          { idx: 11, type: 'city', name: 'Londra', group: 3, edge: 1, price: 270, baseRent: 90, buildCost: 150, color: GROUP_COLORS[3] },
+
+          { idx: 12, type: 'worldtour', name: 'DÜNYA TURU', sub: 'İstediğin Kareye Uç', color: '#22d3ee', edge: -1 },
+          { idx: 13, type: 'city', name: 'Dubai', group: 4, edge: 2, price: 290, baseRent: 96, buildCost: 160, color: GROUP_COLORS[4] },
+          { idx: 14, type: 'city', name: 'Seul', group: 4, edge: 2, price: 310, baseRent: 105, buildCost: 170, color: GROUP_COLORS[4] },
+          { idx: 15, type: 'chance', name: 'KADER', sub: 'Şans Kartı', color: '#38bdf8', edge: 2 },
+          { idx: 16, type: 'city', name: 'Tokyo', group: 5, edge: 2, price: 330, baseRent: 115, buildCost: 180, color: GROUP_COLORS[5] },
+          { idx: 17, type: 'city', name: 'Singapur', group: 5, edge: 2, price: 350, baseRent: 122, buildCost: 190, color: GROUP_COLORS[5] },
+
+          { idx: 18, type: 'wheel', name: 'ŞANS ÇARKI', sub: 'Büyük Ödül / Ceza', color: '#facc15', edge: -1 },
+          { idx: 19, type: 'island', name: 'Bora Bora', group: 'island', edge: 3, price: 300, baseRent: 210, buildCost: 0, color: GROUP_COLORS.island },
+          { idx: 20, type: 'city', name: 'Los Angeles', group: 6, edge: 3, price: 370, baseRent: 130, buildCost: 200, color: GROUP_COLORS[6] },
+          { idx: 21, type: 'tax', name: 'VERGİ', sub: '-200K Öde', color: '#fb7185', edge: 3 },
+          { idx: 22, type: 'city', name: 'Chicago', group: 6, edge: 3, price: 390, baseRent: 140, buildCost: 210, color: GROUP_COLORS[6] },
+          { idx: 23, type: 'city', name: 'New York', group: 6, edge: 3, price: 440, baseRent: 160, buildCost: 230, color: GROUP_COLORS[6] },
+        ].map((t) => ({ ...t, owner: null, level: 0 }));
+      }
+
+      const HUMAN = 0;
+      const BOT = 1;
+
+      const state = {
+        tiles: buildBoardSchema(),
+        players: [
+          { id: HUMAN, name: humanName, cash: 2000, pos: 0, jailTurns: 0, doublesCount: 0, color: '#00d2ff', hex: 0x00d2ff },
+          { id: BOT, name: 'AI Rakip', cash: 2000, pos: 0, jailTurns: 0, doublesCount: 0, color: '#ff2a5f', hex: 0xff2a5f },
+        ],
+        turn: HUMAN,
+        roundCount: 1,
+        festivalTileIdx: 1,
+        phase: 'roll', // 'roll' | 'rolling' | 'moving' | 'action' | 'worldtour' | 'auction' | 'bot' | 'ended'
+        lastDice: [],
+        extraRoll: false,
+        canBuyCurrent: false,
+        canUpgradeCurrent: false,
+        canBuyoutCurrent: false,
+        inspectedTileIdx: 0,
+        auction: null,
+      };
+
+      function isOwnable(tile) {
+        return tile.type === 'city' || tile.type === 'island';
+      }
+
+      function hasColorMonopoly(playerId, group) {
+        if (typeof group !== 'number') return false;
+        const groupTiles = state.tiles.filter((t) => t.group === group);
+        return groupTiles.length > 0 && groupTiles.every((t) => t.owner === playerId);
+      }
+
+      function getCurrentRent(tile) {
+        if (!isOwnable(tile)) return 0;
+        let rent = tile.baseRent;
+        if (tile.type === 'city') {
+          const mult = [1, 2.1, 3.6, 5.8][tile.level] || 1;
+          rent = Math.round(tile.baseRent * mult);
+          if (tile.owner !== null && hasColorMonopoly(tile.owner, tile.group)) {
+            rent *= 2;
+          }
+        }
+        if (state.festivalTileIdx === tile.idx) {
+          rent *= 2;
+        }
+        return rent;
+      }
+
+      function getBuyoutCost(tile) {
+        if (tile.type !== 'city' || tile.level >= 3) return Infinity;
+        const currentValue = tile.price + tile.level * tile.buildCost;
+        return currentValue * 2;
+      }
+
+      function getMonopolyProgress(playerId) {
+        let colorGroups = 0;
+        for (let g = 1; g <= 6; g++) {
+          if (hasColorMonopoly(playerId, g)) colorGroups++;
+        }
+        const islands = state.tiles.filter((t) => t.type === 'island' && t.owner === playerId).length;
+        let bestEdgeCount = 0;
+        let completedEdge = -1;
+        for (let edge = 0; edge < 4; edge++) {
+          const edgeOwnables = state.tiles.filter((t) => t.edge === edge && isOwnable(t));
+          const owned = edgeOwnables.filter((t) => t.owner === playerId).length;
+          if (owned > bestEdgeCount) bestEdgeCount = owned;
+          if (edgeOwnables.length > 0 && owned === edgeOwnables.length) completedEdge = edge;
+        }
+        return { colorGroups, islands, bestEdgeCount, completedEdge };
+      }
+
+      function checkInstantVictory(playerId) {
+        const prog = getMonopolyProgress(playerId);
+        if (prog.colorGroups >= 3) {
+          finishMatch(playerId, 'ÜÇLÜ TEKEL ZAFERİ', '3 farklı renk grubunun tamamına sahip olarak anında zafer kazandı!');
+          return true;
+        }
+        if (prog.completedEdge !== -1) {
+          finishMatch(playerId, 'ÇİZGİ TEKELİ ZAFERİ', 'Tahtanın bir kenarındaki tüm mülkleri toplayarak anında zafer kazandı!');
+          return true;
+        }
+        if (prog.islands >= 2) {
+          finishMatch(playerId, 'TURİZM TEKELİ ZAFERİ', 'Maldivler ve Bora Bora adalarının ikisini birden alarak anında zafer kazandı!');
+          return true;
+        }
+        return false;
+      }
+
+      /* =========================================================================
+       * 4. THREE.JS 3D BOARD, BUILDINGS, FESTIVAL RING, PAWNS & PHYSICS DICE
+       * ========================================================================= */
+      const canvasWrap = document.getElementById('canvas-wrap');
+
+      const isSoftwareGl = (() => {
+        try {
+          const probe = document.createElement('canvas');
+          const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+          if (!gl) return true;
+          const ext = gl.getExtension('WEBGL_debug_renderer_info');
+          const param = ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER;
+          const gpu = String(gl.getParameter(param) || '');
+          gl.getExtension('WEBGL_lose_context')?.loseContext();
+          return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
+        } catch {
+          return true;
+        }
+      })();
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: !isSoftwareGl,
+        powerPreference: 'high-performance',
+      });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 0.85;
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = !isSoftwareGl;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      canvasWrap.appendChild(renderer.domElement);
+
+      const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x040712);
+      scene.fog = new THREE.FogExp2(0x040712, 0.014);
+
+      // Balanced studio PMREM environment with subtle cyan, crimson & gold reflection strips
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const roomEnv = createStudioEnvScene();
+      const envCyanStrip = new THREE.Mesh(
+        new THREE.PlaneGeometry(18, 2.0),
+        new THREE.MeshBasicMaterial({ color: 0x0088b8, side: THREE.DoubleSide })
+      );
+      envCyanStrip.position.set(-12, 3.6, 8);
+      envCyanStrip.lookAt(0, 0, 0);
+      roomEnv.add(envCyanStrip);
+
+      const envCrimsonStrip = new THREE.Mesh(
+        new THREE.PlaneGeometry(18, 2.0),
+        new THREE.MeshBasicMaterial({ color: 0xb81d46, side: THREE.DoubleSide })
+      );
+      envCrimsonStrip.position.set(12, 3.6, -8);
+      envCrimsonStrip.lookAt(0, 0, 0);
+      roomEnv.add(envCrimsonStrip);
+
+      const envGoldStrip = new THREE.Mesh(
+        new THREE.PlaneGeometry(14, 1.6),
+        new THREE.MeshBasicMaterial({ color: 0xb89c4d, side: THREE.DoubleSide })
+      );
+      envGoldStrip.position.set(0, 7.5, -13);
+      envGoldStrip.lookAt(0, 0, 0);
+      roomEnv.add(envGoldStrip);
+
+      scene.environment = pmrem.fromScene(roomEnv, 0.045).texture;
+      if ('environmentIntensity' in scene) {
+        scene.environmentIntensity = 0.45;
+      }
+      disposeEnvScene(roomEnv);
+      pmrem.dispose();
+
+      const DEFAULT_CAM_POS = new THREE.Vector3(0, 16.4, 15.8);
+      const DEFAULT_CAM_TARGET = new THREE.Vector3(0, 0, 0.4);
+
+      const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 140);
+      camera.position.copy(DEFAULT_CAM_POS);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = !isSoftwareGl;
+      controls.dampingFactor = 0.06;
+      controls.minDistance = 9;
+      controls.maxDistance = 32;
+      controls.maxPolarAngle = Math.PI / 2.22;
+      controls.target.copy(DEFAULT_CAM_TARGET);
+      controls.update();
+
+      let camResetting = false;
+      const cinematicCam = {
+        mode: 'none', // 'none' | 'buyout' | 'victory'
+        elapsed: 0,
+        duration: 2.5,
+        angle: 0,
+        radius: 17.5,
+        height: 12.2,
+        focus: new THREE.Vector3(0, 0.5, 0),
+        returnPos: new THREE.Vector3(),
+        returnTarget: new THREE.Vector3(),
+      };
+      controls.addEventListener('start', () => {
+        camResetting = false;
+        cinematicCam.mode = 'none';
+      });
+
+      // Balanced Anti-Glare Studio Lighting + Soft Neon Glow + Subtle Floor Reflections
+      const ambientLight = new THREE.AmbientLight(0xdce8ff, 0.42);
+      scene.add(ambientLight);
+
+      const hemi = new THREE.HemisphereLight(0x88b4f8, 0x091026, 0.32);
+      scene.add(hemi);
+
+      const keyLight = new THREE.DirectionalLight(0xfff1d6, 0.98);
+      keyLight.position.set(11, 22, 12);
+      keyLight.castShadow = !isSoftwareGl;
+      if (!isSoftwareGl) {
+        keyLight.shadow.mapSize.set(2048, 2048);
+        keyLight.shadow.camera.near = 4;
+        keyLight.shadow.camera.far = 48;
+        const d = 14;
+        keyLight.shadow.camera.left = -d;
+        keyLight.shadow.camera.right = d;
+        keyLight.shadow.camera.top = d;
+        keyLight.shadow.camera.bottom = -d;
+        keyLight.shadow.bias = -0.00045;
+        keyLight.shadow.normalBias = 0.02;
+        keyLight.shadow.radius = 3.2;
+      }
+      scene.add(keyLight);
+
+      const rimBlue = new THREE.DirectionalLight(0x00d2ff, 0.42);
+      rimBlue.position.set(-14, 10, -10);
+      scene.add(rimBlue);
+
+      const rimCrimson = new THREE.DirectionalLight(0xff2a5f, 0.36);
+      rimCrimson.position.set(14, 8, -12);
+      scene.add(rimCrimson);
+
+      const centerNeonLight = new THREE.PointLight(0x00d2ff, 3.2, 20, 1.55);
+      centerNeonLight.position.set(0, 2.8, 0);
+      scene.add(centerNeonLight);
+
+      // Low perimeter neon point lights that spill subtle reflections onto the dark lounge floor
+      const floorNeonBlue = new THREE.PointLight(0x00d2ff, 6.5, 22, 1.5);
+      floorNeonBlue.position.set(-8.6, 0.25, 8.6);
+      scene.add(floorNeonBlue);
+
+      const floorNeonCrimson = new THREE.PointLight(0xff2a5f, 6.0, 22, 1.5);
+      floorNeonCrimson.position.set(8.6, 0.25, -8.6);
+      scene.add(floorNeonCrimson);
+
+      const floorNeonGold = new THREE.PointLight(0xf3d06b, 4.5, 20, 1.6);
+      floorNeonGold.position.set(8.6, 0.25, 8.6);
+      scene.add(floorNeonGold);
+
+      /* ------------------ PROCEDURAL CANVAS TEXTURES ------------------ */
+      function makeTex(canvas, repeat = false) {
+        const t = new THREE.CanvasTexture(canvas);
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = maxAniso;
+        if (repeat) {
+          t.wrapS = THREE.RepeatWrapping;
+          t.wrapT = THREE.RepeatWrapping;
+        }
+        t.needsUpdate = true;
+        return t;
+      }
+
+      function makeDataTex(canvas, repeat = false) {
+        const t = new THREE.CanvasTexture(canvas);
+        t.colorSpace = THREE.NoColorSpace;
+        t.anisotropy = maxAniso;
+        if (repeat) {
+          t.wrapS = THREE.RepeatWrapping;
+          t.wrapT = THREE.RepeatWrapping;
+        }
+        t.needsUpdate = true;
+        return t;
+      }
+
+      function createCenterCourtTex() {
+        const s = 1024;
+        const c = document.createElement('canvas');
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext('2d');
+
+        const bg = ctx.createRadialGradient(s / 2, s / 2, 40, s / 2, s / 2, s * 0.6);
+        bg.addColorStop(0, '#102148');
+        bg.addColorStop(0.55, '#09132c');
+        bg.addColorStop(1, '#050918');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, s, s);
+
+        // Subtle architectural neon coordinate grid
+        ctx.strokeStyle = 'rgba(0, 210, 255, 0.1)';
+        ctx.lineWidth = 2;
+        for (let i = 64; i < s; i += 64) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, s);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(0, i);
+          ctx.lineTo(s, i);
+          ctx.stroke();
+        }
+
+        // Center compass rings
+        ctx.save();
+        ctx.translate(s / 2, s / 2);
+        ctx.strokeStyle = 'rgba(0, 210, 255, 0.35)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, 280, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(243, 208, 107, 0.45)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([14, 10]);
+        ctx.beginPath();
+        ctx.arc(0, 0, 240, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '800 68px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('BUSINESS TOUR', 0, -20);
+
+        ctx.fillStyle = '#f3d06b';
+        ctx.font = '700 32px Outfit, sans-serif';
+        ctx.fillText('3D WORLD EDITION', 0, 42);
+        ctx.restore();
+
+        return makeTex(c);
+      }
+
+      function createTileCanvasTexture(tile) {
+        const s = 256;
+        const c = document.createElement('canvas');
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext('2d');
+
+        // Dark luxury tile base
+        const isCorner = tile.idx % 6 === 0;
+        const bg = ctx.createLinearGradient(0, 0, s, s);
+        if (isCorner) {
+          bg.addColorStop(0, '#16254a');
+          bg.addColorStop(1, '#0a1228');
+        } else {
+          bg.addColorStop(0, '#121d3a');
+          bg.addColorStop(1, '#091024');
+        }
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, s, s);
+
+        // Top color header bar for properties / special badges
+        ctx.fillStyle = tile.color;
+        ctx.fillRect(0, 0, s, isCorner ? 42 : 52);
+
+        // Subtle inner border
+        ctx.strokeStyle =
+          tile.owner === HUMAN
+            ? '#00d2ff'
+            : tile.owner === BOT
+              ? '#ff2a5f'
+              : 'rgba(148, 163, 184, 0.35)';
+        ctx.lineWidth = tile.owner !== null ? 14 : 6;
+        ctx.strokeRect(4, 4, s - 8, s - 8);
+
+        // Header badge text
+        ctx.fillStyle = '#060c1a';
+        ctx.font = '800 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const headerTag =
+          tile.type === 'city'
+            ? tile.level > 0
+              ? `SEVİYE ${tile.level}`
+              : 'ŞEHİR'
+            : tile.type === 'island'
+              ? 'TURİSTİK ADA'
+              : tile.type === 'start'
+                ? 'BAŞLANGIÇ'
+                : tile.type === 'jail'
+                  ? 'HAPİS'
+                  : tile.type === 'worldtour'
+                    ? 'IŞINLANMA'
+                    : tile.type === 'wheel'
+                      ? 'ÇARK'
+                      : tile.type === 'tax'
+                        ? 'VERGİ'
+                        : 'ŞANS';
+        ctx.fillText(headerTag, s / 2, isCorner ? 22 : 27);
+
+        // Tile main name
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = tile.name.length > 9 ? '800 28px Outfit, sans-serif' : '800 34px Outfit, sans-serif';
+        ctx.fillText(tile.name, s / 2, 118);
+
+        if (isOwnable(tile)) {
+          const rent = getCurrentRent(tile);
+          // Price
+          ctx.fillStyle = '#cbd5e1';
+          ctx.font = '700 24px JetBrains Mono, monospace';
+          ctx.fillText(`Fiyat: ${tile.price}K`, s / 2, 168);
+
+          // Live Rent
+          ctx.fillStyle = state.festivalTileIdx === tile.idx ? '#fde047' : '#38bdf8';
+          ctx.font = '800 26px JetBrains Mono, monospace';
+          ctx.fillText(`Kira: ${rent}K`, s / 2, 208);
+
+          if (state.festivalTileIdx === tile.idx) {
+            ctx.fillStyle = '#f3d06b';
+            ctx.font = '800 18px Outfit, sans-serif';
+            ctx.fillText('★ FESTİVAL 2× ★', s / 2, 74);
+          }
+        } else {
+          ctx.fillStyle = '#f3d06b';
+          ctx.font = '700 24px Plus Jakarta Sans, sans-serif';
+          ctx.fillText(tile.sub || '', s / 2, 178);
+        }
+
+        return makeTex(c);
+      }
+
+      const skyscraperPBRCache = new Map();
+      function getSkyscraperWindowPBR(accentColor) {
+        if (skyscraperPBRCache.has(accentColor)) return skyscraperPBRCache.get(accentColor);
+        const w = 256;
+        const h = 512;
+        const cCol = document.createElement('canvas');
+        const cEm = document.createElement('canvas');
+        const cRgh = document.createElement('canvas');
+        cCol.width = cEm.width = cRgh.width = w;
+        cCol.height = cEm.height = cRgh.height = h;
+        const gCol = cCol.getContext('2d');
+        const gEm = cEm.getContext('2d');
+        const gRgh = cRgh.getContext('2d');
+
+        // Architectural steel curtain-wall mullions
+        gCol.fillStyle = '#0a142c';
+        gCol.fillRect(0, 0, w, h);
+        gEm.fillStyle = '#000000';
+        gEm.fillRect(0, 0, w, h);
+        gRgh.fillStyle = 'rgb(168,168,168)'; // Brushed dark structural frames
+        gRgh.fillRect(0, 0, w, h);
+
+        // Sleek horizontal glass floor spandrels & illuminated window panes
+        for (let row = 0; row < 12; row++) {
+          const y = 16 + row * 40;
+          const isNeonFloor = row === 0 || row === 5 || row === 10;
+          for (let col = 0; col < 5; col++) {
+            const x = 16 + col * 46;
+            const seed = (row * 17 + col * 31) % 11;
+            const lit = isNeonFloor || seed > 2;
+
+            // Glossy dark sapphire glass pane
+            const paneGrad = gCol.createLinearGradient(x, y, x + 34, y + 26);
+            if (isNeonFloor) {
+              paneGrad.addColorStop(0, accentColor);
+              paneGrad.addColorStop(1, '#ffffff');
+            } else if (lit) {
+              paneGrad.addColorStop(0, seed % 3 === 0 ? '#93c5fd' : '#fef08a');
+              paneGrad.addColorStop(1, seed % 3 === 0 ? '#38bdf8' : '#f59e0b');
+            } else {
+              paneGrad.addColorStop(0, '#162952');
+              paneGrad.addColorStop(1, '#0c1836');
+            }
+            gCol.fillStyle = paneGrad;
+            gCol.fillRect(x, y, 34, 24);
+
+            // Mirror-like low roughness on glass panes
+            gRgh.fillStyle = 'rgb(28,28,28)';
+            gRgh.fillRect(x, y, 34, 24);
+
+            // Emissive glow on lit offices & neon sky-bands
+            if (isNeonFloor) {
+              gEm.fillStyle = accentColor;
+              gEm.fillRect(x, y, 34, 24);
+            } else if (lit) {
+              gEm.fillStyle = seed % 3 === 0 ? '#38bdf8' : '#fde047';
+              gEm.fillRect(x + 2, y + 2, 30, 20);
+            }
+          }
+        }
+
+        const pbr = {
+          map: makeTex(cCol),
+          emissiveMap: makeTex(cEm),
+          roughnessMap: makeDataTex(cRgh),
+        };
+        skyscraperPBRCache.set(accentColor, pbr);
+        return pbr;
+      }
+
+      function createLoungeFloorPBR() {
+        const s = 1024;
+        const cCol = document.createElement('canvas');
+        const cRgh = document.createElement('canvas');
+        const cBmp = document.createElement('canvas');
+        cCol.width = cRgh.width = cBmp.width = s;
+        cCol.height = cRgh.height = cBmp.height = s;
+        const gCol = cCol.getContext('2d');
+        const gRgh = cRgh.getContext('2d');
+        const gBmp = cBmp.getContext('2d');
+
+        // Deep smoked obsidian marble tiles
+        gCol.fillStyle = '#050918';
+        gCol.fillRect(0, 0, s, s);
+        gRgh.fillStyle = 'rgb(64,64,64)';
+        gRgh.fillRect(0, 0, s, s);
+        gBmp.fillStyle = 'rgb(128,128,128)';
+        gBmp.fillRect(0, 0, s, s);
+
+        // Subtle stone marbling veins
+        for (let i = 0; i < 48; i++) {
+          const x0 = Math.random() * s;
+          const y0 = Math.random() * s;
+          gCol.strokeStyle = i % 3 === 0 ? 'rgba(56, 189, 248, 0.045)' : 'rgba(148, 163, 184, 0.05)';
+          gCol.lineWidth = 1 + Math.random() * 2.5;
+          gCol.beginPath();
+          gCol.moveTo(x0, y0);
+          gCol.bezierCurveTo(
+            x0 + (Math.random() - 0.5) * 260,
+            y0 + (Math.random() - 0.5) * 260,
+            x0 + (Math.random() - 0.5) * 320,
+            y0 + (Math.random() - 0.5) * 320,
+            x0 + (Math.random() - 0.5) * 420,
+            y0 + (Math.random() - 0.5) * 420
+          );
+          gCol.stroke();
+
+          gRgh.strokeStyle = 'rgba(120,120,120,0.3)';
+          gRgh.lineWidth = 4;
+          gRgh.stroke();
+        }
+
+        // Architectural dark stone tile grout grid
+        const step = 128;
+        gCol.strokeStyle = 'rgba(2, 6, 18, 0.85)';
+        gCol.lineWidth = 3;
+        gRgh.strokeStyle = 'rgb(215,215,215)';
+        gRgh.lineWidth = 4;
+        gBmp.strokeStyle = 'rgb(60,60,60)';
+        gBmp.lineWidth = 4;
+        for (let p = 0; p <= s; p += step) {
+          gCol.beginPath(); gCol.moveTo(p, 0); gCol.lineTo(p, s); gCol.stroke();
+          gCol.beginPath(); gCol.moveTo(0, p); gCol.lineTo(s, p); gCol.stroke();
+          gRgh.beginPath(); gRgh.moveTo(p, 0); gRgh.lineTo(p, s); gRgh.stroke();
+          gRgh.beginPath(); gRgh.moveTo(0, p); gRgh.lineTo(s, p); gRgh.stroke();
+          gBmp.beginPath(); gBmp.moveTo(p, 0); gBmp.lineTo(p, s); gBmp.stroke();
+          gBmp.beginPath(); gBmp.moveTo(0, p); gBmp.lineTo(s, p); gBmp.stroke();
+        }
+
+        const map = makeTex(cCol, true);
+        const roughnessMap = makeDataTex(cRgh, true);
+        const bumpMap = makeDataTex(cBmp, true);
+        map.repeat.set(7, 7);
+        roughnessMap.repeat.set(7, 7);
+        bumpMap.repeat.set(7, 7);
+        return { map, roughnessMap, bumpMap };
+      }
+
+      function createFloorNeonReflectionTex() {
+        const s = 512;
+        const c = document.createElement('canvas');
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, s, s);
+
+        // Soft diffused electric-blue, magenta & golden neon reflection pool cast by the board onto the dark floor
+        const g1 = ctx.createRadialGradient(s * 0.34, s * 0.66, 20, s * 0.36, s * 0.64, s * 0.44);
+        g1.addColorStop(0, 'rgba(0, 210, 255, 0.48)');
+        g1.addColorStop(0.55, 'rgba(0, 140, 220, 0.16)');
+        g1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = g1;
+        ctx.fillRect(0, 0, s, s);
+
+        const g2 = ctx.createRadialGradient(s * 0.68, s * 0.34, 20, s * 0.66, s * 0.36, s * 0.44);
+        g2.addColorStop(0, 'rgba(255, 42, 95, 0.44)');
+        g2.addColorStop(0.55, 'rgba(200, 24, 90, 0.15)');
+        g2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = g2;
+        ctx.fillRect(0, 0, s, s);
+
+        const g3 = ctx.createRadialGradient(s * 0.66, s * 0.68, 12, s * 0.64, s * 0.66, s * 0.34);
+        g3.addColorStop(0, 'rgba(243, 208, 107, 0.28)');
+        g3.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = g3;
+        ctx.fillRect(0, 0, s, s);
+
+        // Crisp blurred neon perimeter echo directly under the board's square footprint
+        ctx.strokeStyle = 'rgba(0, 210, 255, 0.52)';
+        ctx.lineWidth = 22;
+        ctx.filter = 'blur(14px)';
+        ctx.strokeRect(s * 0.23, s * 0.23, s * 0.54, s * 0.54);
+        ctx.filter = 'none';
+
+        return makeTex(c);
+      }
+
+      function createLightColumnTex() {
+        const w = 128;
+        const h = 256;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        const g = ctx.createLinearGradient(0, h, 0, 0);
+        g.addColorStop(0, 'rgba(255, 245, 190, 0.92)');
+        g.addColorStop(0.28, 'rgba(243, 208, 107, 0.55)');
+        g.addColorStop(0.68, 'rgba(245, 158, 11, 0.22)');
+        g.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+
+        // Vertical golden light shafts
+        for (let x = 8; x < w; x += 22) {
+          const sg = ctx.createLinearGradient(0, h, 0, 0);
+          sg.addColorStop(0, 'rgba(255, 255, 235, 0.55)');
+          sg.addColorStop(0.6, 'rgba(254, 240, 138, 0.22)');
+          sg.addColorStop(1, 'rgba(254, 240, 138, 0)');
+          ctx.fillStyle = sg;
+          ctx.fillRect(x, 0, 7, h);
+        }
+        return makeTex(c, true);
+      }
+
+      function createDieFaceTex(val) {
+        const s = 256;
+        const c = document.createElement('canvas');
+        c.width = s;
+        c.height = s;
+        const ctx = c.getContext('2d');
+        const bg = ctx.createRadialGradient(s / 2, s / 2, 10, s / 2, s / 2, s * 0.72);
+        bg.addColorStop(0, '#ffffff');
+        bg.addColorStop(1, '#dbeafe');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, s, s);
+
+        ctx.strokeStyle = 'rgba(0, 210, 255, 0.55)';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(10, 10, s - 20, s - 20);
+
+        const pips = {
+          1: [[0.5, 0.5]],
+          2: [[0.27, 0.27], [0.73, 0.73]],
+          3: [[0.26, 0.26], [0.5, 0.5], [0.74, 0.74]],
+          4: [[0.28, 0.28], [0.72, 0.28], [0.28, 0.72], [0.72, 0.72]],
+          5: [[0.27, 0.27], [0.73, 0.27], [0.5, 0.5], [0.27, 0.73], [0.73, 0.73]],
+          6: [[0.28, 0.24], [0.72, 0.24], [0.28, 0.5], [0.72, 0.5], [0.28, 0.76], [0.72, 0.76]],
+        }[val];
+        const r = val === 1 ? 28 : 20;
+        pips.forEach(([nx, ny]) => {
+          ctx.fillStyle = val === 1 ? '#ff2a5f' : '#091124';
+          ctx.beginPath();
+          ctx.arc(nx * s, ny * s, r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        return makeTex(c);
+      }
+
+      /* ------------------ BUILD 24-TILE 3D SQUARE BOARD ------------------ */
+      const TILE_STEP = 2.18;
+      const HALF_SPAN = 3 * TILE_STEP; // 7 tiles per side -> centers at -3..+3 * TILE_STEP
+
+      function getTileGridCoord(idx) {
+        if (idx <= 6) {
+          // Bottom edge: right (+3) to left (-3)
+          return { gx: 3 - idx, gz: 3, rotY: 0 };
+        }
+        if (idx <= 12) {
+          // Left edge: bottom (+3) to top (-3)
+          return { gx: -3, gz: 3 - (idx - 6), rotY: -Math.PI / 2 };
+        }
+        if (idx <= 18) {
+          // Top edge: left (-3) to right (+3)
+          return { gx: -3 + (idx - 12), gz: -3, rotY: Math.PI };
+        }
+        // Right edge: top (-3) to bottom (+3)
+        return { gx: 3, gz: -3 + (idx - 18), rotY: Math.PI / 2 };
+      }
+
+      function getTileWorldPos(idx) {
+        const { gx, gz } = getTileGridCoord(idx);
+        return new THREE.Vector3(gx * TILE_STEP, 0, gz * TILE_STEP);
+      }
+
+      const boardGroup = new THREE.Group();
+      scene.add(boardGroup);
+
+      // Outer dark satin plinth & perimeter neon underglow rails
+      const plinthSpan = HALF_SPAN * 2 + 2.9;
+      const plinth = new THREE.Mesh(
+        new THREE.BoxGeometry(plinthSpan, 0.62, plinthSpan),
+        new THREE.MeshPhysicalMaterial({
+          color: 0x0b132b,
+          roughness: 0.68,
+          metalness: 0.32,
+          clearcoat: 0.12,
+          clearcoatRoughness: 0.45,
+          envMapIntensity: 0.55,
+        })
+      );
+      plinth.position.y = -0.34;
+      plinth.receiveShadow = !isSoftwareGl;
+      plinth.castShadow = !isSoftwareGl;
+      boardGroup.add(plinth);
+
+      // Glowing Neon Underglow Tubing along all 4 outer sides of the plinth
+      const underglowBarMatBlue = new THREE.MeshBasicMaterial({ color: 0x00d2ff });
+      const underglowBarMatRed = new THREE.MeshBasicMaterial({ color: 0xff2a5f });
+      const underglowBarMatGold = new THREE.MeshBasicMaterial({ color: 0xf3d06b });
+      const railOffset = plinthSpan / 2 + 0.025;
+      const hBarGeo = new THREE.BoxGeometry(plinthSpan + 0.06, 0.055, 0.055);
+      const vBarGeo = new THREE.BoxGeometry(0.055, 0.055, plinthSpan + 0.06);
+
+      const uFront = new THREE.Mesh(hBarGeo, underglowBarMatBlue);
+      uFront.position.set(0, -0.56, railOffset);
+      boardGroup.add(uFront);
+
+      const uLeft = new THREE.Mesh(vBarGeo, underglowBarMatBlue);
+      uLeft.position.set(-railOffset, -0.56, 0);
+      boardGroup.add(uLeft);
+
+      const uBack = new THREE.Mesh(hBarGeo, underglowBarMatRed);
+      uBack.position.set(0, -0.56, -railOffset);
+      boardGroup.add(uBack);
+
+      const uRight = new THREE.Mesh(vBarGeo, underglowBarMatGold);
+      uRight.position.set(railOffset, -0.56, 0);
+      boardGroup.add(uRight);
+
+      // Center court inlay (matte satin finish for zero overhead glare)
+      const courtMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(TILE_STEP * 5 - 0.12, TILE_STEP * 5 - 0.12),
+        new THREE.MeshPhysicalMaterial({
+          map: createCenterCourtTex(),
+          roughness: 0.76,
+          metalness: 0.08,
+          clearcoat: 0,
+          envMapIntensity: 0.32,
+        })
+      );
+      courtMesh.rotation.x = -Math.PI / 2;
+      courtMesh.position.y = 0.01;
+      courtMesh.receiveShadow = !isSoftwareGl;
+      boardGroup.add(courtMesh);
+
+      // Glowing neon perimeter channel around center court
+      const neonRimGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(TILE_STEP * 5 - 0.06, 0.04, TILE_STEP * 5 - 0.06));
+      const neonRim = new THREE.LineSegments(
+        neonRimGeo,
+        new THREE.LineBasicMaterial({ color: 0x00d2ff })
+      );
+      neonRim.position.y = 0.04;
+      boardGroup.add(neonRim);
+
+      // Satin-Reflective Dark Obsidian Lounge Floor (catches soft neon reflections without harsh glare)
+      const floorPBR = createLoungeFloorPBR();
+      const loungeFloorMat = new THREE.MeshPhysicalMaterial({
+        map: floorPBR.map,
+        roughnessMap: floorPBR.roughnessMap,
+        bumpMap: floorPBR.bumpMap,
+        bumpScale: 0.018,
+        color: 0x0d152e,
+        roughness: 0.65,
+        metalness: 0.24,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.38,
+        reflectivity: 0.6,
+        envMapIntensity: 0.75,
+      });
+      const loungeFloor = new THREE.Mesh(new THREE.PlaneGeometry(96, 96), loungeFloorMat);
+      loungeFloor.rotation.x = -Math.PI / 2;
+      loungeFloor.position.y = -0.66;
+      loungeFloor.receiveShadow = !isSoftwareGl;
+      scene.add(loungeFloor);
+
+      // Luminous diffused neon reflection halo spilling from the board onto the dark floor
+      const floorNeonGlowMat = new THREE.MeshBasicMaterial({
+        map: createFloorNeonReflectionTex(),
+        transparent: true,
+        opacity: 0.52,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const floorNeonGlow = new THREE.Mesh(new THREE.PlaneGeometry(plinthSpan * 1.92, plinthSpan * 1.92), floorNeonGlowMat);
+      floorNeonGlow.rotation.x = -Math.PI / 2;
+      floorNeonGlow.position.y = -0.642;
+      scene.add(floorNeonGlow);
+
+      // Build all 24 interactive 3D tiles
+      const tileVisuals = [];
+      const tileHitMeshes = [];
+      const tileSideMat = new THREE.MeshStandardMaterial({ color: 0x162244, roughness: 0.72, metalness: 0.12 });
+
+      state.tiles.forEach((tile) => {
+        const pos = getTileWorldPos(tile.idx);
+        const { rotY } = getTileGridCoord(tile.idx);
+        const size = tile.idx % 6 === 0 ? 2.12 : 2.04;
+
+        const grp = new THREE.Group();
+        grp.position.set(pos.x, 0, pos.z);
+        boardGroup.add(grp);
+
+        const topMat = new THREE.MeshStandardMaterial({
+          map: createTileCanvasTexture(tile),
+          roughness: 0.78,
+          metalness: 0.04,
+          envMapIntensity: 0.25,
+        });
+
+        const block = new THREE.Mesh(
+          new THREE.BoxGeometry(size, 0.14, size),
+          [tileSideMat, tileSideMat, topMat, tileSideMat, tileSideMat, tileSideMat]
+        );
+        block.position.y = 0.07;
+        block.receiveShadow = !isSoftwareGl;
+        block.userData = { tileIdx: tile.idx };
+        grp.add(block);
+        tileHitMeshes.push(block);
+
+        // Glowing owner border frame around tile edge
+        const frameMat = new THREE.MeshStandardMaterial({
+          color: 0x1e293b,
+          emissive: 0x000000,
+          emissiveIntensity: 0.75,
+          roughness: 0.65,
+          metalness: 0.35,
+        });
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(size + 0.08, 0.07, size + 0.08), frameMat);
+        frame.position.y = 0.035;
+        grp.add(frame);
+
+        // World Tour highlight overlay
+        const wtHighlight = new THREE.Mesh(
+          new THREE.RingGeometry(0.65, 0.88, 28),
+          new THREE.MeshBasicMaterial({
+            color: 0xf3d06b,
+            transparent: true,
+            opacity: 0,
+            side: THREE.DoubleSide,
+            depthWrite: false,
+          })
+        );
+        wtHighlight.rotation.x = -Math.PI / 2;
+        wtHighlight.position.y = 0.16;
+        grp.add(wtHighlight);
+
+        // Building mount container (oriented cleanly toward outer edge of tile)
+        const buildingAnchor = new THREE.Group();
+        buildingAnchor.rotation.y = rotY;
+        buildingAnchor.position.set(0, 0.14, 0);
+        grp.add(buildingAnchor);
+
+        tileVisuals.push({
+          grp,
+          block,
+          topMat,
+          frameMat,
+          wtHighlight,
+          buildingAnchor,
+          buildingMesh: null,
+          buildAnim: 1,
+        });
+      });
+
+      function refreshTileVisual(idx, animateBuilding = false) {
+        const tile = state.tiles[idx];
+        const vis = tileVisuals[idx];
+
+        if (vis.topMat.map) vis.topMat.map.dispose();
+        vis.topMat.map = createTileCanvasTexture(tile);
+        vis.topMat.needsUpdate = true;
+
+        if (tile.owner === HUMAN) {
+          vis.frameMat.color.setHex(0x00d2ff);
+          vis.frameMat.emissive.setHex(0x00d2ff);
+          vis.frameMat.emissiveIntensity = 0.9;
+        } else if (tile.owner === BOT) {
+          vis.frameMat.color.setHex(0xff2a5f);
+          vis.frameMat.emissive.setHex(0xff2a5f);
+          vis.frameMat.emissiveIntensity = 0.9;
+        } else {
+          vis.frameMat.color.setHex(0x1e293b);
+          vis.frameMat.emissive.setHex(0x000000);
+          vis.frameMat.emissiveIntensity = 0;
+        }
+
+        // Rebuild 3D Architecture (Detailed Villas / Neon Skyscrapers / Palm Tourist Islands)
+        while (vis.buildingAnchor.children.length > 0) {
+          vis.buildingAnchor.remove(vis.buildingAnchor.children[0]);
+        }
+        vis.buildingMesh = null;
+
+        if (tile.type === 'island') {
+          const isl = createTouristIsland3D(tile.owner);
+          isl.position.set(0, 0.005, 0.42);
+          vis.buildingAnchor.add(isl);
+          vis.buildingMesh = isl;
+          if (animateBuilding) {
+            isl.scale.set(1, 0.05, 1);
+            vis.buildAnim = 0;
+          } else {
+            vis.buildAnim = 1;
+          }
+        } else if (tile.type === 'city' && tile.level > 0 && tile.owner !== null) {
+          const bld = create3DBuilding(tile.level, tile.owner);
+          // Tuck toward outer rear edge of tile so pawns have room in front
+          bld.position.set(0, 0, 0.56);
+          vis.buildingAnchor.add(bld);
+          vis.buildingMesh = bld;
+          if (animateBuilding) {
+            bld.scale.set(1, 0.02, 1);
+            vis.buildAnim = 0;
+          } else {
+            vis.buildAnim = 1;
+          }
+        }
+      }
+
+      /* ------------------ RICH PROCEDURAL 3D ARCHITECTURE (VILLAS, NEON SKYSCRAPERS, PALM ISLANDS) ------------------ */
+      const goldMat = new THREE.MeshPhysicalMaterial({
+        color: 0xf3d06b,
+        metalness: 0.94,
+        roughness: 0.18,
+        clearcoat: 0.5,
+        envMapIntensity: 1.65,
+      });
+      const stuccoMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.72, metalness: 0.04 });
+      const stoneTrimMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.62, metalness: 0.12 });
+      const woodDoorMat = new THREE.MeshStandardMaterial({ color: 0x5c341d, roughness: 0.65, metalness: 0.05 });
+      const foliageMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.78, metalness: 0.02 });
+      const palmFrondMat = new THREE.MeshStandardMaterial({
+        color: 0x16a34a,
+        roughness: 0.58,
+        metalness: 0.04,
+        side: THREE.DoubleSide,
+      });
+      const palmTrunkMat = new THREE.MeshStandardMaterial({ color: 0x7c4a26, roughness: 0.88, metalness: 0.02 });
+      const sandMat = new THREE.MeshStandardMaterial({ color: 0xf6d591, roughness: 0.86, metalness: 0.02 });
+      const warmWinMat = new THREE.MeshStandardMaterial({
+        color: 0xfef08a,
+        emissive: 0xfde047,
+        emissiveIntensity: 1.15,
+        roughness: 0.15,
+      });
+      const poolWaterMat = new THREE.MeshPhysicalMaterial({
+        color: 0x06b6d4,
+        emissive: 0x0891b2,
+        emissiveIntensity: 0.35,
+        roughness: 0.12,
+        metalness: 0.1,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.08,
+      });
+
+      // Shared beveled gabled roof geometry (ExtrudeGeometry)
+      const villaRoofGeo = (() => {
+        const sh = new THREE.Shape();
+        sh.moveTo(-0.34, 0);
+        sh.lineTo(0.34, 0);
+        sh.lineTo(0, 0.26);
+        sh.closePath();
+        const geo = new THREE.ExtrudeGeometry(sh, {
+          depth: 0.52,
+          bevelEnabled: true,
+          bevelSegments: 2,
+          bevelSize: 0.018,
+          bevelThickness: 0.018,
+        });
+        geo.translate(0, 0, -0.26);
+        return geo;
+      })();
+
+      // Shared arched palm frond geometry
+      const palmFrondGeo = (() => {
+        const sh = new THREE.Shape();
+        sh.moveTo(0, 0);
+        sh.quadraticCurveTo(0.06, 0.22, 0.015, 0.44);
+        sh.lineTo(0, 0.48);
+        sh.lineTo(-0.015, 0.44);
+        sh.quadraticCurveTo(-0.06, 0.22, 0, 0);
+        const geo = new THREE.ShapeGeometry(sh, 6);
+        // Curve frond downward gracefully along its length
+        const pos = geo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          const y = pos.getY(i);
+          const archZ = Math.pow(y / 0.48, 1.85) * 0.22;
+          pos.setZ(i, -archZ);
+        }
+        geo.computeVertexNormals();
+        return geo;
+      })();
+
+      function createVillaUnit(ownerHex, twoStory = false) {
+        const g = new THREE.Group();
+        const roofMat = new THREE.MeshPhysicalMaterial({
+          color: ownerHex,
+          emissive: ownerHex,
+          emissiveIntensity: 0.26,
+          roughness: 0.32,
+          metalness: 0.28,
+          clearcoat: 0.48,
+        });
+
+        const hWall = twoStory ? 0.54 : 0.36;
+
+        // 1. Marble terrace plinth + front step
+        const plinthB = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.07, 0.56), stoneTrimMat);
+        plinthB.position.y = 0.035;
+        plinthB.receiveShadow = !isSoftwareGl;
+        g.add(plinthB);
+
+        const step = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.04, 0.14), stoneTrimMat);
+        step.position.set(0, 0.02, -0.32);
+        g.add(step);
+
+        // 2. Main crisp stucco villa body + side bay wing
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.56, hWall, 0.44), stuccoMat);
+        body.position.y = 0.07 + hWall / 2;
+        body.castShadow = !isSoftwareGl;
+        body.receiveShadow = !isSoftwareGl;
+        g.add(body);
+
+        // 3. Beveled pitched gable roof with overhanging eaves
+        const roof = new THREE.Mesh(villaRoofGeo, roofMat);
+        roof.position.y = 0.07 + hWall - 0.01;
+        roof.castShadow = !isSoftwareGl;
+        g.add(roof);
+
+        // 4. Stone chimney stack
+        const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.22, 0.085), stoneTrimMat);
+        chimney.position.set(0.18, 0.07 + hWall + 0.14, 0.08);
+        chimney.castShadow = !isSoftwareGl;
+        g.add(chimney);
+
+        // 5. Front timber door + warm lit windows on front & sides
+        const door = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.19, 0.02), woodDoorMat);
+        door.position.set(0, 0.165, -0.224);
+        g.add(door);
+
+        const winFrontL = new THREE.Mesh(new THREE.PlaneGeometry(0.11, 0.11), warmWinMat);
+        winFrontL.position.set(-0.16, 0.24, -0.224);
+        winFrontL.rotation.y = Math.PI;
+        g.add(winFrontL);
+
+        const winFrontR = new THREE.Mesh(new THREE.PlaneGeometry(0.11, 0.11), warmWinMat);
+        winFrontR.position.set(0.16, 0.24, -0.224);
+        winFrontR.rotation.y = Math.PI;
+        g.add(winFrontR);
+
+        if (twoStory) {
+          // Second-floor panoramic balcony + glowing terrace window
+          const balc = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.04, 0.14), stoneTrimMat);
+          balc.position.set(0, 0.37, -0.28);
+          g.add(balc);
+          const winUp = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.13), warmWinMat);
+          winUp.position.set(0, 0.47, -0.224);
+          winUp.rotation.y = Math.PI;
+          g.add(winUp);
+        }
+
+        // 6. Miniature landscaped entrance shrubs
+        const bushL = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), foliageMat);
+        bushL.position.set(-0.24, 0.11, -0.26);
+        const bushR = bushL.clone();
+        bushR.position.x = 0.24;
+        g.add(bushL, bushR);
+
+        return g;
+      }
+
+      function create3DBuilding(level, ownerId) {
+        const ownerHex = ownerId === HUMAN ? 0x00d2ff : 0xff2a5f;
+        const ownerCss = ownerId === HUMAN ? '#00d2ff' : '#ff2a5f';
+        const root = new THREE.Group();
+
+        if (level === 1) {
+          // Level 1: Detailed Single Pitched-Roof Luxury Villa
+          const v = createVillaUnit(ownerHex, false);
+          v.scale.setScalar(1.06);
+          root.add(v);
+        } else if (level === 2) {
+          // Level 2: Twin Luxury Villa Estate with Glowing Courtyard Pool
+          const deck = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.06, 0.72), stoneTrimMat);
+          deck.position.y = 0.03;
+          deck.receiveShadow = !isSoftwareGl;
+          root.add(deck);
+
+          const pool = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.025, 0.38), poolWaterMat);
+          pool.position.set(0, 0.065, -0.06);
+          root.add(pool);
+
+          const v1 = createVillaUnit(ownerHex, false);
+          v1.position.set(-0.4, 0.05, 0.02);
+          v1.scale.setScalar(0.86);
+
+          const v2 = createVillaUnit(ownerHex, true);
+          v2.position.set(0.39, 0.05, 0.02);
+          v2.scale.setScalar(0.88);
+          root.add(v1, v2);
+        } else {
+          // Level 3: Multi-Tiered Glass-Windowed Neon Skyscraper with Spire & Aviation Beacon
+          const pbr = getSkyscraperWindowPBR(ownerCss);
+          const glassTowerMat = new THREE.MeshPhysicalMaterial({
+            map: pbr.map,
+            emissive: 0xffffff,
+            emissiveMap: pbr.emissiveMap,
+            emissiveIntensity: 0.92,
+            roughnessMap: pbr.roughnessMap,
+            roughness: 1.0,
+            metalness: 0.62,
+            clearcoat: 0.94,
+            clearcoatRoughness: 0.08,
+            envMapIntensity: 1.85,
+          });
+          const neonFinMat = new THREE.MeshStandardMaterial({
+            color: ownerHex,
+            emissive: ownerHex,
+            emissiveIntensity: 1.65,
+            roughness: 0.16,
+            metalness: 0.4,
+          });
+
+          // 1. Stepped marble & gold luxury lobby podium
+          const podiumBase = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.14, 0.74), stoneTrimMat);
+          podiumBase.position.y = 0.07;
+          podiumBase.castShadow = !isSoftwareGl;
+          podiumBase.receiveShadow = !isSoftwareGl;
+          root.add(podiumBase);
+
+          const podiumGold = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.2, 0.66), goldMat);
+          podiumGold.position.y = 0.24;
+          podiumGold.castShadow = !isSoftwareGl;
+          root.add(podiumGold);
+
+          // Glowing lobby entrance canopy
+          const lobbyGlow = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.16, 0.06), warmWinMat);
+          lobbyGlow.position.set(0, 0.16, -0.34);
+          root.add(lobbyGlow);
+
+          // 2. Lower Main Curtain-Wall Glass Shaft
+          const lowerShaft = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.96, 0.58), glassTowerMat);
+          lowerShaft.position.y = 0.82;
+          lowerShaft.castShadow = !isSoftwareGl;
+          root.add(lowerShaft);
+
+          // 4 Vertical Corner Neon Light Fins along lower shaft
+          [[-0.39, -0.3], [0.39, -0.3], [-0.39, 0.3], [0.39, 0.3]].forEach(([fx, fz]) => {
+            const fin = new THREE.Mesh(new THREE.BoxGeometry(0.036, 1.04, 0.036), neonFinMat);
+            fin.position.set(fx, 0.84, fz);
+            root.add(fin);
+          });
+
+          // Mid-tower neon terrace collar
+          const midBand = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.07, 0.64), neonFinMat);
+          midBand.position.y = 1.32;
+          root.add(midBand);
+
+          // 3. Setback Upper Penthouse Glass Tower
+          const upperShaft = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.68, 0.44), glassTowerMat);
+          upperShaft.position.y = 1.68;
+          upperShaft.castShadow = !isSoftwareGl;
+          root.add(upperShaft);
+
+          // 4. Illuminated Penthouse Crown & Golden Observation Ring
+          const crown = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.08, 0.5), neonFinMat);
+          crown.position.y = 2.04;
+          root.add(crown);
+
+          const obsRing = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.032, 10, 24), goldMat);
+          obsRing.rotation.x = Math.PI / 2;
+          obsRing.position.y = 2.13;
+          root.add(obsRing);
+
+          // 5. Tapered Golden Radio Spire + Pulsing Beacon Tip
+          const spire = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.54, 8), goldMat);
+          spire.position.y = 2.38;
+          spire.castShadow = !isSoftwareGl;
+          root.add(spire);
+
+          const beacon = new THREE.Mesh(
+            new THREE.SphereGeometry(0.055, 10, 8),
+            new THREE.MeshBasicMaterial({ color: ownerId === HUMAN ? 0x7dd3fc : 0xfda4af })
+          );
+          beacon.position.y = 2.67;
+          root.add(beacon);
+        }
+
+        return root;
+      }
+
+      function createPalmTree(scale = 1, leanX = 0.16, leanZ = -0.1) {
+        const palm = new THREE.Group();
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(leanX * 0.45, 0.34 * scale, leanZ * 0.45),
+          new THREE.Vector3(leanX, 0.72 * scale, leanZ),
+        ]);
+        const trunk = new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.036 * scale, 7, false), palmTrunkMat);
+        trunk.castShadow = !isSoftwareGl;
+        palm.add(trunk);
+
+        const crown = new THREE.Group();
+        crown.position.set(leanX, 0.72 * scale, leanZ);
+        for (let i = 0; i < 6; i++) {
+          const ang = (i / 6) * Math.PI * 2 + 0.3;
+          const frondHolder = new THREE.Group();
+          frondHolder.rotation.y = ang;
+          const frond = new THREE.Mesh(palmFrondGeo, palmFrondMat);
+          frond.rotation.x = 0.92;
+          frond.scale.setScalar(scale * 0.95);
+          frond.castShadow = !isSoftwareGl;
+          frondHolder.add(frond);
+          crown.add(frondHolder);
+        }
+
+        // Tiny coconuts tucked under fronds
+        const cocoMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.75 });
+        for (let k = 0; k < 3; k++) {
+          const a = (k / 3) * Math.PI * 2;
+          const coco = new THREE.Mesh(new THREE.SphereGeometry(0.032 * scale, 8, 6), cocoMat);
+          coco.position.set(Math.cos(a) * 0.04, -0.025, Math.sin(a) * 0.04);
+          crown.add(coco);
+        }
+        palm.add(crown);
+        return palm;
+      }
+
+      const islandWaterMeshes = [];
+      function createTouristIsland3D(ownerId) {
+        const g = new THREE.Group();
+
+        // 1. Crystal Turquoise Lagoon Base Disc
+        const lagoon = new THREE.Mesh(new THREE.CylinderGeometry(0.84, 0.88, 0.055, 24), poolWaterMat);
+        lagoon.position.y = 0.028;
+        lagoon.receiveShadow = !isSoftwareGl;
+        g.add(lagoon);
+        islandWaterMeshes.push(lagoon);
+
+        // White sea-foam shoreline ring
+        const foam = new THREE.Mesh(
+          new THREE.TorusGeometry(0.64, 0.022, 8, 28),
+          new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.75 })
+        );
+        foam.rotation.x = Math.PI / 2;
+        foam.position.y = 0.06;
+        g.add(foam);
+
+        // 2. Warm Golden Sandy Island Mound
+        const sand = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2), sandMat);
+        sand.scale.set(1.0, 0.34, 0.92);
+        sand.position.y = 0.05;
+        sand.castShadow = !isSoftwareGl;
+        sand.receiveShadow = !isSoftwareGl;
+        g.add(sand);
+
+        // 3. Resort Overwater Thatched Cabana on Wooden Stilts
+        const cabana = new THREE.Group();
+        cabana.position.set(-0.24, 0.16, 0.04);
+        const cBody = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.24), stuccoMat);
+        cBody.position.y = 0.08;
+        cBody.castShadow = !isSoftwareGl;
+        cabana.add(cBody);
+
+        const thatchMat = new THREE.MeshStandardMaterial({
+          color: ownerId === HUMAN ? 0x38bdf8 : ownerId === BOT ? 0xfb7185 : 0xd97706,
+          emissive: ownerId === HUMAN ? 0x00d2ff : ownerId === BOT ? 0xff2a5f : 0x000000,
+          emissiveIntensity: ownerId !== null ? 0.35 : 0,
+          roughness: 0.72,
+        });
+        const cRoof = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.16, 6), thatchMat);
+        cRoof.position.y = 0.23;
+        cRoof.castShadow = !isSoftwareGl;
+        cabana.add(cRoof);
+
+        const cWin = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.08), warmWinMat);
+        cWin.position.set(0, 0.085, -0.124);
+        cWin.rotation.y = Math.PI;
+        cabana.add(cWin);
+        g.add(cabana);
+
+        // 4. Pair of Curved Tropical Palm Trees
+        const palm1 = createPalmTree(1.08, 0.18, -0.12);
+        palm1.position.set(0.24, 0.19, 0.06);
+        const palm2 = createPalmTree(0.84, -0.16, 0.14);
+        palm2.position.set(0.06, 0.21, 0.26);
+        g.add(palm1, palm2);
+
+        // 5. Owner Neon Resort Flag Beacon (when owned)
+        if (ownerId !== null) {
+          const ownerHex = ownerId === HUMAN ? 0x00d2ff : 0xff2a5f;
+          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.62, 8), goldMat);
+          pole.position.set(-0.24, 0.56, 0.04);
+          g.add(pole);
+
+          const orb = new THREE.Mesh(
+            new THREE.OctahedronGeometry(0.085, 0),
+            new THREE.MeshStandardMaterial({
+              color: ownerHex,
+              emissive: ownerHex,
+              emissiveIntensity: 1.4,
+              roughness: 0.15,
+            })
+          );
+          orb.position.set(-0.24, 0.9, 0.04);
+          g.add(orb);
+        }
+
+        return g;
+      }
+
+      /* ------------------ FESTIVAL ROTATING GOLDEN LIGHT COLUMN & FLOATING CONFETTI ------------------ */
+      const festivalGroup = new THREE.Group();
+      const festTorus = new THREE.Mesh(
+        new THREE.TorusGeometry(0.95, 0.055, 16, 48),
+        new THREE.MeshStandardMaterial({
+          color: 0xfde047,
+          emissive: 0xf59e0b,
+          emissiveIntensity: 0.95,
+          metalness: 0.92,
+          roughness: 0.16,
+        })
+      );
+      festTorus.rotation.x = Math.PI / 2;
+      festivalGroup.add(festTorus);
+
+      const festInnerRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.68, 0.028, 12, 36),
+        new THREE.MeshBasicMaterial({
+          color: 0xfef08a,
+          transparent: true,
+          opacity: 0.72,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      );
+      festInnerRing.rotation.x = Math.PI / 2;
+      festInnerRing.position.y = 0.45;
+      festivalGroup.add(festInnerRing);
+
+      // Rotating Volumetric Golden Light Column (Outer Shaft + Bright Inner Core)
+      const festBeamTex = createLightColumnTex();
+      const festOuterColumn = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.86, 1.02, 4.4, 28, 1, true),
+        new THREE.MeshBasicMaterial({
+          map: festBeamTex,
+          color: 0xfde047,
+          transparent: true,
+          opacity: 0.34,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        })
+      );
+      festOuterColumn.position.y = 2.05;
+      festivalGroup.add(festOuterColumn);
+
+      const festCoreColumn = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.56, 4.8, 20, 1, true),
+        new THREE.MeshBasicMaterial({
+          map: festBeamTex,
+          color: 0xfffbeb,
+          transparent: true,
+          opacity: 0.28,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        })
+      );
+      festCoreColumn.position.y = 2.25;
+      festivalGroup.add(festCoreColumn);
+
+      const festStar = new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), goldMat);
+      festStar.position.y = 2.95;
+      festivalGroup.add(festStar);
+
+      const festPointLight = new THREE.PointLight(0xfde047, 7.5, 9, 1.8);
+      festPointLight.position.y = 1.6;
+      festivalGroup.add(festPointLight);
+
+      // 36 Floating & Swirling 3D Festival Confetti Ribbons
+      const confettiGeo = new THREE.PlaneGeometry(0.11, 0.065);
+      const confettiColors = [0xfde047, 0x00d2ff, 0xff2a5f, 0x34d399, 0xf97316, 0xffffff];
+      const confettiMats = confettiColors.map(
+        (col) =>
+          new THREE.MeshBasicMaterial({
+            color: col,
+            side: THREE.DoubleSide,
+          })
+      );
+      const festivalConfetti = [];
+      for (let i = 0; i < 36; i++) {
+        const cm = new THREE.Mesh(confettiGeo, confettiMats[i % confettiMats.length]);
+        const ang = (i / 36) * Math.PI * 2;
+        const rad = 0.42 + (i % 5) * 0.16;
+        const y = Math.random() * 3.8;
+        cm.position.set(Math.cos(ang) * rad, y, Math.sin(ang) * rad);
+        festivalGroup.add(cm);
+        festivalConfetti.push({
+          mesh: cm,
+          ang,
+          rad,
+          y,
+          speedY: 0.55 + (i % 4) * 0.22,
+          orbitSpeed: (i % 2 === 0 ? 1 : -1) * (1.1 + (i % 3) * 0.45),
+          spinX: 3.5 + (i % 5) * 1.1,
+          spinZ: 2.8 + (i % 4) * 1.2,
+        });
+      }
+      scene.add(festivalGroup);
+
+      function selectRandomFestivalTile(announce = true) {
+        const prev = state.festivalTileIdx;
+        const ownables = state.tiles.filter((t) => isOwnable(t));
+        const picked = ownables[Math.floor(Math.random() * ownables.length)];
+        state.festivalTileIdx = picked.idx;
+
+        if (prev >= 0 && prev < state.tiles.length) refreshTileVisual(prev);
+        refreshTileVisual(picked.idx);
+
+        const pos = getTileWorldPos(picked.idx);
+        festivalGroup.position.set(pos.x, 0.22, pos.z);
+
+        if (announce) {
+          addLog(`★ FESTİVAL ALANI: ${picked.name} seçildi! Kirası 2× katlandı.`, 'event');
+        }
+      }
+
+      /* ------------------ SCULPTED 3D PAWNS ------------------ */
+      function createPawnMesh(hexColor) {
+        const g = new THREE.Group();
+        const profile = [
+          new THREE.Vector2(0.01, 0),
+          new THREE.Vector2(0.34, 0),
+          new THREE.Vector2(0.36, 0.12),
+          new THREE.Vector2(0.22, 0.28),
+          new THREE.Vector2(0.16, 0.64),
+          new THREE.Vector2(0.24, 0.72),
+          new THREE.Vector2(0.14, 0.82),
+          new THREE.Vector2(0.01, 0.82),
+        ];
+        const bodyMat = new THREE.MeshPhysicalMaterial({
+          color: hexColor,
+          emissive: hexColor,
+          emissiveIntensity: 0.18,
+          roughness: 0.65,
+          metalness: 0.18,
+          clearcoat: 0.15,
+          envMapIntensity: 0.45,
+        });
+        const body = new THREE.Mesh(new THREE.LatheGeometry(profile, 28), bodyMat);
+        body.castShadow = !isSoftwareGl;
+        g.add(body);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 24, 18), bodyMat);
+        head.position.y = 0.98;
+        head.castShadow = !isSoftwareGl;
+        g.add(head);
+
+        const collar = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.035, 10, 24), goldMat);
+        collar.rotation.x = Math.PI / 2;
+        collar.position.y = 0.72;
+        g.add(collar);
+
+        return g;
+      }
+
+      const pawnMeshes = [createPawnMesh(0x00d2ff), createPawnMesh(0xff2a5f)];
+      pawnMeshes.forEach((p) => scene.add(p));
+      const pawnSquashBounce = [0, 0]; // Post-landing damped squash recovery per player
+
+      function getPawnRestPos(playerId, tileIdx) {
+        const base = getTileWorldPos(tileIdx);
+        const offset = playerId === HUMAN ? -0.34 : 0.34;
+        return new THREE.Vector3(base.x + offset, 0.145, base.z - 0.18);
+      }
+
+      function syncPawnPositionsImmediate() {
+        pawnMeshes[HUMAN].position.copy(getPawnRestPos(HUMAN, state.players[HUMAN].pos));
+        pawnMeshes[BOT].position.copy(getPawnRestPos(BOT, state.players[BOT].pos));
+        pawnMeshes[HUMAN].scale.set(1, 1, 1);
+        pawnMeshes[BOT].scale.set(1, 1, 1);
+        pawnSquashBounce[0] = 0;
+        pawnSquashBounce[1] = 0;
+      }
+
+      const pawnAnim = {
+        active: false,
+        playerId: 0,
+        pathIndices: [],
+        waypoints: [],
+        stepIdx: 0,
+        stepElapsed: 0,
+        stepDuration: 0.24,
+        highArc: false,
+        onComplete: null,
+      };
+
+      function animatePawnStepByStep(playerId, pathIndices, highArc, onComplete) {
+        pawnAnim.active = true;
+        pawnAnim.playerId = playerId;
+        pawnAnim.pathIndices = pathIndices.slice();
+        pawnAnim.waypoints = pathIndices.map((idx) => getPawnRestPos(playerId, idx));
+        pawnAnim.stepIdx = 0;
+        pawnAnim.stepElapsed = 0;
+        pawnAnim.stepDuration = highArc ? 0.66 : 0.23;
+        pawnAnim.highArc = highArc;
+        pawnAnim.onComplete = onComplete;
+      }
+
+      /* ------------------ NEON TILE RINGS, FIREWORKS & CINEMATIC CAMERA FX ------------------ */
+      const neonRingGeo = new THREE.RingGeometry(0.32, 0.56, 36);
+      const neonFillGeo = new THREE.CircleGeometry(0.55, 28);
+      const sparkGeo = new THREE.SphereGeometry(0.085, 8, 6);
+      const landingRings = [];
+      const fireworkBursts = [];
+      const fxTimers = [];
+
+      function scheduleFX(fn, ms) {
+        const id = setTimeout(() => {
+          const i = fxTimers.indexOf(id);
+          if (i !== -1) fxTimers.splice(i, 1);
+          fn();
+        }, ms);
+        fxTimers.push(id);
+        return id;
+      }
+
+      function clearCelebrationFX() {
+        while (fxTimers.length > 0) clearTimeout(fxTimers.pop());
+        while (fireworkBursts.length > 0) {
+          const fw = fireworkBursts.pop();
+          scene.remove(fw.group);
+          fw.mats.forEach((m) => m.dispose());
+        }
+        while (landingRings.length > 0) {
+          const lr = landingRings.pop();
+          scene.remove(lr.group);
+          lr.mats.forEach((m) => m.dispose());
+        }
+        cinematicCam.mode = 'none';
+      }
+
+      /**
+       * Spawns an expanding neon light ring & glow pulse whenever a pawn steps on a tile (or dice bounce).
+       */
+      function spawnNeonRingAt(worldPos, hexColor, maxScale = 2.35, yOffset = 0.165) {
+        const group = new THREE.Group();
+        group.position.set(worldPos.x, yOffset, worldPos.z);
+        const mats = [];
+
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: hexColor,
+          transparent: true,
+          opacity: 0.95,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        mats.push(ringMat);
+        const ring = new THREE.Mesh(neonRingGeo, ringMat);
+        ring.rotation.x = -Math.PI / 2;
+        group.add(ring);
+
+        const glowMat = new THREE.MeshBasicMaterial({
+          color: hexColor,
+          transparent: true,
+          opacity: 0.36,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        mats.push(glowMat);
+        const glow = new THREE.Mesh(neonFillGeo, glowMat);
+        glow.rotation.x = -Math.PI / 2;
+        glow.position.y = -0.004;
+        group.add(glow);
+
+        scene.add(group);
+        landingRings.push({
+          group,
+          ring,
+          ringMat,
+          glow,
+          glowMat,
+          mats,
+          maxScale,
+          elapsed: 0,
+          duration: 0.52,
+        });
+      }
+
+      /**
+       * Spawns a vibrant 3D Firework / Golden Particle Explosion in the sky above the board!
+       */
+      function spawnFireworkBurst(originPos, palette = [0xfde047, 0x00d2ff, 0xff2a5f, 0x34d399], count = 34) {
+        sound.playFireworkBoom();
+        const group = new THREE.Group();
+        group.position.copy(originPos);
+        const mats = [];
+        const sparks = [];
+
+        // Brilliant core flash sphere
+        const flashMat = new THREE.MeshBasicMaterial({
+          color: palette[0],
+          transparent: true,
+          opacity: 0.95,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        mats.push(flashMat);
+        const flash = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), flashMat);
+        group.add(flash);
+
+        // Expanding aerial shockwave halo
+        const haloMat = new THREE.MeshBasicMaterial({
+          color: palette[0],
+          transparent: true,
+          opacity: 0.85,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        mats.push(haloMat);
+        const halo = new THREE.Mesh(neonRingGeo, haloMat);
+        halo.rotation.x = -Math.PI / 2;
+        group.add(halo);
+
+        // Spherical burst of glowing golden & neon firework sparks
+        for (let i = 0; i < count; i++) {
+          const col = palette[i % palette.length];
+          const sMat = new THREE.MeshBasicMaterial({
+            color: col,
+            transparent: true,
+            opacity: 1,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          mats.push(sMat);
+          const m = new THREE.Mesh(sparkGeo, sMat);
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+          const spd = 2.6 + Math.random() * 4.4;
+          group.add(m);
+          sparks.push({
+            mesh: m,
+            mat: sMat,
+            vx: Math.sin(phi) * Math.cos(theta) * spd,
+            vy: Math.cos(phi) * spd + 1.8,
+            vz: Math.sin(phi) * Math.sin(theta) * spd,
+          });
+        }
+
+        scene.add(group);
+        fireworkBursts.push({
+          group,
+          flash,
+          flashMat,
+          halo,
+          haloMat,
+          sparks,
+          mats,
+          elapsed: 0,
+          duration: 1.45,
+        });
+      }
+
+      function triggerBuyoutCelebration(tileIdx, playerId) {
+        const pos = getTileWorldPos(tileIdx);
+        const ownerHex = playerId === HUMAN ? 0x00d2ff : 0xff2a5f;
+        spawnNeonRingAt(pos, 0xfde047, 3.4, 0.18);
+        spawnFireworkBurst(new THREE.Vector3(pos.x, 2.35, pos.z), [0xfde047, ownerHex, 0xffffff], 32);
+        scheduleFX(() => {
+          spawnFireworkBurst(new THREE.Vector3(pos.x * 0.65, 3.6, pos.z * 0.65), [ownerHex, 0xfde047, 0x34d399], 26);
+        }, 280);
+
+        // Smooth 2.3-second cinematic camera swoop & orbit around the newly captured landmark
+        cinematicCam.mode = 'buyout';
+        cinematicCam.elapsed = 0;
+        cinematicCam.duration = 2.35;
+        cinematicCam.focus.set(pos.x * 0.68, 0.85, pos.z * 0.68);
+        cinematicCam.angle = Math.atan2(camera.position.x - cinematicCam.focus.x, camera.position.z - cinematicCam.focus.z);
+        cinematicCam.radius = 12.6;
+        cinematicCam.height = 9.4;
+        cinematicCam.returnPos.copy(DEFAULT_CAM_POS);
+        cinematicCam.returnTarget.copy(DEFAULT_CAM_TARGET);
+      }
+
+      function triggerVictoryCelebration(winnerId) {
+        const winnerHex = winnerId === HUMAN ? 0x00d2ff : 0xff2a5f;
+        const palettes = [
+          [0xfde047, winnerHex, 0xffffff],
+          [winnerHex, 0x34d399, 0xfde047],
+          [0xfde047, 0xff2a5f, 0x00d2ff, 0xa855f7],
+        ];
+        const spots = [
+          new THREE.Vector3(0, 4.4, 0),
+          new THREE.Vector3(-4.2, 4.8, -3.2),
+          new THREE.Vector3(4.2, 4.6, -2.6),
+          new THREE.Vector3(-3.4, 4.2, 3.8),
+          new THREE.Vector3(3.6, 5.1, 3.2),
+          new THREE.Vector3(0, 5.6, -1.2),
+        ];
+        spots.forEach((pt, idx) => {
+          scheduleFX(() => {
+            if (state.phase === 'ended') {
+              spawnFireworkBurst(pt, palettes[idx % palettes.length], 38);
+            }
+          }, idx * 380);
+        });
+
+        // Continuous cinematic celebratory camera orbit over the neon skyline
+        cinematicCam.mode = 'victory';
+        cinematicCam.elapsed = 0;
+        cinematicCam.focus.set(0, 0.7, 0);
+        cinematicCam.angle = Math.atan2(camera.position.x, camera.position.z);
+        cinematicCam.radius = 19.2;
+        cinematicCam.height = 12.4;
+      }
+
+      /* ------------------ 3D PHYSICS BOUNCING DICE (GRAVITY + RESTITUTION + FLOOR FRICTION) ------------------ */
+      const DIE_SIZE = 0.82;
+      const dieMats = [3, 4, 1, 6, 2, 5].map(
+        (v) =>
+          new THREE.MeshPhysicalMaterial({
+            map: createDieFaceTex(v),
+            roughness: 0.68,
+            metalness: 0.04,
+            clearcoat: 0,
+            specularIntensity: 0.3,
+            envMapIntensity: 0.32,
+          })
+      );
+
+      function getFaceUpQuat(value, yaw) {
+        const q = new THREE.Quaternion();
+        const e = new THREE.Euler();
+        if (value === 1) e.set(0, 0, 0);
+        else if (value === 6) e.set(Math.PI, 0, 0);
+        else if (value === 2) e.set(-Math.PI / 2, 0, 0);
+        else if (value === 5) e.set(Math.PI / 2, 0, 0);
+        else if (value === 3) e.set(0, 0, Math.PI / 2);
+        else e.set(0, 0, -Math.PI / 2);
+        q.setFromEuler(e);
+        return new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw).multiply(q);
+      }
+
+      const diceMeshes = [0, 1].map(() => {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(DIE_SIZE, DIE_SIZE, DIE_SIZE), dieMats);
+        m.castShadow = !isSoftwareGl;
+        m.receiveShadow = !isSoftwareGl;
+        m.visible = false;
+        scene.add(m);
+        return m;
+      });
+
+      const diceAnim = { active: false, elapsed: 0, maxDuration: 1.35, onDone: null, items: [] };
+
+      function launchDice3D(d1, d2, onDone) {
+        diceAnim.active = true;
+        diceAnim.elapsed = 0;
+        diceAnim.onDone = onDone;
+
+        const floorY = DIE_SIZE / 2 + 0.02;
+        diceAnim.items = [d1, d2].map((val, idx) => {
+          const mesh = diceMeshes[idx];
+          mesh.visible = true;
+          const startX = idx === 0 ? -3.6 : 3.4;
+          const startZ = 3.2 + (idx === 0 ? 0.4 : -0.3);
+          const pos = new THREE.Vector3(startX, 3.6 + idx * 0.45, startZ);
+          mesh.position.copy(pos);
+          mesh.rotation.set(Math.random() * 6, Math.random() * 6, Math.random() * 6);
+
+          // Launch velocity toward the center court with natural spread
+          const targetX = (idx === 0 ? -1.1 : 1.1) + (Math.random() - 0.5) * 0.55;
+          const targetZ = (Math.random() - 0.5) * 1.25;
+          const vx = (targetX - startX) * 1.35;
+          const vz = (targetZ - startZ) * 1.35;
+
+          return {
+            mesh,
+            pos,
+            vel: new THREE.Vector3(vx, 3.2 + idx * 0.7, vz),
+            angVel: new THREE.Vector3(
+              (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 6),
+              (Math.random() - 0.5) * 9,
+              (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 6)
+            ),
+            endQuat: getFaceUpQuat(val, (Math.random() - 0.5) * 1.35),
+            floorY,
+            bounces: 0,
+            settled: false,
+            settleT: 0,
+          };
+        });
+      }
+
+      /* =========================================================================
+       * 5. GAMEPLAY LOGIC, EVENTS, AUCTION, BUYOUT & AI STRATEGY
+       * ========================================================================= */
+      const logListEl = document.getElementById('log-list');
+      const toastEl = document.getElementById('toast');
+      let toastTimer = null;
+
+      function showToast(msg, kind = 'default') {
+        toastEl.textContent = msg;
+        toastEl.className = `toast visible ${kind}`;
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2700);
+      }
+
+      function addLog(text, kind = '') {
+        const li = document.createElement('li');
+        li.className = `log-item ${kind}`;
+        li.textContent = text;
+        logListEl.prepend(li);
+        while (logListEl.children.length > 18) {
+          logListEl.removeChild(logListEl.lastChild);
+        }
+      }
+
+      function adjustCash(playerId, delta) {
+        const p = state.players[playerId];
+        p.cash += delta;
+        if (delta > 0) sound.playCashGain();
+        else if (delta < 0) sound.playCashPay();
+
+        updateHUD();
+        if (p.cash < 0) {
+          const winnerId = playerId === HUMAN ? BOT : HUMAN;
+          finishMatch(
+            winnerId,
+            'İFLAS ZAFERİ',
+            `${p.name} borçlarını ödeyemedi ve iflas etti!`
+          );
+          return false;
+        }
+        return true;
+      }
+
+      function clearTurnActions() {
+        state.canBuyCurrent = false;
+        state.canUpgradeCurrent = false;
+        state.canBuyoutCurrent = false;
+      }
+
+      function rollTurnDice(playerId) {
+        const p = state.players[playerId];
+        const d1 = 1 + Math.floor(Math.random() * 6);
+        const d2 = 1 + Math.floor(Math.random() * 6);
+        const isDouble = d1 === d2;
+        state.lastDice = [d1, d2];
+        state.phase = 'rolling';
+        clearTurnActions();
+        updateHUD();
+
+        launchDice3D(d1, d2, () => {
+          if (state.phase === 'ended') return;
+          const total = d1 + d2;
+          addLog(
+            `${p.name} ${d1}-${d2} (${total})${isDouble ? ' ÇİFT!' : ''} attı.`,
+            playerId === HUMAN ? 'human' : 'bot'
+          );
+
+          // Handle Jail turn
+          if (p.jailTurns > 0) {
+            if (isDouble) {
+              p.jailTurns = 0;
+              p.doublesCount = 0;
+              state.extraRoll = false;
+              addLog(`${p.name} çift atarak Kayıp Dünya'dan kurtuldu!`, 'event');
+              movePlayerBySteps(playerId, total);
+            } else {
+              p.jailTurns--;
+              state.extraRoll = false;
+              addLog(
+                p.jailTurns > 0
+                  ? `${p.name} Kayıp Dünya'da bekliyor (${p.jailTurns} tur kaldı).`
+                  : `${p.name} cezasını tamamladı, gelecek tur serbest.`,
+                playerId === HUMAN ? 'human' : 'bot'
+              );
+              if (playerId === HUMAN) {
+                state.phase = 'action';
+                updateHUD();
+              } else {
+                setTimeout(() => endCurrentTurn(), 700);
+              }
+            }
+            return;
+          }
+
+          // Handle 3 consecutive doubles -> straight to Jail!
+          if (isDouble) {
+            p.doublesCount++;
+            if (p.doublesCount >= 3) {
+              p.doublesCount = 0;
+              state.extraRoll = false;
+              sendToJail(playerId, '3 kez üst üste çift attığı için Kayıp Dünya\'ya gönderildi!');
+              return;
+            }
+            state.extraRoll = true;
+          } else {
+            p.doublesCount = 0;
+            state.extraRoll = false;
+          }
+
+          movePlayerBySteps(playerId, total);
+        });
+      }
+
+      function sendToJail(playerId, reason) {
+        const p = state.players[playerId];
+        p.jailTurns = 2;
+        state.extraRoll = false;
+        sound.playAlert();
+        addLog(`${p.name}: ${reason}`, 'event');
+        showToast(`${p.name} Kayıp Dünya'ya düştü!`, 'danger');
+
+        const path = [p.pos, 6];
+        state.phase = 'moving';
+        animatePawnStepByStep(playerId, path, true, () => {
+          p.pos = 6;
+          state.inspectedTileIdx = 6;
+          if (playerId === HUMAN) {
+            state.phase = 'action';
+            updateHUD();
+          } else {
+            setTimeout(() => endCurrentTurn(), 750);
+          }
+        });
+      }
+
+      function movePlayerBySteps(playerId, steps) {
+        const p = state.players[playerId];
+        const path = [p.pos];
+        let passedStart = false;
+        let cur = p.pos;
+        for (let i = 0; i < steps; i++) {
+          cur = (cur + 1) % 24;
+          path.push(cur);
+          if (cur === 0 && i < steps - 1) passedStart = true;
+        }
+
+        state.phase = 'moving';
+        updateHUD();
+
+        animatePawnStepByStep(playerId, path, false, () => {
+          p.pos = cur;
+          state.inspectedTileIdx = cur;
+          if (passedStart) {
+            addLog(`${p.name} Başlangıç'tan geçti: +300K Maaş!`, 'event');
+            if (!adjustCash(playerId, 300)) return;
+          }
+          resolveLanding(playerId, cur);
+        });
+      }
+
+      function teleportPlayerTo(playerId, targetIdx) {
+        const p = state.players[playerId];
+        const passedStart = targetIdx < p.pos && targetIdx !== 6;
+        const path = [p.pos, targetIdx];
+        state.phase = 'moving';
+        updateWorldTourHighlights(false);
+        updateHUD();
+
+        animatePawnStepByStep(playerId, path, true, () => {
+          p.pos = targetIdx;
+          state.inspectedTileIdx = targetIdx;
+          if (passedStart && targetIdx !== 0) {
+            addLog(`${p.name} Dünya Turu ile Başlangıç'ı geçti: +300K Maaş!`, 'event');
+            if (!adjustCash(playerId, 300)) return;
+          }
+          resolveLanding(playerId, targetIdx);
+        });
+      }
+
+      function resolveLanding(playerId, tileIdx) {
+        const p = state.players[playerId];
+        const tile = state.tiles[tileIdx];
+        clearTurnActions();
+
+        if (tile.type === 'start') {
+          addLog(`${p.name} Başlangıç karesinde: +300K Maaş!`, 'event');
+          if (!adjustCash(playerId, 300)) return;
+          finishLandingStep(playerId);
+          return;
+        }
+
+        if (tile.type === 'jail') {
+          p.jailTurns = 2;
+          state.extraRoll = false;
+          sound.playAlert();
+          addLog(`${p.name} Kayıp Dünya'ya düştü (2 tur bekle veya 150K öde).`, 'event');
+          finishLandingStep(playerId);
+          return;
+        }
+
+        if (tile.type === 'tax') {
+          sound.playAlert();
+          addLog(`${p.name} Vergi ödedi: -200K.`, playerId === HUMAN ? 'human' : 'bot');
+          if (!adjustCash(playerId, -200)) return;
+          finishLandingStep(playerId);
+          return;
+        }
+
+        if (tile.type === 'worldtour') {
+          addLog(`${p.name} DÜNYA TURU'na ulaştı!`, 'event');
+          if (playerId === HUMAN) {
+            state.phase = 'worldtour';
+            updateWorldTourHighlights(true);
+            updateHUD();
+            showToast('Dünya Turu! Tahtada ışınlanmak istediğin herhangi bir kareye tıkla.', 'success');
+          } else {
+            const bestTarget = chooseBotWorldTourTarget();
+            addLog(`AI Rakip Dünya Turu ile ${state.tiles[bestTarget].name} karesine uçuyor!`, 'bot');
+            setTimeout(() => teleportPlayerTo(BOT, bestTarget), 650);
+          }
+          return;
+        }
+
+        if (tile.type === 'wheel' || tile.type === 'chance') {
+          triggerChanceOrWheel(playerId, tile.type === 'wheel');
+          return;
+        }
+
+        // Ownable City or Tourist Island
+        if (tile.owner === null) {
+          if (playerId === HUMAN) {
+            state.canBuyCurrent = p.cash >= tile.price;
+            state.phase = 'action';
+            updateHUD();
+          } else {
+            handleBotUnownedDecision(tile);
+          }
+          return;
+        }
+
+        if (tile.owner === playerId) {
+          if (tile.type === 'city' && tile.level < 3) {
+            if (playerId === HUMAN) {
+              state.canUpgradeCurrent = p.cash >= tile.buildCost;
+              state.phase = 'action';
+              updateHUD();
+            } else {
+              if (p.cash >= tile.buildCost + 250) {
+                executeUpgrade(BOT, tile);
+              }
+              finishLandingStep(BOT);
+            }
+          } else {
+            finishLandingStep(playerId);
+          }
+          return;
+        }
+
+        // Opponent's property -> Pay Rent + optional Buyout
+        const oppId = tile.owner;
+        const rent = getCurrentRent(tile);
+        addLog(
+          `${p.name}, ${tile.name} için ${fmtK(rent)} kira ödedi.`,
+          playerId === HUMAN ? 'human' : 'bot'
+        );
+        showToast(`${p.name} → ${fmtK(rent)} kira ödedi`, playerId === HUMAN ? 'danger' : 'success');
+
+        if (!adjustCash(playerId, -rent)) return;
+        adjustCash(oppId, rent);
+
+        const buyoutCost = getBuyoutCost(tile);
+        if (tile.type === 'city' && tile.level < 3 && p.cash >= buyoutCost) {
+          if (playerId === HUMAN) {
+            state.canBuyoutCurrent = true;
+            state.phase = 'action';
+            updateHUD();
+          } else {
+            // Bot strategically decides buyout if high-value or completes/blocks monopoly
+            if (shouldBotBuyout(tile, buyoutCost)) {
+              executeBuyout(BOT, tile);
+            }
+            if (state.phase !== 'ended') finishLandingStep(BOT);
+          }
+        } else {
+          finishLandingStep(playerId);
+        }
+      }
+
+      function triggerChanceOrWheel(playerId, isWheel) {
+        const p = state.players[playerId];
+        const oppId = playerId === HUMAN ? BOT : HUMAN;
+
+        const wheelEvents = [
+          { msg: 'Şans Çarkı: Büyük İkramiye +450K!', cash: 450 },
+          { msg: 'Şans Çarkı: Yatırım Kârı +300K!', cash: 300 },
+          { msg: 'Şans Çarkı: Küresel Kriz -220K!', cash: -220 },
+          { msg: 'Şans Çarkı: Festival Alanına Işınlan!', moveTo: state.festivalTileIdx },
+          { msg: 'Şans Çarkı: Başlangıç Noktasına Uç (+300K)!', moveTo: 0 },
+        ];
+        const chanceEvents = [
+          { msg: 'Şans Kartı: Borsa Temettüsü +250K!', cash: 250 },
+          { msg: 'Şans Kartı: Rakip sana 150K tazminat ödedi!', steal: 150 },
+          { msg: 'Kader Kartı: Gümrük Cezası -180K!', cash: -180 },
+          { msg: 'Kader Kartı: Kayıp Dünya\'ya Gönderildin!', jail: true },
+          { msg: 'Şans Kartı: Şehir Teşviki +200K!', cash: 200 },
+        ];
+
+        const pool = isWheel ? wheelEvents : chanceEvents;
+        const ev = pool[Math.floor(Math.random() * pool.length)];
+        addLog(`${p.name} — ${ev.msg}`, 'event');
+        showToast(ev.msg, ev.cash && ev.cash < 0 ? 'danger' : 'success');
+
+        if (ev.jail) {
+          sendToJail(playerId, 'Kader kartıyla Kayıp Dünya\'ya düştü!');
+          return;
+        }
+        if (ev.moveTo !== undefined) {
+          setTimeout(() => teleportPlayerTo(playerId, ev.moveTo), 550);
+          return;
+        }
+        if (ev.steal) {
+          if (!adjustCash(oppId, -ev.steal)) return;
+          adjustCash(playerId, ev.steal);
+          finishLandingStep(playerId);
+          return;
+        }
+        if (ev.cash) {
+          if (!adjustCash(playerId, ev.cash)) return;
+        }
+        finishLandingStep(playerId);
+      }
+
+      function finishLandingStep(playerId) {
+        if (state.phase === 'ended') return;
+        if (playerId === HUMAN) {
+          state.phase = 'action';
+          updateHUD();
+        } else {
+          setTimeout(() => endCurrentTurn(), 750);
+        }
+      }
+
+      function executePurchase(playerId, tile, customPrice = null) {
+        const p = state.players[playerId];
+        const cost = customPrice !== null ? customPrice : tile.price;
+        if (p.cash < cost) return false;
+        if (!adjustCash(playerId, -cost)) return false;
+
+        tile.owner = playerId;
+        tile.level = 0;
+        refreshTileVisual(tile.idx);
+        // Refresh sibling tiles in same group in case Color Monopoly 2x rent activated
+        state.tiles
+          .filter((t) => t.group === tile.group)
+          .forEach((t) => refreshTileVisual(t.idx));
+
+        addLog(
+          `${p.name}, ${tile.name} mülkünü ${fmtK(cost)} karşılığında satın aldı!`,
+          playerId === HUMAN ? 'human' : 'bot'
+        );
+        sound.playBuild(0);
+        clearTurnActions();
+
+        // Allow immediate Level 1 construction if human bought a city and has funds
+        if (playerId === HUMAN && tile.type === 'city' && p.cash >= tile.buildCost) {
+          state.canUpgradeCurrent = true;
+        }
+
+        updateHUD();
+        checkInstantVictory(playerId);
+        return true;
+      }
+
+      function executeUpgrade(playerId, tile) {
+        const p = state.players[playerId];
+        if (tile.type !== 'city' || tile.owner !== playerId || tile.level >= 3) return false;
+        if (p.cash < tile.buildCost) return false;
+        if (!adjustCash(playerId, -tile.buildCost)) return false;
+
+        tile.level++;
+        refreshTileVisual(tile.idx, true);
+        sound.playBuild(tile.level);
+        const levelNames = ['', 'Küçük Ev', 'Çift Ev', 'Gökdelen / Otel'];
+        addLog(
+          `${p.name}, ${tile.name} üzerine ${levelNames[tile.level]} (Sv.${tile.level}) inşa etti!`,
+          playerId === HUMAN ? 'human' : 'bot'
+        );
+        state.canUpgradeCurrent = playerId === HUMAN && tile.level < 3 && p.cash >= tile.buildCost;
+        updateHUD();
+        return true;
+      }
+
+      function executeBuyout(playerId, tile) {
+        const p = state.players[playerId];
+        const oppId = tile.owner;
+        const cost = getBuyoutCost(tile);
+        if (p.cash < cost) return false;
+        if (!adjustCash(playerId, -cost)) return false;
+        adjustCash(oppId, cost);
+
+        tile.owner = playerId;
+        refreshTileVisual(tile.idx, true);
+        state.tiles
+          .filter((t) => t.group === tile.group)
+          .forEach((t) => refreshTileVisual(t.idx));
+
+        sound.playBuild(2);
+        addLog(
+          `${p.name}, ${tile.name} mülkünü ${fmtK(cost)} ödeyerek DEVRALDI!`,
+          'event'
+        );
+        showToast(`${tile.name} devralındı!`, 'success');
+        state.canBuyoutCurrent = false;
+        updateHUD();
+        if (!checkInstantVictory(playerId)) {
+          triggerBuyoutCelebration(tile.idx, playerId);
+        }
+        return true;
+      }
+
+      /* ------------------ MINI AUCTION ENGINE ------------------ */
+      function startAuction(tile) {
+        const startBid = Math.max(50, Math.round((tile.price * 0.55) / 10) * 10);
+        const botMaxBid = computeBotMaxAuctionBid(tile);
+
+        state.phase = 'auction';
+        state.auction = {
+          tile,
+          currentBid: startBid,
+          leader: null, // HUMAN | BOT
+          botMaxBid,
+          botFolded: false,
+        };
+
+        document.getElementById('auc-title').textContent = `${tile.name} (Değer: ${fmtK(tile.price)})`;
+        document.getElementById('auc-desc').textContent =
+          'Mülk açık artırmaya çıktı! En yüksek teklifi veren mülkü kazanır.';
+        document.getElementById('auction-modal').classList.add('open');
+        updateAuctionUI();
+      }
+
+      function computeBotMaxAuctionBid(tile) {
+        const bot = state.players[BOT];
+        let desire = tile.price * 0.95;
+        if (tile.type === 'island') desire = tile.price * 1.35;
+        // Extra desire if it completes or blocks a color group
+        const groupPeers = state.tiles.filter((t) => t.group === tile.group && t.idx !== tile.idx);
+        if (groupPeers.some((t) => t.owner === BOT)) desire *= 1.35;
+        if (groupPeers.some((t) => t.owner === HUMAN)) desire *= 1.25;
+        return Math.min(Math.max(0, bot.cash - 180), Math.round(desire / 10) * 10);
+      }
+
+      function updateAuctionUI() {
+        const a = state.auction;
+        if (!a) return;
+        document.getElementById('auc-price').textContent = fmtK(a.currentBid);
+        document.getElementById('auc-leader').textContent =
+          a.leader === HUMAN ? humanName : a.leader === BOT ? 'AI Rakip' : 'Henüz Teklif Yok';
+        document.getElementById('auc-cash').textContent = fmtK(state.players[HUMAN].cash);
+
+        const next50 = a.leader === null ? a.currentBid : a.currentBid + 50;
+        const next100 = a.leader === null ? a.currentBid + 50 : a.currentBid + 100;
+        document.getElementById('btn-auc-50').textContent = `${fmtK(next50)} Teklif Et`;
+        document.getElementById('btn-auc-100').textContent = `${fmtK(next100)} Teklif Et`;
+        document.getElementById('btn-auc-50').disabled = state.players[HUMAN].cash < next50;
+        document.getElementById('btn-auc-100').disabled = state.players[HUMAN].cash < next100;
+      }
+
+      function humanAuctionBid(increment) {
+        const a = state.auction;
+        if (!a) return;
+        const bid = a.leader === null ? a.currentBid + (increment === 100 ? 50 : 0) : a.currentBid + increment;
+        if (state.players[HUMAN].cash < bid) return;
+
+        a.currentBid = bid;
+        a.leader = HUMAN;
+        sound.playCashGain();
+        updateAuctionUI();
+
+        // Bot responds after short pause
+        setTimeout(() => {
+          if (!state.auction) return;
+          if (!a.botFolded && a.currentBid + 50 <= a.botMaxBid) {
+            a.currentBid += 50;
+            a.leader = BOT;
+            sound.playCashPay();
+            showToast(`AI Rakip teklifi ${fmtK(a.currentBid)} yaptı!`);
+            updateAuctionUI();
+          } else {
+            a.botFolded = true;
+            concludeAuction(HUMAN, a.currentBid);
+          }
+        }, 520);
+      }
+
+      function humanAuctionFold() {
+        const a = state.auction;
+        if (!a) return;
+        if (a.leader === BOT) {
+          concludeAuction(BOT, a.currentBid);
+        } else if (a.botMaxBid >= a.currentBid) {
+          concludeAuction(BOT, a.currentBid);
+        } else {
+          concludeAuction(null, 0);
+        }
+      }
+
+      function concludeAuction(winnerId, price) {
+        const a = state.auction;
+        state.auction = null;
+        document.getElementById('auction-modal').classList.remove('open');
+
+        if (winnerId !== null) {
+          executePurchase(winnerId, a.tile, price);
+          showToast(
+            `${state.players[winnerId].name}, ${a.tile.name} mülkünü ${fmtK(price)} ile kazandı!`,
+            winnerId === HUMAN ? 'success' : 'danger'
+          );
+        } else {
+          addLog(`${a.tile.name} açık artırmada satılmadı.`, 'event');
+        }
+
+        if (state.phase !== 'ended') {
+          clearTurnActions();
+          if (state.turn === HUMAN) {
+            state.phase = 'action';
+            updateHUD();
+          } else {
+            setTimeout(() => endCurrentTurn(), 600);
+          }
+        }
+      }
+
+      /* ------------------ STRATEGIC AI BOT DECISIONS ------------------ */
+      function handleBotUnownedDecision(tile) {
+        const bot = state.players[BOT];
+        if (bot.cash >= tile.price + 120) {
+          executePurchase(BOT, tile);
+          if (state.phase !== 'ended' && tile.type === 'city' && bot.cash >= tile.buildCost + 450) {
+            setTimeout(() => {
+              if (state.phase !== 'ended') {
+                executeUpgrade(BOT, tile);
+                finishLandingStep(BOT);
+              }
+            }, 420);
+            return;
+          }
+          finishLandingStep(BOT);
+        } else if (state.players[HUMAN].cash >= Math.round(tile.price * 0.55)) {
+          addLog(`AI Rakip ${tile.name} mülkünü reddetti — Açık Artırma başlıyor!`, 'event');
+          startAuction(tile);
+        } else {
+          finishLandingStep(BOT);
+        }
+      }
+
+      function shouldBotBuyout(tile, buyoutCost) {
+        const bot = state.players[BOT];
+        if (bot.cash < buyoutCost + 240) return false;
+        const peers = state.tiles.filter((t) => t.group === tile.group && t.idx !== tile.idx);
+        const helpsBot = peers.some((t) => t.owner === BOT);
+        const breaksHuman = peers.every((t) => t.owner === HUMAN);
+        return helpsBot || breaksHuman || (tile.idx === state.festivalTileIdx && bot.cash > buyoutCost + 400);
+      }
+
+      function chooseBotWorldTourTarget() {
+        const bot = state.players[BOT];
+        // Priority 1: Unowned tourist island if bot already owns the other (instant win!)
+        const unownedIsland = state.tiles.find((t) => t.type === 'island' && t.owner === null && bot.cash >= t.price);
+        if (unownedIsland) return unownedIsland.idx;
+
+        // Priority 2: Unowned city completing a color group
+        for (let g = 1; g <= 6; g++) {
+          const group = state.tiles.filter((t) => t.group === g);
+          const unowned = group.filter((t) => t.owner === null);
+          if (unowned.length === 1 && group.filter((t) => t.owner === BOT).length === group.length - 1) {
+            if (bot.cash >= unowned[0].price) return unowned[0].idx;
+          }
+        }
+
+        // Priority 3: Highest affordable unowned city
+        const affordable = state.tiles
+          .filter((t) => isOwnable(t) && t.owner === null && bot.cash >= t.price + 100)
+          .sort((a, b) => b.price - a.price);
+        if (affordable.length > 0) return affordable[0].idx;
+
+        // Priority 4: Upgradeable own city or Start (+300K)
+        const ownUp = state.tiles.find((t) => t.owner === BOT && t.type === 'city' && t.level < 3 && bot.cash >= t.buildCost + 200);
+        return ownUp ? ownUp.idx : 0;
+      }
+
+      function endCurrentTurn() {
+        if (state.phase === 'ended') return;
+        clearTurnActions();
+
+        if (state.extraRoll && state.players[state.turn].jailTurns === 0) {
+          state.extraRoll = false;
+          addLog(`${state.players[state.turn].name} çift zar sayesinde tekrar oynuyor!`, 'event');
+          if (state.turn === HUMAN) {
+            state.phase = 'roll';
+            updateHUD();
+          } else {
+            state.phase = 'bot';
+            updateHUD();
+            setTimeout(() => runBotTurn(), 650);
+          }
+          return;
+        }
+
+        // Switch player
+        const nextTurn = state.turn === HUMAN ? BOT : HUMAN;
+        state.turn = nextTurn;
+
+        // Every full round (back to HUMAN), increment round counter & rotate Festival every 5 turns
+        if (nextTurn === HUMAN) {
+          state.roundCount++;
+          if (state.roundCount % 5 === 1) {
+            selectRandomFestivalTile(true);
+          }
+        }
+
+        if (nextTurn === HUMAN) {
+          state.phase = 'roll';
+          updateHUD();
+        } else {
+          state.phase = 'bot';
+          updateHUD();
+          setTimeout(() => runBotTurn(), 620);
+        }
+      }
+
+      function runBotTurn() {
+        if (state.phase === 'ended' || state.turn !== BOT) return;
+        const bot = state.players[BOT];
+        if (bot.jailTurns > 0 && bot.cash >= 600) {
+          addLog('AI Rakip 150K kefalet ödeyip Kayıp Dünya\'dan çıktı.', 'bot');
+          if (!adjustCash(BOT, -150)) return;
+          bot.jailTurns = 0;
+        }
+        rollTurnDice(BOT);
+      }
+
+      function finishMatch(winnerId, kicker, reason) {
+        state.phase = 'ended';
+        clearTurnActions();
+        updateWorldTourHighlights(false);
+        updateHUD();
+
+        const humanWon = winnerId === HUMAN;
+        if (humanWon) {
+          platformChips += WIN_CHIP_REWARD;
+          saveSharedChips(platformChips, true);
+          sound.playVictory();
+        } else {
+          sound.playAlert();
+        }
+
+        // Launch 3D Fireworks Show & Cinematic Orbit Camera!
+        triggerVictoryCelebration(winnerId);
+
+        document.getElementById('vic-kicker').textContent = kicker;
+        document.getElementById('vic-title').textContent = humanWon ? 'TEBRİKLER, KAZANDIN!' : 'AI RAKİP KAZANDI';
+        document.getElementById('vic-desc').textContent = reason;
+
+        const rew = document.getElementById('vic-reward');
+        rew.textContent = humanWon ? `+${fmt(WIN_CHIP_REWARD)} Çip` : '0 Çip';
+        rew.className = `reward-val ${humanWon ? 'pos' : 'neg'}`;
+        document.getElementById('victory-modal').classList.add('open');
+      }
+
+      function startNewMatch() {
+        clearCelebrationFX();
+        document.getElementById('victory-modal').classList.remove('open');
+        document.getElementById('auction-modal').classList.remove('open');
+        logListEl.innerHTML = '';
+
+        state.tiles.forEach((t) => {
+          t.owner = null;
+          t.level = 0;
+        });
+        state.players[HUMAN].cash = 2000;
+        state.players[HUMAN].pos = 0;
+        state.players[HUMAN].jailTurns = 0;
+        state.players[HUMAN].doublesCount = 0;
+
+        state.players[BOT].cash = 2000;
+        state.players[BOT].pos = 0;
+        state.players[BOT].jailTurns = 0;
+        state.players[BOT].doublesCount = 0;
+
+        state.turn = HUMAN;
+        state.roundCount = 1;
+        state.phase = 'roll';
+        state.lastDice = [];
+        state.extraRoll = false;
+        state.inspectedTileIdx = 0;
+        state.auction = null;
+        clearTurnActions();
+
+        diceMeshes.forEach((m) => (m.visible = false));
+        islandWaterMeshes.length = 0;
+        state.tiles.forEach((t) => refreshTileVisual(t.idx));
+        selectRandomFestivalTile(false);
+        syncPawnPositionsImmediate();
+        camResetting = true;
+
+        addLog('Yeni Business Tour oyunu başladı! Her oyuncu 2.000K ile yola çıkıyor.', 'event');
+        addLog(`★ İlk Festival Alanı: ${state.tiles[state.festivalTileIdx].name} (2× Kira).`, 'event');
+        updateHUD();
+      }
+
+      /* =========================================================================
+       * 6. RAYCASTING (DÜNYA TURU TELEPORT + TILE INSPECTION) & HUD BINDINGS
+       * ========================================================================= */
+      function updateWorldTourHighlights(active) {
+        tileVisuals.forEach((v) => {
+          v.wtHighlight.material.opacity = active ? 0.65 : 0;
+        });
+      }
+
+      const raycaster = new THREE.Raycaster();
+      const mouseNdc = new THREE.Vector2();
+      let downX = 0;
+      let downY = 0;
+
+      renderer.domElement.addEventListener('pointerdown', (e) => {
+        downX = e.clientX;
+        downY = e.clientY;
+      });
+
+      renderer.domElement.addEventListener('pointerup', (e) => {
+        if (e.button !== 0 || Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return;
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouseNdc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseNdc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouseNdc, camera);
+
+        const hits = raycaster.intersectObjects(tileHitMeshes, false);
+        if (hits.length === 0) return;
+        const idx = hits[0].object.userData.tileIdx;
+
+        if (state.turn === HUMAN && state.phase === 'worldtour') {
+          if (idx === 12) {
+            showToast('Başka bir kare seçmelisin!');
+            return;
+          }
+          addLog(`${humanName} Dünya Turu ile ${state.tiles[idx].name} karesine uçtu!`, 'human');
+          teleportPlayerTo(HUMAN, idx);
+          return;
+        }
+
+        state.inspectedTileIdx = idx;
+        updateHUD();
+      });
+
+      function updateHUD() {
+        const h = state.players[HUMAN];
+        const b = state.players[BOT];
+
+        document.getElementById('cash-human').textContent = fmtK(h.cash);
+        document.getElementById('cash-bot').textContent = fmtK(b.cash);
+        document.getElementById('card-human').classList.toggle('active', state.turn === HUMAN && state.phase !== 'ended');
+        document.getElementById('card-bot').classList.toggle('active', state.turn === BOT && state.phase !== 'ended');
+
+        const hp = getMonopolyProgress(HUMAN);
+        const bp = getMonopolyProgress(BOT);
+        document.getElementById('mono-human').textContent = `Renk:${hp.colorGroups}/3 · Ada:${hp.islands}/2 · Hat:${hp.bestEdgeCount}/4`;
+        document.getElementById('mono-bot').textContent = `Renk:${bp.colorGroups}/3 · Ada:${bp.islands}/2 · Hat:${bp.bestEdgeCount}/4`;
+
+        const festName = state.tiles[state.festivalTileIdx]?.name || '-';
+        document.getElementById('festival-hud').innerHTML = `Tur ${state.roundCount} · Festival: <strong>${festName}</strong> (2× Kira)`;
+        document.getElementById('log-turn').textContent = `Tur ${state.roundCount}`;
+
+        // Inspected or current tile card
+        const tile = state.tiles[state.inspectedTileIdx] || state.tiles[0];
+        document.getElementById('prev-swatch').style.background = tile.color;
+        document.getElementById('prev-name').textContent = tile.name;
+
+        if (isOwnable(tile)) {
+          const ownerText =
+            tile.owner === HUMAN ? `Sahibi: ${humanName}` : tile.owner === BOT ? 'Sahibi: AI Rakip' : 'Boş Mülk';
+          const rent = getCurrentRent(tile);
+          document.getElementById('prev-sub').textContent = `${ownerText} · Fiyat ${fmtK(tile.price)} · Kira ${fmtK(rent)}`;
+        } else {
+          document.getElementById('prev-sub').textContent = tile.sub || '';
+        }
+
+        // Dice pills
+        const dm = document.getElementById('dice-mini');
+        if (state.lastDice.length === 2) {
+          dm.innerHTML = `<div class="die-pill">${state.lastDice[0]}</div><div class="die-pill">${state.lastDice[1]}</div>`;
+        } else {
+          dm.innerHTML = `<div class="die-pill empty">-</div><div class="die-pill empty">-</div>`;
+        }
+
+        // Status banner
+        const banner = document.getElementById('status-banner');
+        banner.className = 'status-banner';
+        if (state.phase === 'ended') {
+          banner.textContent = 'Oyun tamamlandı.';
+        } else if (state.phase === 'worldtour') {
+          banner.className = 'status-banner world-tour';
+          banner.textContent = 'DÜNYA TURU! Tahtadaki herhangi bir kareye tıklayıp ışınlan';
+        } else if (state.turn === HUMAN) {
+          if (state.phase === 'roll') {
+            banner.textContent =
+              h.jailTurns > 0
+                ? `Kayıp Dünya (${h.jailTurns} tur) — 150K kefalet öde veya çift zar dene`
+                : 'Sıra Sende — Zar At!';
+          } else if (state.phase === 'action') {
+            banner.textContent = state.extraRoll
+              ? 'Çift Attın! Aksiyonunu seç ve Turu Bitir ile tekrar zar at'
+              : 'Hamleni seç veya Turu Bitir';
+          } else {
+            banner.textContent = 'Hamle yapılıyor...';
+          }
+        } else {
+          banner.textContent = 'AI Rakip hamlesini yapıyor...';
+        }
+
+        // Action buttons
+        const isHumanRoll = state.turn === HUMAN && state.phase === 'roll';
+        const isHumanAct = state.turn === HUMAN && state.phase === 'action';
+        const curTile = state.tiles[h.pos];
+
+        const rollBtn = document.getElementById('btn-roll');
+        rollBtn.disabled = !isHumanRoll;
+        rollBtn.textContent = h.jailTurns > 0 && isHumanRoll ? 'Zar At (Çift Dene)' : 'Zar At';
+
+        const bailBtn = document.getElementById('btn-bail');
+        bailBtn.style.display = isHumanRoll && h.jailTurns > 0 ? 'inline-flex' : 'none';
+        bailBtn.disabled = h.cash < 150;
+
+        const buyBtn = document.getElementById('btn-buy');
+        buyBtn.disabled = !(isHumanAct && state.canBuyCurrent);
+        buyBtn.textContent =
+          isHumanAct && curTile.owner === null && isOwnable(curTile)
+            ? `Satın Al (${fmtK(curTile.price)})`
+            : 'Mülkü Satın Al';
+
+        const aucBtn = document.getElementById('btn-auction');
+        aucBtn.disabled = !(isHumanAct && isOwnable(curTile) && curTile.owner === null);
+
+        const upgBtn = document.getElementById('btn-upgrade');
+        upgBtn.disabled = !(isHumanAct && state.canUpgradeCurrent);
+        upgBtn.textContent =
+          isHumanAct && state.canUpgradeCurrent
+            ? `Yükselt Sv.${curTile.level + 1} (${fmtK(curTile.buildCost)})`
+            : 'Bina Yükselt';
+
+        const boBtn = document.getElementById('btn-buyout');
+        boBtn.disabled = !(isHumanAct && state.canBuyoutCurrent);
+        boBtn.textContent =
+          isHumanAct && state.canBuyoutCurrent
+            ? `Devral (${fmtK(getBuyoutCost(curTile))})`
+            : 'Devral (Buyout)';
+
+        const endBtn = document.getElementById('btn-end-turn');
+        endBtn.disabled = !isHumanAct;
+        endBtn.textContent = state.extraRoll && isHumanAct ? 'Tekrar Zar At (Çift)' : 'Turu Bitir';
+      }
+
+      // Bind Buttons
+      document.getElementById('btn-roll').addEventListener('click', () => {
+        if (state.turn === HUMAN && state.phase === 'roll') rollTurnDice(HUMAN);
+      });
+
+      document.getElementById('btn-bail').addEventListener('click', () => {
+        const h = state.players[HUMAN];
+        if (state.turn === HUMAN && state.phase === 'roll' && h.jailTurns > 0 && h.cash >= 150) {
+          if (!adjustCash(HUMAN, -150)) return;
+          h.jailTurns = 0;
+          addLog(`${humanName} 150K kefalet ödeyerek Kayıp Dünya'dan çıktı!`, 'human');
+          updateHUD();
+        }
+      });
+
+      document.getElementById('btn-buy').addEventListener('click', () => {
+        if (state.turn === HUMAN && state.phase === 'action' && state.canBuyCurrent) {
+          executePurchase(HUMAN, state.tiles[state.players[HUMAN].pos]);
+        }
+      });
+
+      document.getElementById('btn-auction').addEventListener('click', () => {
+        const curTile = state.tiles[state.players[HUMAN].pos];
+        if (state.turn === HUMAN && state.phase === 'action' && isOwnable(curTile) && curTile.owner === null) {
+          startAuction(curTile);
+        }
+      });
+
+      document.getElementById('btn-upgrade').addEventListener('click', () => {
+        if (state.turn === HUMAN && state.phase === 'action' && state.canUpgradeCurrent) {
+          executeUpgrade(HUMAN, state.tiles[state.players[HUMAN].pos]);
+        }
+      });
+
+      document.getElementById('btn-buyout').addEventListener('click', () => {
+        if (state.turn === HUMAN && state.phase === 'action' && state.canBuyoutCurrent) {
+          executeBuyout(HUMAN, state.tiles[state.players[HUMAN].pos]);
+        }
+      });
+
+      document.getElementById('btn-end-turn').addEventListener('click', () => {
+        if (state.turn === HUMAN && state.phase === 'action') {
+          endCurrentTurn();
+        }
+      });
+
+      document.getElementById('btn-auc-50').addEventListener('click', () => humanAuctionBid(50));
+      document.getElementById('btn-auc-100').addEventListener('click', () => humanAuctionBid(100));
+      document.getElementById('btn-auc-fold').addEventListener('click', humanAuctionFold);
+      document.getElementById('btn-restart').addEventListener('click', startNewMatch);
+
+      document.getElementById('btn-reset-cam').addEventListener('click', () => {
+        cinematicCam.mode = 'none';
+        camResetting = true;
+      });
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'r' || e.key === 'R') {
+          cinematicCam.mode = 'none';
+          camResetting = true;
+        }
+      });
+
+      function syncSoundUI() {
+        document.getElementById('ico-on').style.display = sound.enabled ? 'block' : 'none';
+        document.getElementById('ico-off').style.display = sound.enabled ? 'none' : 'block';
+        document.getElementById('sound-label').textContent = sound.enabled ? 'Ses' : 'Sessiz';
+      }
+      syncSoundUI();
+
+      document.getElementById('btn-sound').addEventListener('click', () => {
+        sound.enabled = !sound.enabled;
+        syncSoundUI();
+        if (sound.enabled) sound.playHop(2);
+      });
+
+      /* =========================================================================
+       * 7. ANIMATION LOOP (WITH SMOOTH KINEMATICS & SOFTWARE-WEBGL PACING)
+       * ========================================================================= */
+      const clock = new THREE.Clock();
+      const _qSpin = new THREE.Quaternion();
+      const _qTmp = new THREE.Quaternion();
+      let frameId = 0;
+      let contextLost = false;
+
+      function afterDraw(cb) {
+        const gl = renderer.getContext();
+        if (gl && typeof gl.fenceSync === 'function') {
+          const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+          gl.flush();
+          const poll = () => {
+            const st = sync && gl.getSyncParameter(sync, gl.SYNC_STATUS);
+            if (st === gl.UNSIGNALED) frameId = window.setTimeout(poll, 5);
+            else {
+              if (sync) gl.deleteSync(sync);
+              frameId = window.setTimeout(cb, 80);
+            }
+          };
+          frameId = window.setTimeout(poll, 5);
+        } else {
+          frameId = window.setTimeout(cb, 80);
+        }
+      }
+
+      const _camGoal = new THREE.Vector3();
+      const _diceDeltaEuler = new THREE.Euler();
+
+      function tick() {
+        if (contextLost) return;
+        const dt = Math.min(clock.getDelta(), 0.05);
+        const elapsed = clock.getElapsedTime();
+
+        // Cinematic Camera Sweep (Buyout swoop or continuous Victory Skyline Orbit)
+        if (cinematicCam.mode === 'buyout') {
+          cinematicCam.elapsed += dt;
+          const p = Math.min(1, cinematicCam.elapsed / cinematicCam.duration);
+          cinematicCam.angle += dt * 0.65;
+          if (p < 0.72) {
+            _camGoal.set(
+              cinematicCam.focus.x + Math.sin(cinematicCam.angle) * cinematicCam.radius,
+              cinematicCam.height,
+              cinematicCam.focus.z + Math.cos(cinematicCam.angle) * cinematicCam.radius
+            );
+            camera.position.lerp(_camGoal, 1 - Math.exp(-4.5 * dt));
+            controls.target.lerp(cinematicCam.focus, 1 - Math.exp(-5.0 * dt));
+          } else {
+            camera.position.lerp(cinematicCam.returnPos, 1 - Math.exp(-4.0 * dt));
+            controls.target.lerp(cinematicCam.returnTarget, 1 - Math.exp(-4.2 * dt));
+          }
+          if (p >= 1) {
+            cinematicCam.mode = 'none';
+            camResetting = true;
+          }
+        } else if (cinematicCam.mode === 'victory') {
+          cinematicCam.angle += dt * 0.34;
+          _camGoal.set(
+            Math.sin(cinematicCam.angle) * cinematicCam.radius,
+            cinematicCam.height + Math.sin(elapsed * 0.9) * 1.1,
+            Math.cos(cinematicCam.angle) * cinematicCam.radius
+          );
+          camera.position.lerp(_camGoal, 1 - Math.exp(-3.2 * dt));
+          controls.target.lerp(cinematicCam.focus, 1 - Math.exp(-3.8 * dt));
+        } else if (camResetting) {
+          camera.position.lerp(DEFAULT_CAM_POS, 1 - Math.exp(-6 * dt));
+          controls.target.lerp(DEFAULT_CAM_TARGET, 1 - Math.exp(-6 * dt));
+          if (camera.position.distanceTo(DEFAULT_CAM_POS) < 0.06) camResetting = false;
+        }
+        controls.update();
+
+        // Animate Festival Rotating Golden Light Column, Star & 36 Swirling Confetti Ribbons
+        festivalGroup.rotation.y += dt * 0.55;
+        festTorus.position.y = Math.sin(elapsed * 3.0) * 0.08;
+        festInnerRing.rotation.z -= dt * 1.8;
+        festOuterColumn.rotation.y += dt * 1.15;
+        festCoreColumn.rotation.y -= dt * 1.65;
+        festBeamTex.offset.y -= dt * 0.28;
+        festStar.rotation.y -= dt * 2.4;
+        festStar.position.y = 2.95 + Math.sin(elapsed * 3.2) * 0.16;
+        festPointLight.intensity = 7.0 + Math.sin(elapsed * 4.5) * 1.4;
+
+        for (let i = 0; i < festivalConfetti.length; i++) {
+          const cf = festivalConfetti[i];
+          cf.ang += cf.orbitSpeed * dt;
+          cf.y += cf.speedY * dt;
+          if (cf.y > 4.2) cf.y = 0.15;
+          const swirlR = cf.rad * (0.88 + 0.18 * Math.sin(cf.y * 1.8 + elapsed));
+          cf.mesh.position.set(Math.cos(cf.ang) * swirlR, cf.y, Math.sin(cf.ang) * swirlR);
+          cf.mesh.rotation.x += cf.spinX * dt;
+          cf.mesh.rotation.z += cf.spinZ * dt;
+        }
+
+        // Subtle breathing neon glow on center court, floor reflection halo & tropical lagoon shimmer
+        centerNeonLight.intensity = 5.8 + Math.sin(elapsed * 2.2) * 1.2;
+        floorNeonGlowMat.opacity = 0.64 + Math.sin(elapsed * 1.8) * 0.12;
+        floorNeonBlue.intensity = 13 + Math.sin(elapsed * 2.0) * 2.2;
+        floorNeonCrimson.intensity = 12 + Math.cos(elapsed * 2.1) * 2.2;
+        poolWaterMat.emissiveIntensity = 0.34 + Math.sin(elapsed * 2.8) * 0.1;
+
+        // Rising 3D building animations with elastic spring settle
+        for (const vis of tileVisuals) {
+          if (vis.buildingMesh && vis.buildAnim < 1) {
+            vis.buildAnim = Math.min(1, vis.buildAnim + dt * 2.5);
+            const t = vis.buildAnim;
+            const elastic = t >= 1 ? 1 : 1 - Math.pow(2, -9 * t) * Math.cos(t * Math.PI * 2.5);
+            vis.buildingMesh.scale.y = Math.max(0.02, elastic);
+          }
+        }
+
+        // Real Physical Multi-Bounce 3D Dice Simulation on Center Court
+        if (diceAnim.active) {
+          diceAnim.elapsed += dt;
+          let allSettled = true;
+          const courtLimit = TILE_STEP * 2.15;
+          const gravity = 28.5;
+
+          diceAnim.items.forEach((it, idx) => {
+            if (it.settled) {
+              it.settleT = Math.min(1, it.settleT + dt * 6.5);
+              it.mesh.quaternion.slerp(it.endQuat, 1 - Math.exp(-18 * dt));
+              it.pos.y = THREE.MathUtils.damp(it.pos.y, it.floorY, 18, dt);
+              it.mesh.position.copy(it.pos);
+              if (it.settleT < 1) allSettled = false;
+              return;
+            }
+
+            allSettled = false;
+            it.vel.y -= gravity * dt;
+            it.pos.addScaledVector(it.vel, dt);
+
+            // Bounce off soft invisible center-court arena bounds so dice stay cleanly centered
+            if (Math.abs(it.pos.x) > courtLimit) {
+              it.pos.x = Math.sign(it.pos.x) * courtLimit;
+              it.vel.x *= -0.58;
+              sound.playDiceBounce(0.45);
+            }
+            if (Math.abs(it.pos.z) > courtLimit) {
+              it.pos.z = Math.sign(it.pos.z) * courtLimit;
+              it.vel.z *= -0.58;
+              sound.playDiceBounce(0.45);
+            }
+
+            // Floor impact with damped restitution & horizontal rolling friction
+            if (it.pos.y <= it.floorY) {
+              it.pos.y = it.floorY;
+              const impactSpeed = Math.abs(it.vel.y);
+              if (impactSpeed > 1.45 && it.bounces < 4) {
+                it.bounces++;
+                it.vel.y = impactSpeed * 0.52;
+                it.vel.x *= 0.68;
+                it.vel.z *= 0.68;
+                it.angVel.multiplyScalar(0.64);
+                sound.playDiceBounce(Math.min(1, impactSpeed / 12));
+                spawnNeonRingAt(
+                  new THREE.Vector3(it.pos.x, 0, it.pos.z),
+                  idx === 0 ? 0x00d2ff : 0xf3d06b,
+                  1.55,
+                  0.035
+                );
+              } else {
+                it.vel.y = 0;
+                it.vel.x *= Math.exp(-9 * dt);
+                it.vel.z *= Math.exp(-9 * dt);
+                it.angVel.multiplyScalar(Math.exp(-10 * dt));
+              }
+            }
+
+            // Keep the two dice from overlapping each other
+            if (idx === 1) {
+              const other = diceAnim.items[0];
+              const dx = it.pos.x - other.pos.x;
+              const dz = it.pos.z - other.pos.z;
+              const dist = Math.hypot(dx, dz);
+              const minSep = DIE_SIZE * 1.25;
+              if (dist > 0.001 && dist < minSep) {
+                const push = (minSep - dist) * 0.5;
+                const nx = dx / dist;
+                const nz = dz / dist;
+                it.pos.x += nx * push;
+                it.pos.z += nz * push;
+                other.pos.x -= nx * push;
+                other.pos.z -= nz * push;
+                it.vel.x += nx * 1.6;
+                it.vel.z += nz * 1.6;
+                other.vel.x -= nx * 1.6;
+                other.vel.z -= nz * 1.6;
+              }
+            }
+
+            // Spin dice freely until near rest, then smoothly guide to rolled face quaternion
+            if (it.bounces < 2 && diceAnim.elapsed < 0.72) {
+              _diceDeltaEuler.set(it.angVel.x * dt, it.angVel.y * dt, it.angVel.z * dt);
+              _qSpin.setFromEuler(_diceDeltaEuler);
+              it.mesh.quaternion.premultiply(_qSpin);
+            } else {
+              it.mesh.quaternion.slerp(it.endQuat, 1 - Math.exp(-11 * dt));
+            }
+
+            it.mesh.position.copy(it.pos);
+
+            const speedSq = it.vel.lengthSq();
+            if ((it.pos.y <= it.floorY + 0.01 && speedSq < 0.14 && diceAnim.elapsed > 0.58) || diceAnim.elapsed > diceAnim.maxDuration) {
+              it.settled = true;
+              it.settleT = 0;
+            }
+          });
+
+          if (allSettled) {
+            diceAnim.items.forEach((it) => {
+              it.pos.y = it.floorY;
+              it.mesh.position.copy(it.pos);
+              it.mesh.quaternion.copy(it.endQuat);
+            });
+            diceAnim.active = false;
+            const cb = diceAnim.onDone;
+            diceAnim.onDone = null;
+            if (cb) cb();
+          }
+        }
+
+        // Squash & Stretch Arc-Hopping 3D Pawn Animation + Neon Tile Step Rings
+        if (pawnAnim.active) {
+          pawnAnim.stepElapsed += dt;
+          const t = Math.min(1, pawnAnim.stepElapsed / pawnAnim.stepDuration);
+          const from = pawnAnim.waypoints[pawnAnim.stepIdx];
+          const to = pawnAnim.waypoints[pawnAnim.stepIdx + 1];
+          const pawn = pawnMeshes[pawnAnim.playerId];
+
+          const easeMove = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+          pawn.position.lerpVectors(from, to, easeMove);
+          const arcY = Math.sin(t * Math.PI) * (pawnAnim.highArc ? 3.5 : 1.08);
+          pawn.position.y += arcY;
+
+          // Expressive Squash & Stretch volume-preserving kinematics
+          let sy = 1;
+          if (t < 0.16) {
+            // Launch anticipation stretch
+            sy = THREE.MathUtils.lerp(0.84, 1.26, t / 0.16);
+          } else if (t < 0.84) {
+            // Airborne graceful elongation at rise/fall, relaxed at apex
+            const air = Math.abs(t - 0.5) / 0.34;
+            sy = 1.02 + air * 0.2;
+          } else {
+            // Impact squash compression right as foot hits the tile
+            sy = THREE.MathUtils.lerp(1.14, 0.74, (t - 0.84) / 0.16);
+          }
+          const sxz = 1 / Math.sqrt(Math.max(0.5, sy));
+          pawn.scale.set(sxz, sy, sxz);
+
+          if (t >= 1) {
+            sound.playHop(pawnAnim.stepIdx);
+            const landedTileIdx = pawnAnim.pathIndices[pawnAnim.stepIdx + 1];
+            const tilePos = getTileWorldPos(landedTileIdx);
+            const playerHex = pawnAnim.playerId === HUMAN ? 0x00d2ff : 0xff2a5f;
+            spawnNeonRingAt(tilePos, playerHex, pawnAnim.highArc ? 3.1 : 2.3, 0.165);
+            pawnSquashBounce[pawnAnim.playerId] = 1.0;
+
+            pawnAnim.stepIdx++;
+            pawnAnim.stepElapsed = 0;
+            if (pawnAnim.stepIdx >= pawnAnim.waypoints.length - 1) {
+              pawn.position.copy(pawnAnim.waypoints[pawnAnim.waypoints.length - 1]);
+              pawnAnim.active = false;
+              const cb = pawnAnim.onComplete;
+              pawnAnim.onComplete = null;
+              if (cb) cb();
+            }
+          }
+        }
+
+        // Post-landing damped elastic squash recovery when pawns stand still
+        for (let p = 0; p < 2; p++) {
+          if (pawnAnim.active && pawnAnim.playerId === p) continue;
+          if (pawnSquashBounce[p] > 0.005) {
+            pawnSquashBounce[p] = Math.max(0, pawnSquashBounce[p] - dt * 3.8);
+            const b = pawnSquashBounce[p];
+            const sy = 1 - Math.sin(b * Math.PI * 1.5) * 0.24 * b;
+            const sxz = 1 / Math.sqrt(Math.max(0.5, sy));
+            pawnMeshes[p].scale.set(sxz, sy, sxz);
+          } else {
+            pawnMeshes[p].scale.set(1, 1, 1);
+          }
+        }
+
+        // Update Expanding Neon Tile Landing Rings
+        for (let i = landingRings.length - 1; i >= 0; i--) {
+          const lr = landingRings[i];
+          lr.elapsed += dt;
+          const p = Math.min(1, lr.elapsed / lr.duration);
+          const easeOut = 1 - Math.pow(1 - p, 3);
+          const sc = 0.65 + easeOut * lr.maxScale;
+          lr.ring.scale.set(sc, sc, 1);
+          lr.ringMat.opacity = 0.95 * Math.pow(1 - p, 1.5);
+          lr.glow.scale.set(0.8 + easeOut * (lr.maxScale * 0.85), 0.8 + easeOut * (lr.maxScale * 0.85), 1);
+          lr.glowMat.opacity = 0.36 * Math.pow(1 - p, 2.0);
+          if (p >= 1) {
+            scene.remove(lr.group);
+            lr.mats.forEach((m) => m.dispose());
+            landingRings.splice(i, 1);
+          }
+        }
+
+        // Update 3D Fireworks & Golden Particle Bursts
+        for (let i = fireworkBursts.length - 1; i >= 0; i--) {
+          const fw = fireworkBursts[i];
+          fw.elapsed += dt;
+          const p = Math.min(1, fw.elapsed / fw.duration);
+          const easeOut = 1 - Math.pow(1 - p, 3);
+
+          fw.flash.scale.setScalar(1 + easeOut * 3.4);
+          fw.flashMat.opacity = Math.max(0, 0.92 * (1 - p * 3.2));
+
+          const hs = 0.5 + easeOut * 6.5;
+          fw.halo.scale.set(hs, hs, 1);
+          fw.haloMat.opacity = 0.82 * Math.pow(1 - p, 1.8);
+
+          for (let j = 0; j < fw.sparks.length; j++) {
+            const sp = fw.sparks[j];
+            sp.mesh.position.x += sp.vx * dt;
+            sp.mesh.position.y += sp.vy * dt;
+            sp.mesh.position.z += sp.vz * dt;
+            sp.vx *= Math.exp(-1.1 * dt);
+            sp.vz *= Math.exp(-1.1 * dt);
+            sp.vy -= 5.8 * dt;
+            sp.mat.opacity = Math.max(0, 1 - Math.pow(p, 1.4));
+            sp.mesh.scale.setScalar(Math.max(0.05, 1.15 - p * 0.95));
+          }
+
+          if (p >= 1) {
+            scene.remove(fw.group);
+            fw.mats.forEach((m) => m.dispose());
+            fireworkBursts.splice(i, 1);
+          }
+        }
+
+        renderer.render(scene, camera);
+        if (isSoftwareGl) afterDraw(tick);
+        else frameId = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+      });
+
+      renderer.domElement.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        contextLost = true;
+        cancelAnimationFrame(frameId);
+        clearTimeout(frameId);
+      });
+
+      renderer.domElement.addEventListener('webglcontextrestored', () => {
+        contextLost = false;
+        tick();
+      });
+
+      startNewMatch();
+      if (!isSoftwareGl) renderer.compile(scene, camera);
+      tick();
+      })();
+    </script>
+  </body>
+</html>
