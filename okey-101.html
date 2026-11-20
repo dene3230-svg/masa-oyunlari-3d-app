@@ -1432,6 +1432,192 @@
         font-weight: 800;
       }
 
+      .score-table tr.human-row {
+        background: rgba(56, 189, 248, 0.1);
+      }
+
+      /* Topbar Rank Badge */
+      .rank-hud-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 10px;
+        border-radius: 9px;
+        background: var(--hud-chip-bg);
+        border: 1px solid var(--hud-chip-border);
+        color: #fef3c7;
+        font-size: 0.74rem;
+        font-weight: 800;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .rank-hud-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        box-shadow: 0 0 8px currentColor;
+      }
+
+      .rank-hud-xp {
+        font-size: 0.68rem;
+        opacity: 0.85;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .rank-hud-badge.tier-bronze { border-color: rgba(217, 119, 6, 0.72); color: #fdba74; }
+      .rank-hud-badge.tier-silver { border-color: rgba(203, 213, 225, 0.72); color: #e2e8f0; }
+      .rank-hud-badge.tier-gold { border-color: rgba(250, 204, 21, 0.8); color: #fde047; }
+      .rank-hud-badge.tier-platinum { border-color: rgba(56, 189, 248, 0.8); color: #7dd3fc; }
+      .rank-hud-badge.tier-diamond { border-color: rgba(192, 132, 252, 0.82); color: #e9d5ff; }
+      .rank-hud-badge.tier-legend {
+        border-color: rgba(251, 191, 36, 0.95);
+        color: #fef08a;
+        box-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
+      }
+
+      body.theme-light .rank-hud-badge.tier-bronze { color: #9a3412; }
+      body.theme-light .rank-hud-badge.tier-silver { color: #334155; }
+      body.theme-light .rank-hud-badge.tier-gold { color: #854d0e; }
+      body.theme-light .rank-hud-badge.tier-platinum { color: #0369a1; }
+      body.theme-light .rank-hud-badge.tier-diamond { color: #6b21a8; }
+      body.theme-light .rank-hud-badge.tier-legend { color: #78350f; }
+
+      /* Mode Modal Free-Entry Summary Banner */
+      .economy-rules-pill {
+        margin-top: 12px;
+        padding: 9px 12px;
+        border-radius: 11px;
+        background: rgba(16, 185, 129, 0.14);
+        border: 1px solid rgba(52, 211, 153, 0.45);
+        font-size: 0.75rem;
+        line-height: 1.45;
+        color: #a7f3d0;
+        text-align: center;
+      }
+
+      body.theme-light .economy-rules-pill {
+        background: rgba(16, 185, 129, 0.12);
+        color: #065f46;
+      }
+
+      /* Ranking Place Badges & Gold Delta */
+      .place-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 22px;
+        padding: 0 6px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 900;
+      }
+
+      .place-badge.p1 { background: linear-gradient(135deg, #facc15, #ca8a04); color: #1c1917; }
+      .place-badge.p2 { background: linear-gradient(135deg, #e2e8f0, #94a3b8); color: #0f172a; }
+      .place-badge.p3 { background: rgba(248, 113, 113, 0.22); color: #fca5a5; border: 1px solid rgba(248, 113, 113, 0.45); }
+      .place-badge.p4 { background: rgba(239, 68, 68, 0.24); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.5); }
+
+      body.theme-light .place-badge.p3,
+      body.theme-light .place-badge.p4 { color: #b91c1c; }
+
+      .delta-pos { color: #22c55e; font-weight: 800; }
+      .delta-neg { color: #f87171; font-weight: 800; }
+      body.theme-light .delta-pos { color: #15803d; }
+      body.theme-light .delta-neg { color: #dc2626; }
+
+      /* Rank-Up Celebration Banner */
+      .rankup-banner {
+        display: none;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(250, 204, 21, 0.24), rgba(234, 88, 12, 0.28));
+        border: 1.5px solid #facc15;
+        box-shadow: 0 0 28px rgba(250, 204, 21, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        text-align: center;
+        animation: rankupPop 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .rankup-banner.show {
+        display: block;
+      }
+
+      .rankup-title {
+        font-size: 0.96rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        color: #fef08a;
+        text-shadow: 0 2px 10px rgba(234, 179, 8, 0.45);
+      }
+
+      body.theme-light .rankup-title {
+        color: #92400e;
+        text-shadow: none;
+      }
+
+      .rankup-sub {
+        margin-top: 3px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--modal-text);
+      }
+
+      @keyframes rankupPop {
+        0% { transform: scale(0.82); opacity: 0; }
+        65% { transform: scale(1.04); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+
+      /* Rank Progress Card in Round Summary */
+      .rank-progress-card {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 11px;
+        background: var(--hud-chip-bg);
+        border: 1px solid var(--hud-chip-border);
+        text-align: left;
+      }
+
+      .rank-progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .rank-bar-track {
+        margin-top: 7px;
+        height: 8px;
+        width: 100%;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.24);
+        overflow: hidden;
+      }
+
+      .rank-bar-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #f59e0b, #fde047, #22c55e);
+        transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .rank-progress-foot {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.71rem;
+        color: var(--modal-sub);
+        font-variant-numeric: tabular-nums;
+      }
+
       .reward-strip {
         margin-top: 12px;
         padding: 9px 12px;
@@ -1557,13 +1743,19 @@
       <!-- 1. TOP BAR: BALANCE, BONUS CHEST, TOP PLAYER, THEME / SOUND / MAIN MENU -->
       <header class="topbar">
         <div class="topbar-left">
-          <div class="chip-badge" title="Ortak Platform Çip Bakiyesi">
+          <div class="chip-badge" title="Kalıcı Altın Bakiyen">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="10" fill="#eab308" stroke="#fef08a" stroke-width="1.6" />
               <circle cx="12" cy="12" r="6.2" stroke="#92400e" stroke-width="1.4" stroke-dasharray="2.5 2" />
-              <text x="12" y="15.5" text-anchor="middle" fill="#78350f" font-size="9" font-weight="900">₺</text>
+              <text x="12" y="15.5" text-anchor="middle" fill="#78350f" font-size="9" font-weight="900">A</text>
             </svg>
-            <span id="hud-chips">10.000</span>
+            <span id="hud-chips">25.000</span>
+          </div>
+
+          <div class="rank-hud-badge tier-bronze" id="hud-rank-badge" title="Mevcut Lig Rütben ve Rütbe Puanın">
+            <span class="rank-hud-dot" id="hud-rank-dot" style="background:#cd7f32;color:#cd7f32"></span>
+            <span id="hud-rank-name">Bronz Çırak</span>
+            <span class="rank-hud-xp" id="hud-rank-xp">0 XP</span>
           </div>
 
           <button type="button" class="chest-btn" id="btn-bonus-chest" title="Süreli Bonus Sandığı">
@@ -1686,7 +1878,7 @@
 
             <div class="player-bottom-bar" id="pbar-0">
               <div class="turn-fill" id="ptimer-0"></div>
-              <div class="player-avatar" style="background:linear-gradient(135deg,#0f766e,#115e59)">S</div>
+              <div class="player-avatar" id="pavatar-0" style="background:linear-gradient(135deg,#0f766e,#115e59)">S</div>
               <span class="player-name" id="pname-0">Oyuncu</span>
               <span class="player-tile-ct" id="pcount-0">21</span>
             </div>
@@ -1761,21 +1953,25 @@
     <!-- STARTUP MODE SELECTION MODAL -->
     <div class="modal-backdrop open" id="mode-modal" role="dialog" aria-modal="true" aria-labelledby="mode-title">
       <div class="modal-card">
-        <div class="modal-kicker">101 OKEY PLUS · 2.5D MASA</div>
+        <div class="modal-kicker">101 OKEY PLUS · ÜCRETSİZ LİG MASASI</div>
         <h1 class="modal-title" id="mode-title">Oyun Modunu Seç</h1>
         <p class="modal-sub">
-          3 akıllı rakibe karşı 3 ellik 101 Okey maçı başlar. İstediğin zaman üst çubuktan Siyah / Beyaz tema değiştirebilirsin.
+          Masaya giriş tamamen ücretsizdir — bakiyen ne olursa olsun doğrudan oynayabilirsin!
         </p>
+
+        <div class="economy-rules-pill">
+          <strong>Sıralama Ödülleri:</strong> 1. <strong>+10.000 Altın</strong> (+100 XP) · 2. <strong>+5.000 Altın</strong> (+25 XP) · 3. &amp; 4. <strong>-5.000 Altın</strong>
+        </div>
 
         <div class="mode-grid">
           <button type="button" class="mode-choice is-kat" id="btn-mode-katlamali">
-            <span class="mode-tag-inline">Katlamalı</span>
+            <span class="mode-tag-inline">Ücretsiz · Katlamalı</span>
             <strong>Katlamalı 101</strong>
             <small>Her açılan el barajı yükseltir (en yüksek el + 1 puan veya +1 çift).</small>
           </button>
 
           <button type="button" class="mode-choice" id="btn-mode-classic">
-            <span class="mode-tag-inline">Klasik</span>
+            <span class="mode-tag-inline">Ücretsiz · Klasik</span>
             <strong>Katlamasız 101</strong>
             <small>Sabit 101 puan veya 5 çift ile el açılır. Dengeli klasik tempo.</small>
           </button>
@@ -1789,25 +1985,48 @@
 
     <!-- ROUND / MATCH SUMMARY MODAL -->
     <div class="modal-backdrop" id="round-modal" role="dialog" aria-modal="true" aria-labelledby="round-title">
-      <div class="modal-card">
+      <div class="modal-card" style="width:min(540px,100%)">
         <div class="modal-kicker" id="round-kicker">1/3 EL SONUCU</div>
         <h2 class="modal-title" id="round-title">Eli Kazandın!</h2>
-        <p class="modal-sub" id="round-sub">Ceza puanları ve ortak çip ödülü hesaplandı.</p>
+        <p class="modal-sub" id="round-sub">Sıralama ödülleri ve rütbe puanları hesaplandı.</p>
+
+        <div class="rankup-banner" id="rankup-banner" aria-live="polite">
+          <div class="rankup-title">TEBRİKLER! RÜTBE ATLADIN</div>
+          <div class="rankup-sub" id="rankup-sub">Bronz Çırak → Gümüş Oyuncu</div>
+        </div>
+
         <table class="score-table">
           <thead>
             <tr>
+              <th>Sıra</th>
               <th>Oyuncu</th>
-              <th>Durum</th>
-              <th class="num">Bu El</th>
-              <th class="num">Toplam</th>
+              <th class="num">Puan</th>
+              <th class="num">Altın</th>
+              <th class="num">Yeni Bakiye</th>
             </tr>
           </thead>
           <tbody id="round-tbody"></tbody>
         </table>
+
         <div class="reward-strip">
-          <span>Platform Çip Ödülü</span>
-          <span id="round-reward" style="color:#22c55e">+2.000 Çip</span>
+          <span id="round-reward-label">Senin Sıralama Sonucun</span>
+          <span id="round-reward" style="color:#22c55e">+10.000 Altın · +100 XP</span>
         </div>
+
+        <div class="rank-progress-card">
+          <div class="rank-progress-head">
+            <span id="round-rank-name">Bronz Çırak</span>
+            <span id="round-xp-gain" style="color:#38bdf8">+0 XP</span>
+          </div>
+          <div class="rank-bar-track" aria-hidden="true">
+            <div class="rank-bar-fill" id="round-xp-fill"></div>
+          </div>
+          <div class="rank-progress-foot">
+            <span id="round-xp-total">Toplam: 0 XP</span>
+            <span id="round-xp-remaining">Gümüş Oyuncu rütbesine 200 XP kaldı</span>
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button type="button" class="cta-btn" id="btn-next-round">Sonraki El</button>
           <a href="./index.html" class="cta-btn secondary">Ana Menüye Dön</a>
@@ -1820,42 +2039,130 @@
         'use strict';
 
         /* =========================================================================
-         * 1. SHARED PLATFORM PROFILE, GLOBAL THEME (app_theme) & SOUND (app_sound)
+         * 1. SHARED ECONOMY (player_gold, player_rank_xp), RANK TIERS & THEME
          * ========================================================================= */
         const PROFILE_KEY = 'masa_oyunlari_3d_profile';
         const CHIPS_KEY = 'masaOyunlariChips';
+        const PLAYER_GOLD_KEY = 'player_gold';
+        const PLAYER_RANK_XP_KEY = 'player_rank_xp';
+        const DEFAULT_GOLD = 25000;
         const CHEST_COOLDOWN_MS = 4 * 60 * 60 * 1000;
         const CHEST_REWARD = 2500;
         const fmt = (n) => new Intl.NumberFormat('tr-TR').format(Math.floor(n));
 
+        const RANK_TIERS = [
+          { name: 'Bronz Çırak', min: 0, next: 200, tierClass: 'tier-bronze', color: '#cd7f32' },
+          { name: 'Gümüş Oyuncu', min: 200, next: 500, tierClass: 'tier-silver', color: '#cbd5e1' },
+          { name: 'Altın Kalfa', min: 500, next: 1000, tierClass: 'tier-gold', color: '#f59e0b' },
+          { name: 'Platin Usta', min: 1000, next: 2000, tierClass: 'tier-platinum', color: '#38bdf8' },
+          { name: 'Elmas Büyük Usta', min: 2000, next: 3500, tierClass: 'tier-diamond', color: '#c084fc' },
+          { name: '101 Efsanesi', min: 3500, next: null, tierClass: 'tier-legend', color: '#facc15' },
+        ];
+
+        function getRankInfo(xpVal) {
+          const xp = Math.max(0, Math.floor(Number(xpVal) || 0));
+          let idx = 0;
+          for (let i = 0; i < RANK_TIERS.length; i++) {
+            if (xp >= RANK_TIERS[i].min) idx = i;
+          }
+          const curr = RANK_TIERS[idx];
+          const nextTier = idx < RANK_TIERS.length - 1 ? RANK_TIERS[idx + 1] : null;
+          const pct = nextTier
+            ? Math.min(100, Math.max(0, ((xp - curr.min) / (nextTier.min - curr.min)) * 100))
+            : 100;
+          const remaining = nextTier ? Math.max(0, nextTier.min - xp) : 0;
+          return { index: idx, xp, ...curr, nextTier, pct, remaining };
+        }
+
+        const USER_SESSION_KEY = 'user_session';
+
         function loadProfile() {
-          let chips = 10000;
+          let chips = DEFAULT_GOLD;
+          let rankXp = 0;
           let name = 'Oyuncu';
+          let avatarText = 'O';
+          let avatarBg = 'linear-gradient(135deg,#0f766e,#115e59)';
+          let provider = 'guest';
           let lastBonusAt = 0;
           try {
+            const goldRaw = localStorage.getItem(PLAYER_GOLD_KEY);
+            if (goldRaw !== null && Number.isFinite(Number(goldRaw))) {
+              chips = Math.max(0, Math.floor(Number(goldRaw)));
+            } else {
+              localStorage.setItem(PLAYER_GOLD_KEY, String(DEFAULT_GOLD));
+            }
+
+            const xpRaw = localStorage.getItem(PLAYER_RANK_XP_KEY);
+            if (xpRaw !== null && Number.isFinite(Number(xpRaw))) {
+              rankXp = Math.max(0, Math.floor(Number(xpRaw)));
+            } else {
+              localStorage.setItem(PLAYER_RANK_XP_KEY, '0');
+            }
+
             const raw = localStorage.getItem(PROFILE_KEY);
             if (raw) {
               const p = JSON.parse(raw);
-              if (Number.isFinite(Number(p.chips))) chips = Math.max(0, Math.floor(Number(p.chips)));
               if (p.username && String(p.username).trim()) name = String(p.username).trim().slice(0, 16);
               if (Number.isFinite(Number(p.lastBonusAt))) lastBonusAt = Number(p.lastBonusAt);
             }
-            const shared = localStorage.getItem(CHIPS_KEY);
-            if (shared !== null && Number.isFinite(Number(shared))) {
-              chips = Math.max(0, Math.floor(Number(shared)));
+
+            const sessionRaw = localStorage.getItem(USER_SESSION_KEY);
+            if (sessionRaw) {
+              const s = JSON.parse(sessionRaw);
+              if (s && s.name && String(s.name).trim()) {
+                name = String(s.name).trim().slice(0, 18);
+              }
+              if (s && s.avatarText && String(s.avatarText).trim()) {
+                avatarText = String(s.avatarText).trim().slice(0, 2).toUpperCase();
+              } else {
+                avatarText = name.charAt(0).toUpperCase() || 'O';
+              }
+              if (s && s.avatarBg) {
+                avatarBg = String(s.avatarBg);
+              }
+              if (s && (s.provider === 'google' || s.provider === 'guest')) {
+                provider = s.provider;
+              }
+            } else {
+              avatarText = name.charAt(0).toUpperCase() || 'O';
             }
           } catch (_) {}
-          return { chips, name, lastBonusAt };
+          return { chips, rankXp, name, avatarText, avatarBg, provider, lastBonusAt };
         }
 
-        function saveChipsAndStats(delta, won = false, claimedChest = false) {
-          profile.chips = Math.max(0, Math.floor(profile.chips + delta));
-          if (claimedChest) profile.lastBonusAt = Date.now();
+        function updateEconomyHud() {
           document.getElementById('hud-chips').textContent = fmt(profile.chips);
+          const rank = getRankInfo(profile.rankXp);
+          const badge = document.getElementById('hud-rank-badge');
+          const dot = document.getElementById('hud-rank-dot');
+          const nameEl = document.getElementById('hud-rank-name');
+          const xpEl = document.getElementById('hud-rank-xp');
+          if (badge) {
+            badge.className = `rank-hud-badge ${rank.tierClass}`;
+            badge.title = rank.nextTier
+              ? `${rank.name} (${fmt(rank.xp)} XP) · ${rank.nextTier.name} için ${fmt(rank.remaining)} XP kaldı`
+              : `${rank.name} (${fmt(rank.xp)} XP) · En Yüksek Lig`;
+          }
+          if (dot) {
+            dot.style.background = rank.color;
+            dot.style.color = rank.color;
+          }
+          if (nameEl) nameEl.textContent = rank.name;
+          if (xpEl) xpEl.textContent = `${fmt(rank.xp)} XP`;
+        }
+
+        function saveChipsAndStats(goldDelta, won = false, claimedChest = false, xpDelta = 0) {
+          profile.chips = Math.max(0, Math.floor(profile.chips + goldDelta));
+          profile.rankXp = Math.max(0, Math.floor(profile.rankXp + xpDelta));
+          if (claimedChest) profile.lastBonusAt = Date.now();
+          updateEconomyHud();
           try {
+            localStorage.setItem(PLAYER_GOLD_KEY, String(profile.chips));
+            localStorage.setItem(PLAYER_RANK_XP_KEY, String(profile.rankXp));
             const raw = localStorage.getItem(PROFILE_KEY);
             const p = raw ? JSON.parse(raw) : { username: profile.name, wins: 0, gamesPlayed: 0 };
             p.chips = profile.chips;
+            p.rankXp = profile.rankXp;
             if (won) p.wins = (Number(p.wins) || 0) + 1;
             if (!claimedChest) p.gamesPlayed = (Number(p.gamesPlayed) || 0) + 1;
             if (claimedChest) p.lastBonusAt = profile.lastBonusAt;
@@ -1866,8 +2173,13 @@
         }
 
         const profile = loadProfile();
-        document.getElementById('hud-chips').textContent = fmt(profile.chips);
+        updateEconomyHud();
         document.getElementById('pname-0').textContent = profile.name;
+        const humanAvatarEl = document.getElementById('pavatar-0');
+        if (humanAvatarEl) {
+          humanAvatarEl.textContent = profile.avatarText;
+          humanAvatarEl.style.background = profile.avatarBg;
+        }
 
         let appTheme = (() => {
           try {
@@ -2106,10 +2418,10 @@
           sideTakenFromSlot: null,
           botTimer: null,
           players: [
-            { id: 0, name: profile.name, isBot: false, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, rack: new Array(RACK_SLOTS).fill(null) },
-            { id: 1, name: 'Mert A.', isBot: true, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
-            { id: 2, name: 'Selin K.', isBot: true, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
-            { id: 3, name: 'Cüneyt C.', isBot: true, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
+            { id: 0, name: profile.name, isBot: false, gold: profile.chips, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, rack: new Array(RACK_SLOTS).fill(null) },
+            { id: 1, name: 'Mert A.', isBot: true, gold: 25000, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
+            { id: 2, name: 'Selin K.', isBot: true, gold: 28500, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
+            { id: 3, name: 'Cüneyt C.', isBot: true, gold: 22000, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
           ],
         };
 
@@ -3424,39 +3736,141 @@
           game.phase = 'ended';
           updateLiveScoreAndButtons();
 
+          // 1. Her oyuncunun bu eldeki ceza puanini hesapla
+          const entries = game.players.map((p, idx) => {
+            const remTiles = idx === 0 ? p.rack.filter(Boolean) : p.hand;
+            const roundPen = winnerSeat === idx ? -101 : calcHandPenalty(remTiles, p.hasOpened);
+            p.totalPenalty += roundPen;
+            if (idx === 0) p.gold = profile.chips;
+            return {
+              seat: idx,
+              player: p,
+              roundPen,
+              totalPen: p.totalPenalty,
+            };
+          });
+
+          // 2. En az ceza puani 1. olacak sekilde 4 oyuncuyu sirala
+          entries.sort((a, b) => {
+            if (a.roundPen !== b.roundPen) return a.roundPen - b.roundPen;
+            if (a.totalPen !== b.totalPen) return a.totalPen - b.totalPen;
+            if (a.player.hasOpened !== b.player.hasOpened) return a.player.hasOpened ? -1 : 1;
+            return a.seat - b.seat;
+          });
+
+          // 3. Siralama odul / ceza tablosu: 1. +10.000/+100XP, 2. +5.000/+25XP, 3. -5.000, 4. -5.000
+          const RANK_ECONOMY = [
+            { gold: 10000, xp: 100 },
+            { gold: 5000, xp: 25 },
+            { gold: -5000, xp: 0 },
+            { gold: -5000, xp: 0 },
+          ];
+
+          const prevRank = getRankInfo(profile.rankXp);
+          let humanEntry = null;
+
           const tbody = document.getElementById('round-tbody');
           tbody.innerHTML = '';
 
-          game.players.forEach((p, idx) => {
-            const remTiles = idx === 0 ? p.rack.filter(Boolean) : p.hand;
-            const pen = winnerSeat === idx ? -101 : calcHandPenalty(remTiles, p.hasOpened);
-            p.totalPenalty += pen;
+          entries.forEach((entry, rankIdx) => {
+            const place = rankIdx + 1;
+            const reward = RANK_ECONOMY[rankIdx] || { gold: -5000, xp: 0 };
+            entry.place = place;
+            entry.goldDelta = reward.gold;
+            entry.xpDelta = reward.xp;
+
+            if (entry.seat === 0) {
+              saveChipsAndStats(reward.gold, place === 1, false, reward.xp);
+              entry.player.gold = profile.chips;
+              humanEntry = entry;
+            } else {
+              entry.player.gold = Math.max(0, Math.floor(entry.player.gold + reward.gold));
+            }
+
             const tr = document.createElement('tr');
-            if (winnerSeat === idx) tr.className = 'winner-row';
+            if (place === 1) tr.classList.add('winner-row');
+            if (entry.seat === 0) tr.classList.add('human-row');
+
+            const goldStr = `${reward.gold >= 0 ? '+' : ''}${fmt(reward.gold)}`;
+            const goldCls = reward.gold >= 0 ? 'delta-pos' : 'delta-neg';
+            const penStr = entry.roundPen > 0 ? `+${entry.roundPen}` : String(entry.roundPen);
+            const playerLabel = entry.seat === 0 ? `${entry.player.name} (Sen)` : entry.player.name;
+
             tr.innerHTML = `
-              <td>${p.name}</td>
-              <td>${winnerSeat === idx ? 'Kazandı' : p.hasOpened ? 'Açtı' : 'Açmadı'}</td>
-              <td class="num">${pen > 0 ? `+${pen}` : pen}</td>
-              <td class="num">${p.totalPenalty}</td>
+              <td><span class="place-badge p${place}">${place}.</span></td>
+              <td>${playerLabel}</td>
+              <td class="num">${penStr} <small style="opacity:0.65">(${entry.totalPen})</small></td>
+              <td class="num ${goldCls}">${goldStr}</td>
+              <td class="num"><strong>${fmt(entry.player.gold)}</strong></td>
             `;
             tbody.appendChild(tr);
           });
 
-          const humanWon = winnerSeat === 0;
-          const chipDelta = humanWon ? 2000 : -400;
-          saveChipsAndStats(chipDelta, humanWon, false);
+          const newRank = getRankInfo(profile.rankXp);
+          const didRankUp = newRank.index > prevRank.index;
+          const humanPlace = humanEntry ? humanEntry.place : 4;
+          const humanGoldDelta = humanEntry ? humanEntry.goldDelta : -5000;
+          const humanXpDelta = humanEntry ? humanEntry.xpDelta : 0;
 
           document.getElementById('round-kicker').textContent = `${game.round}/${MAX_ROUNDS} EL SONUCU`;
-          document.getElementById('round-title').textContent = humanWon ? 'Eli Kazandın!' : winnerSeat === -1 ? 'El Berabere Bitti' : `${game.players[winnerSeat].name} Kazandı`;
+          document.getElementById('round-title').textContent =
+            humanPlace === 1
+              ? '1. Oldun · Eli Kazandın!'
+              : humanPlace === 2
+                ? '2. Oldun · Ödül Kazandın!'
+                : `${humanPlace}. Sırada Tamamladın`;
           document.getElementById('round-sub').textContent = subtitle;
+
+          const rewLabel = document.getElementById('round-reward-label');
           const rewEl = document.getElementById('round-reward');
-          rewEl.textContent = `${chipDelta >= 0 ? '+' : ''}${fmt(chipDelta)} Çip`;
-          rewEl.style.color = chipDelta >= 0 ? '#22c55e' : '#f87171';
+          if (rewLabel) rewLabel.textContent = `${humanPlace}. Sıra Ödül / Ceza`;
+          const goldText = `${humanGoldDelta >= 0 ? '+' : ''}${fmt(humanGoldDelta)} Altın`;
+          const xpText = humanXpDelta > 0 ? ` · +${humanXpDelta} XP` : '';
+          rewEl.textContent = `${goldText}${xpText}`;
+          rewEl.style.color = humanGoldDelta >= 0 ? '#22c55e' : '#f87171';
+
+          // Rutbe Atlama Kutlamasi & Ilerleme Cubugu
+          const rankUpEl = document.getElementById('rankup-banner');
+          const rankUpSubEl = document.getElementById('rankup-sub');
+          if (rankUpEl) {
+            if (didRankUp) {
+              rankUpEl.classList.add('show');
+              if (rankUpSubEl) rankUpSubEl.textContent = `${prevRank.name} → ${newRank.name}`;
+            } else {
+              rankUpEl.classList.remove('show');
+            }
+          }
+
+          const roundRankName = document.getElementById('round-rank-name');
+          const roundXpGain = document.getElementById('round-xp-gain');
+          const roundXpFill = document.getElementById('round-xp-fill');
+          const roundXpTotal = document.getElementById('round-xp-total');
+          const roundXpRem = document.getElementById('round-xp-remaining');
+
+          if (roundRankName) {
+            roundRankName.textContent = `Rütbe: ${newRank.name}`;
+            roundRankName.style.color = newRank.color;
+          }
+          if (roundXpGain) {
+            roundXpGain.textContent = humanXpDelta > 0 ? `+${humanXpDelta} XP Kazandın` : '+0 XP';
+            roundXpGain.style.color = humanXpDelta > 0 ? '#34d399' : 'var(--modal-sub)';
+          }
+          if (roundXpFill) {
+            roundXpFill.style.width = `${newRank.pct.toFixed(1)}%`;
+          }
+          if (roundXpTotal) {
+            roundXpTotal.textContent = `Toplam: ${fmt(newRank.xp)} XP`;
+          }
+          if (roundXpRem) {
+            roundXpRem.textContent = newRank.nextTier
+              ? `${newRank.nextTier.name} için ${fmt(newRank.remaining)} XP kaldı`
+              : 'En Yüksek Lig: 101 Efsanesi!';
+          }
 
           const nextBtn = document.getElementById('btn-next-round');
           nextBtn.textContent = game.round >= MAX_ROUNDS ? 'Yeni Maç Başlat' : `Sonraki El (${game.round + 1}/${MAX_ROUNDS})`;
 
-          if (humanWon) sound.playOpenFanfare();
+          if (humanPlace === 1 || didRankUp) sound.playOpenFanfare();
           document.getElementById('round-modal').classList.add('open');
         }
 
