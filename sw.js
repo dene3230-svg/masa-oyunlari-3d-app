@@ -1,4 +1,4 @@
-const CACHE_NAME = 'masa-oyunlari-v3-0';
+const CACHE_NAME = 'masa-oyunlari-v3-2';
 const CORE_ASSETS = [
   './',
   './index.html',

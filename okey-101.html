@@ -1036,7 +1036,7 @@
         top: 62px;
         left: 50%;
         transform: translateX(-50%) translateY(-12px);
-        z-index: 60;
+        z-index: 96;
         padding: 8px 18px;
         border-radius: 999px;
         background: rgba(7, 17, 34, 0.92);
@@ -1086,6 +1086,20 @@
       .modal-backdrop.open {
         opacity: 1;
         pointer-events: auto;
+      }
+
+      #pause-modal {
+        z-index: 82;
+      }
+
+      #mode-modal,
+      #online-modal,
+      #settings-modal {
+        z-index: 86;
+      }
+
+      #exit-modal {
+        z-index: 89;
       }
 
       .modal-card {
@@ -1336,11 +1350,691 @@
           grid-template-columns: 1fr;
         }
       }
+
+      /* ================= MAIN MENU OVERLAY (LIVE 3D BACKGROUND) ================= */
+      body.menu-active .hud-top,
+      body.menu-active .player-card,
+      body.menu-active .open-melds-board,
+      body.menu-active .bottom-dock {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px);
+        transition: opacity 260ms ease, transform 280ms var(--ease);
+      }
+
+      .hud-top,
+      .player-card,
+      .open-melds-board,
+      .bottom-dock {
+        transition: opacity 280ms ease, transform 280ms var(--ease);
+      }
+
+      .main-menu-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: radial-gradient(ellipse 75% 70% at 50% 48%, rgba(4, 11, 24, 0.24) 0%, rgba(3, 8, 18, 0.68) 100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms ease;
+      }
+
+      .main-menu-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .main-menu-card {
+        width: min(440px, 100%);
+        padding: 26px 24px 22px;
+        border-radius: 26px;
+        background: linear-gradient(160deg, rgba(8, 20, 38, 0.78) 0%, rgba(4, 13, 26, 0.88) 100%);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1.5px solid rgba(245, 210, 113, 0.52);
+        box-shadow:
+          0 28px 70px rgba(0, 0, 0, 0.62),
+          0 0 42px rgba(245, 210, 113, 0.12),
+          inset 0 1px 0 rgba(255, 240, 196, 0.22);
+        text-align: center;
+        animation: menuFloatIn 420ms var(--ease) both;
+      }
+
+      @keyframes menuFloatIn {
+        from {
+          opacity: 0;
+          transform: translateY(18px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .menu-crest {
+        width: 56px;
+        height: 70px;
+        margin: 0 auto 12px;
+        border-radius: 13px;
+        background: linear-gradient(165deg, #fcf8ec 0%, #ede2c6 100%);
+        border: 2px solid #d99b1e;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.48), 0 0 22px rgba(245, 210, 113, 0.35), inset 0 1px 0 #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transform: rotate(-5deg);
+      }
+
+      .menu-crest-num {
+        font-size: 1.75rem;
+        font-weight: 900;
+        color: #d62828;
+        line-height: 1;
+      }
+
+      .menu-crest-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #d62828;
+      }
+
+      .menu-kicker {
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+
+      .menu-title {
+        margin-top: 4px;
+        font-size: 1.82rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: #fff;
+        text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+      }
+
+      .menu-meta-row {
+        margin: 10px auto 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 13px;
+        border-radius: 999px;
+        background: rgba(6, 17, 32, 0.68);
+        border: 1px solid var(--border-gold);
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: var(--gold-bright);
+      }
+
+      .menu-btn-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .menu-btn {
+        position: relative;
+        width: 100%;
+        padding: 13px 16px;
+        border-radius: 15px;
+        border: 1px solid rgba(245, 210, 113, 0.36);
+        background: rgba(11, 27, 48, 0.72);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: var(--text);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        text-align: left;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        transition: transform 150ms var(--ease), border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      }
+
+      .menu-btn:hover {
+        transform: translateY(-2px);
+        border-color: rgba(245, 210, 113, 0.82);
+        background: rgba(17, 39, 68, 0.86);
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+      }
+
+      .menu-btn:active {
+        transform: scale(0.97);
+      }
+
+      .menu-btn.is-primary {
+        border-color: rgba(134, 239, 172, 0.78);
+        background: linear-gradient(135deg, rgba(22, 163, 74, 0.92) 0%, rgba(12, 108, 66, 0.95) 100%);
+        color: #fff;
+        box-shadow: 0 10px 28px rgba(22, 163, 74, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      }
+
+      .menu-btn.is-primary:hover {
+        background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+        border-color: #bbf7d0;
+      }
+
+      .menu-btn.is-danger {
+        border-color: rgba(248, 113, 113, 0.36);
+      }
+
+      .menu-btn.is-danger:hover {
+        border-color: rgba(248, 113, 113, 0.78);
+        background: rgba(68, 18, 28, 0.82);
+      }
+
+      .menu-btn-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.09);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+      }
+
+      .menu-btn-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .menu-btn-text strong {
+        font-size: 0.98rem;
+        font-weight: 800;
+        line-height: 1.15;
+      }
+
+      .menu-btn-text small {
+        font-size: 0.72rem;
+        opacity: 0.78;
+        font-weight: 600;
+      }
+
+      .online-pill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.28), rgba(16, 185, 129, 0.26));
+        border: 1px solid rgba(56, 189, 248, 0.76);
+        color: #7dd3fc;
+        font-size: 0.64rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        flex-shrink: 0;
+      }
+
+      .online-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #38bdf8;
+        box-shadow: 0 0 8px #38bdf8;
+        animation: onlineBlink 1.5s ease-in-out infinite;
+      }
+
+      @keyframes onlineBlink {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.45;
+          transform: scale(0.8);
+        }
+      }
+
+      /* Settings & Online Modal Controls */
+      .settings-section {
+        margin-top: 15px;
+        text-align: left;
+      }
+
+      .settings-label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+
+      .theme-choice-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .theme-card-btn {
+        padding: 12px 11px;
+        border-radius: 14px;
+        border: 1.5px solid rgba(245, 210, 113, 0.28);
+        background: rgba(7, 18, 34, 0.74);
+        color: var(--text);
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        transition: transform 140ms var(--ease), border-color 180ms ease, box-shadow 180ms ease;
+      }
+
+      .theme-card-btn:active {
+        transform: scale(0.97);
+      }
+
+      .theme-card-btn.is-active {
+        border-color: #4ade80;
+        box-shadow: 0 0 18px rgba(34, 197, 94, 0.34);
+      }
+
+      .theme-swatch-bar {
+        height: 18px;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+      }
+
+      .theme-swatch-dark {
+        background: linear-gradient(90deg, #050b16 0%, #0b3b2c 50%, #3b2212 100%);
+      }
+
+      .theme-swatch-light {
+        background: linear-gradient(90deg, #f3ede2 0%, #1d7c58 50%, #c69458 100%);
+      }
+
+      .theme-card-btn strong {
+        font-size: 0.85rem;
+      }
+
+      .theme-card-btn small {
+        font-size: 0.69rem;
+        opacity: 0.76;
+      }
+
+      .seg-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .seg-btn {
+        padding: 9px 8px;
+        border-radius: 11px;
+        border: 1px solid rgba(245, 210, 113, 0.3);
+        background: rgba(7, 18, 34, 0.74);
+        color: var(--text-dim);
+        font-size: 0.8rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform 120ms var(--ease), background 160ms ease, border-color 160ms ease, color 160ms ease;
+      }
+
+      .seg-btn.is-active {
+        border-color: #4ade80;
+        background: linear-gradient(135deg, rgba(22, 163, 74, 0.42), rgba(6, 78, 59, 0.82));
+        color: #fff;
+      }
+
+      .seg-btn:active {
+        transform: scale(0.96);
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(7, 18, 34, 0.68);
+        border: 1px solid var(--border-soft);
+      }
+
+      .toggle-row span {
+        font-size: 0.84rem;
+        font-weight: 700;
+      }
+
+      .switch-btn {
+        width: 50px;
+        height: 28px;
+        border-radius: 999px;
+        border: 1px solid var(--border-gold);
+        background: rgba(100, 116, 139, 0.4);
+        position: relative;
+        cursor: pointer;
+        transition: background 180ms ease;
+      }
+
+      .switch-btn::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+        transition: transform 180ms var(--ease);
+      }
+
+      .switch-btn.is-on {
+        background: linear-gradient(135deg, #22c55e, #15803d);
+        border-color: #86efac;
+      }
+
+      .switch-btn.is-on::after {
+        transform: translateX(22px);
+      }
+
+      .online-status-banner {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(16, 185, 129, 0.14));
+        border: 1px solid rgba(56, 189, 248, 0.52);
+        color: #bae6fd;
+        font-size: 0.82rem;
+        font-weight: 700;
+        line-height: 1.45;
+      }
+
+      .online-draft-box {
+        margin-top: 14px;
+        padding: 13px;
+        border-radius: 14px;
+        background: rgba(6, 16, 30, 0.65);
+        border: 1px solid var(--border-soft);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: left;
+      }
+
+      .room-input-row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .room-code-input {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 11px;
+        border: 1px solid var(--border-gold);
+        background: rgba(4, 11, 24, 0.84);
+        color: var(--text);
+        font-size: 0.88rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        outline: none;
+      }
+
+      .room-code-input::placeholder {
+        letter-spacing: 0.02em;
+        text-transform: none;
+        color: var(--text-muted);
+      }
+
+      /* ================= WHITE THEME (AYDINLIK MERMER & MEŞE MODU) ================= */
+      body.theme-light {
+        --bg-void: #ece4d7;
+        --glass-dark: rgba(255, 252, 245, 0.84);
+        --glass-card: rgba(255, 252, 245, 0.82);
+        --glass-hover: rgba(255, 248, 235, 0.96);
+        --gold: #9a6b13;
+        --gold-bright: #8a5b0c;
+        --border-gold: rgba(166, 122, 36, 0.45);
+        --border-soft: rgba(148, 112, 46, 0.24);
+        --text: #162032;
+        --text-dim: #334155;
+        --text-muted: #64748b;
+      }
+
+      body.theme-light #canvas-wrap {
+        background: radial-gradient(ellipse 85% 75% at 50% 42%, #faf6ee 0%, #ebe3d5 60%, #ddd3c2 100%);
+      }
+
+      body.theme-light .hud-top {
+        background: linear-gradient(180deg, rgba(255, 252, 246, 0.94) 0%, rgba(247, 241, 230, 0.84) 100%);
+        box-shadow: 0 8px 24px rgba(45, 32, 12, 0.12);
+      }
+
+      body.theme-light .mini-tile-wrap,
+      body.theme-light .deck-pill,
+      body.theme-light .chip-box,
+      body.theme-light .turn-banner,
+      body.theme-light .mode-chip-btn {
+        background: rgba(255, 253, 248, 0.88);
+        color: #162032;
+      }
+
+      body.theme-light .turn-banner.highlight {
+        background: linear-gradient(90deg, rgba(22, 163, 74, 0.18), rgba(255, 252, 246, 0.94), rgba(22, 163, 74, 0.18));
+        color: #14532d;
+      }
+
+      body.theme-light .hud-btn-lobby {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.24), rgba(255, 252, 245, 0.94));
+        color: #784f08;
+      }
+
+      body.theme-light .player-card {
+        box-shadow: 0 10px 24px rgba(32, 24, 12, 0.14);
+      }
+
+      body.theme-light .pcard-name {
+        color: #0f172a;
+      }
+
+      body.theme-light .pcard-badge.closed {
+        background: rgba(100, 116, 139, 0.14);
+        color: #475569;
+      }
+
+      body.theme-light .pcard-badge.opened {
+        color: #15803d;
+      }
+
+      body.theme-light .pcard-bubble {
+        background: rgba(255, 252, 245, 0.96);
+        color: #784f08;
+      }
+
+      body.theme-light .open-melds-empty,
+      body.theme-light .meld-panel {
+        background: rgba(255, 252, 245, 0.86);
+        color: #1e293b;
+      }
+
+      body.theme-light .glass-action-btn {
+        background: linear-gradient(160deg, rgba(255, 253, 248, 0.9) 0%, rgba(244, 237, 224, 0.94) 100%);
+        color: #162032;
+        box-shadow: 0 8px 18px rgba(32, 24, 12, 0.16), inset 0 1px 0 #fff;
+      }
+
+      body.theme-light .glass-action-btn.pulse-ready {
+        background: linear-gradient(155deg, rgba(34, 197, 94, 0.28), rgba(248, 253, 249, 0.96));
+        color: #14532d;
+      }
+
+      body.theme-light .rack-score-badge {
+        background: rgba(255, 252, 245, 0.94);
+      }
+
+      body.theme-light .main-menu-overlay {
+        background: radial-gradient(ellipse 75% 70% at 50% 48%, rgba(248, 243, 234, 0.18) 0%, rgba(226, 217, 200, 0.62) 100%);
+      }
+
+      body.theme-light .main-menu-card,
+      body.theme-light .modal-card {
+        background: linear-gradient(165deg, rgba(255, 253, 248, 0.92) 0%, rgba(246, 240, 229, 0.96) 100%);
+        border-color: rgba(180, 134, 42, 0.58);
+        box-shadow: 0 24px 60px rgba(35, 24, 10, 0.22), inset 0 1px 0 #fff;
+      }
+
+      body.theme-light .menu-title,
+      body.theme-light .modal-title,
+      body.theme-light .mode-option strong {
+        color: #0f172a;
+        text-shadow: none;
+      }
+
+      body.theme-light .menu-meta-row,
+      body.theme-light .menu-btn,
+      body.theme-light .mode-option,
+      body.theme-light .theme-card-btn,
+      body.theme-light .seg-btn,
+      body.theme-light .toggle-row,
+      body.theme-light .online-draft-box,
+      body.theme-light .reward-box,
+      body.theme-light .modal-cta.secondary {
+        background: rgba(255, 252, 246, 0.86);
+        color: #0f172a;
+      }
+
+      body.theme-light .menu-btn:hover,
+      body.theme-light .mode-option:hover {
+        background: rgba(255, 249, 238, 0.98);
+      }
+
+      body.theme-light .menu-btn.is-primary {
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        color: #fff;
+      }
+
+      body.theme-light .menu-btn-icon {
+        background: rgba(180, 134, 42, 0.12);
+        border-color: rgba(180, 134, 42, 0.25);
+      }
+
+      body.theme-light .online-pill-badge {
+        background: rgba(14, 165, 233, 0.14);
+        color: #0369a1;
+      }
+
+      body.theme-light .online-status-banner {
+        background: rgba(14, 165, 233, 0.12);
+        color: #0c4a6e;
+      }
+
+      body.theme-light .room-code-input {
+        background: #fff;
+        color: #0f172a;
+      }
+
+      body.theme-light .toast {
+        background: rgba(255, 252, 246, 0.96);
+        color: #0f172a;
+        box-shadow: 0 10px 26px rgba(32, 24, 12, 0.18);
+      }
+
+      body.theme-light .toast.success {
+        color: #14532d;
+      }
+
+      body.theme-light .toast.error {
+        color: #991b1b;
+      }
     </style>
   </head>
-  <body>
+  <body class="menu-active">
     <div id="canvas-wrap" aria-label="3D Okey 101 Oyun Masası"></div>
     <canvas id="celebration-canvas" aria-hidden="true"></canvas>
+
+    <!-- ANIMATED GLASSMORPHISM MAIN MENU OVER LIVE ROTATING 3D TABLE -->
+    <main class="main-menu-overlay open" id="main-menu-overlay" aria-label="3D Okey 101 Ana Menü">
+      <div class="main-menu-card">
+        <div class="menu-crest" aria-hidden="true">
+          <span class="menu-crest-num">13</span>
+          <span class="menu-crest-dot"></span>
+        </div>
+        <div class="menu-kicker">MASA OYUNLARI 3D · STÜDYO</div>
+        <h1 class="menu-title">3D OKEY 101</h1>
+        <div class="menu-meta-row">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="rgba(245,210,113,0.2)" stroke="currentColor" stroke-width="1.9" />
+            <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.5 2" />
+          </svg>
+          <span id="menu-chips">10.000 Çip</span>
+          <span>·</span>
+          <span id="menu-theme-pill">Siyah VIP</span>
+        </div>
+
+        <div class="menu-btn-stack">
+          <button type="button" class="menu-btn is-primary" id="btn-menu-play">
+            <span class="menu-btn-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <polygon points="6 4 20 12 6 20 6 4" />
+              </svg>
+            </span>
+            <span class="menu-btn-text">
+              <strong>Oyuna Giriş</strong>
+              <small>Tek Oyunculu · 3 Akıllı Bot (Katlamalı / Katlamasız)</small>
+            </span>
+          </button>
+
+          <button type="button" class="menu-btn" id="btn-menu-online">
+            <span class="menu-btn-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+              </svg>
+            </span>
+            <span class="menu-btn-text">
+              <strong>Online Oyna</strong>
+              <small>Çok Oyunculu Lobi · Oda Kodu & Hızlı Eşleşme</small>
+            </span>
+            <span class="online-pill-badge"><span class="online-dot"></span>ONLINE</span>
+          </button>
+
+          <button type="button" class="menu-btn" id="btn-menu-settings">
+            <span class="menu-btn-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f5d271" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </span>
+            <span class="menu-btn-text">
+              <strong>Ayarlar</strong>
+              <small>Siyah / Beyaz Masa Teması, Ses, Yapay Zeka Zorluğu</small>
+            </span>
+          </button>
+
+          <button type="button" class="menu-btn is-danger" id="btn-menu-exit">
+            <span class="menu-btn-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </span>
+            <span class="menu-btn-text">
+              <strong>Oyundan Çıkış</strong>
+              <small>Ana Oyun Lobisine Dön veya Uygulamadan Çık</small>
+            </span>
+          </button>
+        </div>
+      </div>
+    </main>
 
     <!-- SLIM GLASSMORPHISM TOP BAR -->
     <header class="hud-top">
@@ -1386,6 +2080,15 @@
             <line x1="17" y1="9" x2="23" y2="15" />
           </svg>
           <span id="sound-label">Ses</span>
+        </button>
+
+        <button type="button" class="hud-btn" id="btn-pause-menu" title="Duraklat / Ayarlar / Ana Menü">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+          <span>Menü</span>
         </button>
 
         <a href="index.html" class="hud-btn hud-btn-lobby" title="Ana Lobiye Dön">
@@ -1479,13 +2182,13 @@
     <div id="drag-ghost" aria-hidden="true"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <!-- STARTUP MODE SELECTION MODAL (KATLAMALI / KATLAMASIZ) -->
-    <div class="modal-backdrop open" id="mode-modal" role="dialog" aria-modal="true" aria-labelledby="mode-modal-title">
+    <!-- MODE SELECTION MODAL (KATLAMALI / KATLAMASIZ) -->
+    <div class="modal-backdrop" id="mode-modal" role="dialog" aria-modal="true" aria-labelledby="mode-modal-title">
       <div class="modal-card">
-        <div class="modal-kicker">3D OKEY 101 · STÜDYO SÜRÜMÜ</div>
+        <div class="modal-kicker">TEK OYUNCULU · 3 YAPAY ZEKA RAKİP</div>
         <h2 class="modal-title" id="mode-modal-title">Oyun Modunu Seç</h2>
         <p class="modal-sub">
-          Zümrüt çuha 3D masa hazır! Klasik sabit 101 barajı veya her açılan elle yükselen Katlamalı 101 modunu seçerek oyuna başla.
+          Klasik sabit 101 barajı veya her açılan elle yükselen Katlamalı 101 modunu seçerek masaya otur.
         </p>
 
         <div class="mode-options-grid">
@@ -1500,6 +2203,137 @@
             <strong>Katlamalı 101</strong>
             <span>Bir oyuncu el açtığında baraj otomatik yükselir (en yüksek el + 1 puan).</span>
           </button>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="modal-cta secondary" id="btn-mode-cancel">Geri Dön</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONLINE LOBBY PREP MODAL -->
+    <div class="modal-backdrop" id="online-modal" role="dialog" aria-modal="true" aria-labelledby="online-modal-title">
+      <div class="modal-card">
+        <div class="modal-kicker">ÇOK OYUNCULU LOBİ HAZIRLIĞI</div>
+        <h2 class="modal-title" id="online-modal-title">Online 101 Okey</h2>
+
+        <div class="online-status-banner">
+          Online sunucu altyapısı hazırlanıyor, çok yakında aktif! Oda kurma ve gerçek zamanlı eşleşme bağlandığında burada açılacak.
+        </div>
+
+        <div class="online-draft-box">
+          <span class="settings-label" style="margin-bottom:0">Oda Kodu İle Katıl (Önizleme)</span>
+          <div class="room-input-row">
+            <input type="text" class="room-code-input" id="online-room-input" maxlength="6" placeholder="Örn: OKY101" />
+            <button type="button" class="modal-cta secondary" id="btn-online-join">Katıl</button>
+          </div>
+          <div class="modal-actions" style="margin-top:4px; justify-content:stretch;">
+            <button type="button" class="modal-cta secondary" id="btn-online-quick" style="flex:1">Hızlı Eşleşme (Yakında)</button>
+            <button type="button" class="modal-cta secondary" id="btn-online-create" style="flex:1">Oda Kur (Yakında)</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="modal-cta" id="btn-online-play-bots">Botlara Karşı Oyna</button>
+          <button type="button" class="modal-cta secondary" id="btn-online-close">Kapat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS MODAL (BLACK / WHITE THEME, AUDIO & AI DIFFICULTY) -->
+    <div class="modal-backdrop" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+      <div class="modal-card">
+        <div class="modal-kicker">KİŞİSELLEŞTİRME & TERCİHLER</div>
+        <h2 class="modal-title" id="settings-modal-title">Oyun Ayarları</h2>
+
+        <div class="settings-section">
+          <span class="settings-label">Masa & Arayüz Teması</span>
+          <div class="theme-choice-grid">
+            <button type="button" class="theme-card-btn" id="btn-theme-dark">
+              <div class="theme-swatch-bar theme-swatch-dark"></div>
+              <strong>Siyah Tema</strong>
+              <small>VIP Gece Modu · Koyu Ceviz</small>
+            </button>
+            <button type="button" class="theme-card-btn" id="btn-theme-light">
+              <div class="theme-swatch-bar theme-swatch-light"></div>
+              <strong>Beyaz Tema</strong>
+              <small>Aydınlık Mermer & Meşe Modu</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <span class="settings-label">Ses Efektleri</span>
+          <div class="toggle-row">
+            <span id="settings-sound-status">Ses Efektleri Açık</span>
+            <button type="button" class="switch-btn is-on" id="btn-settings-sound" aria-label="Ses efektlerini aç veya kapat"></button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <span class="settings-label">Yapay Zeka Zorluk Seviyesi</span>
+          <div class="seg-row">
+            <button type="button" class="seg-btn" id="btn-diff-easy" data-diff="easy">Kolay</button>
+            <button type="button" class="seg-btn" id="btn-diff-medium" data-diff="medium">Orta</button>
+            <button type="button" class="seg-btn" id="btn-diff-hard" data-diff="hard">Zor</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="modal-cta" id="btn-settings-close">Kaydet ve Kapat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IN-GAME PAUSE / MENU MODAL -->
+    <div class="modal-backdrop" id="pause-modal" role="dialog" aria-modal="true" aria-labelledby="pause-modal-title">
+      <div class="modal-card">
+        <div class="modal-kicker">OYUN DURAKLATILDI</div>
+        <h2 class="modal-title" id="pause-modal-title">Oyun Menüsü</h2>
+        <p class="modal-sub">Süre ve rakip hamleleri duraklatıldı. Temanı anında değiştirebilir veya Ana Menüye dönebilirsin.</p>
+
+        <div class="menu-btn-stack" style="margin-top:16px">
+          <button type="button" class="menu-btn is-primary" id="btn-pause-resume">
+            <span class="menu-btn-text">
+              <strong>Oyuna Devam Et</strong>
+              <small>Kaldığın yerden masaya dön</small>
+            </span>
+          </button>
+          <button type="button" class="menu-btn" id="btn-pause-settings">
+            <span class="menu-btn-text">
+              <strong>Ayarlar (Siyah / Beyaz Tema & Ses)</strong>
+              <small>Masa temasını ve zorluğu anında değiştir</small>
+            </span>
+          </button>
+          <button type="button" class="menu-btn" id="btn-pause-mainmenu">
+            <span class="menu-btn-text">
+              <strong>Ana Menüye Dön</strong>
+              <small>Canlı 3D giriş ekranına geç</small>
+            </span>
+          </button>
+          <button type="button" class="menu-btn is-danger" id="btn-pause-exit">
+            <span class="menu-btn-text">
+              <strong>Oyundan Çıkış</strong>
+              <small>Ana Oyun Lobisine dön veya çık</small>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXIT CONFIRMATION MODAL -->
+    <div class="modal-backdrop" id="exit-modal" role="dialog" aria-modal="true" aria-labelledby="exit-modal-title">
+      <div class="modal-card">
+        <div class="modal-kicker">ÇIKIŞ ONAYI</div>
+        <h2 class="modal-title" id="exit-modal-title">Oyundan Çıkılsın mı?</h2>
+        <p class="modal-sub">
+          Mevcut çip bakiyen otomatik olarak kaydedildi. Ana Oyun Lobisine dönebilir veya uygulamayı güvenle kapatabilirsin.
+        </p>
+
+        <div class="modal-actions" style="flex-wrap:wrap">
+          <button type="button" class="modal-cta" id="btn-exit-lobby">Ana Lobiye Dön</button>
+          <button type="button" class="modal-cta secondary" id="btn-exit-app">Uygulamadan Çık</button>
+          <button type="button" class="modal-cta secondary" id="btn-exit-cancel">İptal</button>
         </div>
       </div>
     </div>
@@ -1832,7 +2666,34 @@
         const RACK_SLOTS = 28;
         const TURN_DURATION_SEC = 25;
 
+        const SETTINGS_STORAGE_KEY = 'okey101_settings_v1';
+        function loadSettings() {
+          try {
+            const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+            if (raw) {
+              const s = JSON.parse(raw);
+              return {
+                theme: s.theme === 'light' ? 'light' : 'dark',
+                sound: s.sound !== false,
+                difficulty: ['easy', 'medium', 'hard'].includes(s.difficulty) ? s.difficulty : 'medium',
+              };
+            }
+          } catch (_) {}
+          return { theme: 'dark', sound: true, difficulty: 'medium' };
+        }
+
+        const settings = loadSettings();
+        sound.enabled = settings.sound;
+
+        function saveSettings() {
+          try {
+            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+          } catch (_) {}
+        }
+
         const game = {
+          screen: 'menu', // 'menu' | 'playing'
+          paused: false,
           round: 1,
           dealer: 0,
           turn: 0,
@@ -2239,9 +3100,11 @@
           cameraShake = Math.max(cameraShake, Math.min(0.28, intensity));
         }
 
-        // Three-Point Salon Lighting Rig (Warm Overhead Spot + Soft Ambient/Hemi + Oblique Key + Warm Gold Rim)
-        scene.add(new THREE.AmbientLight(0xfff5e4, 0.44));
-        scene.add(new THREE.HemisphereLight(0x7ca6dc, 0x16110a, 0.34));
+        // Three-Point Salon Lighting Rig (Dynamic refs for Black VIP & White Marble/Oak themes)
+        const ambientLight = new THREE.AmbientLight(0xfff5e4, 0.44);
+        scene.add(ambientLight);
+        const hemiLight = new THREE.HemisphereLight(0x7ca6dc, 0x16110a, 0.34);
+        scene.add(hemiLight);
 
         const overheadSpot = new THREE.SpotLight(0xffe6ba, 1.4, 30, Math.PI * 0.36, 0.6, 1.1);
         overheadSpot.position.set(0, 14.2, 0.6);
@@ -2799,14 +3662,200 @@
           tableGroup.add(rivet);
         });
 
-        // Dark lounge floor beneath table
-        const floor = new THREE.Mesh(
-          new THREE.PlaneGeometry(52, 52),
-          new THREE.MeshStandardMaterial({ color: 0x040914, roughness: 0.95 })
-        );
+        // Lounge floor beneath table (obsidian night floor in Black theme / Carrara white marble in White theme)
+        function createMarbleFloorTex() {
+          const s = 512;
+          const c = document.createElement('canvas');
+          c.width = s;
+          c.height = s;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#eee8dd';
+          ctx.fillRect(0, 0, s, s);
+          for (let i = 0; i < 28; i++) {
+            const x0 = Math.random() * s;
+            const y0 = Math.random() * s;
+            ctx.strokeStyle = `rgba(148, 136, 120, ${0.09 + Math.random() * 0.14})`;
+            ctx.lineWidth = 0.8 + Math.random() * 2.2;
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            ctx.bezierCurveTo(
+              x0 + (Math.random() - 0.5) * 180,
+              y0 + (Math.random() - 0.5) * 180,
+              x0 + (Math.random() - 0.5) * 260,
+              y0 + (Math.random() - 0.5) * 260,
+              x0 + (Math.random() - 0.5) * 320,
+              y0 + (Math.random() - 0.5) * 320
+            );
+            ctx.stroke();
+          }
+          const tex = makeColorTex(c);
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(4, 4);
+          return tex;
+        }
+
+        function createLightSalonBackdropTex() {
+          const w = 512;
+          const h = 512;
+          const c = document.createElement('canvas');
+          c.width = w;
+          c.height = h;
+          const ctx = c.getContext('2d');
+          const base = ctx.createLinearGradient(0, 0, 0, h);
+          base.addColorStop(0, '#f7f2e8');
+          base.addColorStop(0.55, '#ede4d6');
+          base.addColorStop(1, '#dfd4c2');
+          ctx.fillStyle = base;
+          ctx.fillRect(0, 0, w, h);
+
+          const sun = ctx.createRadialGradient(w * 0.5, h * 0.2, 16, w * 0.5, h * 0.2, w * 0.65);
+          sun.addColorStop(0, 'rgba(255, 252, 240, 0.85)');
+          sun.addColorStop(0.55, 'rgba(245, 224, 178, 0.25)');
+          sun.addColorStop(1, 'rgba(232, 222, 206, 0)');
+          ctx.fillStyle = sun;
+          ctx.fillRect(0, 0, w, h);
+          return makeColorTex(c);
+        }
+
+        function createLightFeltTex() {
+          const w = 1024;
+          const h = 768;
+          const c = document.createElement('canvas');
+          c.width = w;
+          c.height = h;
+          const ctx = c.getContext('2d');
+          const g = ctx.createRadialGradient(w / 2, h / 2, 28, w / 2, h / 2, w * 0.64);
+          g.addColorStop(0, '#228c64');
+          g.addColorStop(0.54, '#156949');
+          g.addColorStop(1, '#0c4731');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, w, h);
+
+          ctx.fillStyle = 'rgba(255,255,255,0.025)';
+          for (let i = 0; i < 8000; i++) ctx.fillRect(Math.random() * w, Math.random() * h, 2, 1);
+
+          ctx.strokeStyle = 'rgba(245, 211, 108, 0.72)';
+          ctx.lineWidth = 5;
+          ctx.strokeRect(24, 24, w - 48, h - 48);
+          ctx.strokeStyle = 'rgba(255, 244, 204, 0.42)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(38, 38, w - 76, h - 76);
+
+          ctx.strokeStyle = 'rgba(255, 244, 204, 0.32)';
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          ctx.roundRect(128, 108, w - 256, h - 224, 34);
+          ctx.stroke();
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+          ctx.strokeStyle = 'rgba(255, 242, 198, 0.22)';
+          ctx.lineWidth = 1.4;
+          for (let r = 0; r < 3; r++) {
+            ctx.beginPath();
+            ctx.roundRect(160, 290 + r * 92, w - 320, 74, 14);
+            ctx.fill();
+            ctx.stroke();
+          }
+
+          ctx.fillStyle = 'rgba(255, 248, 224, 0.14)';
+          ctx.font = '800 54px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('101 OKEY', w / 2, 240);
+          return makeColorTex(c);
+        }
+
+        const darkSalonTex = scene.background;
+        const darkFeltTex = feltMat.map;
+        const lightSalonTex = createLightSalonBackdropTex();
+        const lightFeltTex = createLightFeltTex();
+        const oakTableWood = createWalnutWoodPair(182, 134, 84);
+        const oakRackWood = createWalnutWoodPair(196, 150, 96);
+        const marbleFloorTex = createMarbleFloorTex();
+
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x040914, roughness: 0.92 });
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(52, 52), floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.position.y = -2.2;
         scene.add(floor);
+
+        function applyTouchRackWoodTheme(themeName) {
+          const rackShell = document.getElementById('wooden-rack-shell');
+          if (!rackShell) return;
+          const isLight = themeName === 'light';
+          const c = document.createElement('canvas');
+          c.width = 512;
+          c.height = 192;
+          const ctx = c.getContext('2d');
+          const g = ctx.createLinearGradient(0, 0, 0, c.height);
+          if (isLight) {
+            g.addColorStop(0, '#d8ad76');
+            g.addColorStop(0.48, '#be8c54');
+            g.addColorStop(0.54, '#a6743f');
+            g.addColorStop(1, '#8c5d2f');
+          } else {
+            g.addColorStop(0, '#5a3117');
+            g.addColorStop(0.48, '#3f200d');
+            g.addColorStop(0.54, '#2d1508');
+            g.addColorStop(1, '#1d0d04');
+          }
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, c.width, c.height);
+
+          for (let y = 0; y < c.height; y += 2) {
+            const v = Math.sin((y + Math.sin(y * 0.12) * 12) * 0.18);
+            ctx.fillStyle = v > 0 ? `rgba(255, 224, 178, ${v * 0.08})` : `rgba(30, 14, 4, ${-v * 0.12})`;
+            ctx.fillRect(0, y, c.width, 2);
+          }
+          const url = c.toDataURL('image/png');
+          rackShell.style.backgroundImage = isLight
+            ? `linear-gradient(180deg, rgba(255, 238, 210, 0.28) 0%, rgba(186, 138, 84, 0.25) 55%, rgba(120, 78, 36, 0.42) 100%), url("${url}")`
+            : `linear-gradient(180deg, rgba(96, 52, 24, 0.32) 0%, rgba(42, 20, 8, 0.44) 55%, rgba(16, 7, 3, 0.68) 100%), url("${url}")`;
+          rackShell.style.backgroundSize = '100% 100%, 420px 160px';
+        }
+
+        function applySceneAndUITheme(themeName) {
+          const isLight = themeName === 'light';
+          document.body.classList.toggle('theme-light', isLight);
+
+          // Live 3D environment switch
+          scene.background = isLight ? lightSalonTex : darkSalonTex;
+          scene.fog.color.setHex(isLight ? 0xe7dfd1 : 0x050e20);
+          scene.fog.density = isLight ? 0.011 : 0.02;
+
+          feltMat.map = isLight ? lightFeltTex : darkFeltTex;
+          feltMat.needsUpdate = true;
+
+          tableWoodMat.map = isLight ? oakTableWood.color : tableWalnut.color;
+          tableWoodMat.bumpMap = isLight ? oakTableWood.bump : tableWalnut.bump;
+          tableWoodMat.needsUpdate = true;
+
+          rackWoodMat.map = isLight ? oakRackWood.color : rackWalnut.color;
+          rackWoodMat.bumpMap = isLight ? oakRackWood.bump : rackWalnut.bump;
+          rackWoodMat.needsUpdate = true;
+
+          floorMat.map = isLight ? marbleFloorTex : null;
+          floorMat.color.setHex(isLight ? 0xf5f0e6 : 0x040914);
+          floorMat.roughness = isLight ? 0.42 : 0.94;
+          floorMat.needsUpdate = true;
+
+          ambientLight.intensity = isLight ? 0.68 : 0.44;
+          hemiLight.intensity = isLight ? 0.56 : 0.34;
+          overheadSpot.intensity = isLight ? 1.05 : 1.42;
+          mainKeyLight.intensity = isLight ? 0.78 : 0.86;
+          rimLight.intensity = isLight ? 0.34 : 0.48;
+          renderer.toneMappingExposure = isLight ? 0.84 : 0.9;
+
+          applyTouchRackWoodTheme(themeName);
+
+          const pill = document.getElementById('menu-theme-pill');
+          if (pill) pill.textContent = isLight ? 'Beyaz Mermer' : 'Siyah VIP';
+          const btnDark = document.getElementById('btn-theme-dark');
+          const btnLight = document.getElementById('btn-theme-light');
+          if (btnDark) btnDark.classList.toggle('is-active', !isLight);
+          if (btnLight) btnLight.classList.toggle('is-active', isLight);
+        }
 
         /* ------------------ PHYSICAL ROUNDED BEVELED 3D IVORY TILES ------------------ */
         const TILE_W = 0.68;
@@ -4072,13 +5121,15 @@
 
         function scheduleBotTurn() {
           clearAllBotTimers();
+          if (game.paused || game.screen !== 'playing') return;
           const pIdx = game.turn;
           showPlayerBubble(pIdx, 'Düşünüyor...', 'pass', 1100);
-          game.botTimer = setTimeout(executeBotTurn, 660 + Math.floor(Math.random() * 440));
+          const baseDelay = settings.difficulty === 'hard' ? 480 : settings.difficulty === 'easy' ? 920 : 660;
+          game.botTimer = setTimeout(executeBotTurn, baseDelay + Math.floor(Math.random() * 400));
         }
 
         function executeBotTurn() {
-          if (game.phase === 'ended' || !game.modeChosen) return;
+          if (game.phase === 'ended' || !game.modeChosen || game.paused || game.screen !== 'playing') return;
           const pIdx = game.turn;
           const bot = game.players[pIdx];
           const prevIdx = (pIdx + 3) % 4;
@@ -4086,10 +5137,11 @@
           const botXf = getBotRackWorld(pIdx);
           const reqScore = getRequiredOpenScore();
 
-          // 1. Draw step
+          // 1. Draw step (difficulty affects side-tile opportunism)
+          const sideTakeChance = settings.difficulty === 'easy' ? 0.55 : settings.difficulty === 'hard' ? 1.0 : 0.85;
           if (bot.hand.length % 3 === 0 || bot.hand.length <= 21) {
             let tookSide = false;
-            if (sidePile.length > 0 && !bot.hasOpened) {
+            if (sidePile.length > 0 && !bot.hasOpened && Math.random() <= sideTakeChance) {
               const topSide = sidePile[sidePile.length - 1];
               const sim = findBestMelds([...bot.hand, topSide]);
               const usesSide = sim.melds.some((m) => m.tiles.some((t) => t.id === topSide.id));
@@ -4867,22 +5919,196 @@
         document.getElementById('btn-sort-series').addEventListener('click', () => sortHumanRackBySeries(false));
         document.getElementById('btn-sort-pairs').addEventListener('click', sortHumanRackByPairs);
 
-        function selectGameMode(isKatlamali) {
+        function syncSettingsUI() {
+          applySceneAndUITheme(settings.theme);
+          sound.enabled = settings.sound;
+          syncSoundUI();
+
+          const sw = document.getElementById('btn-settings-sound');
+          const st = document.getElementById('settings-sound-status');
+          if (sw) sw.classList.toggle('is-on', settings.sound);
+          if (st) st.textContent = settings.sound ? 'Ses Efektleri Açık' : 'Ses Efektleri Kapalı';
+
+          document.querySelectorAll('.seg-btn[data-diff]').forEach((btn) => {
+            btn.classList.toggle('is-active', btn.dataset.diff === settings.difficulty);
+          });
+
+          const menuChips = document.getElementById('menu-chips');
+          if (menuChips) menuChips.textContent = `${fmt(playerChips)} Çip`;
+        }
+
+        function openMainMenu() {
+          clearAllBotTimers();
+          game.screen = 'menu';
+          game.paused = false;
+          game.modeChosen = false;
+          document.body.classList.add('menu-active');
+          document.getElementById('pause-modal').classList.remove('open');
+          document.getElementById('mode-modal').classList.remove('open');
+          document.getElementById('round-modal').classList.remove('open');
+          document.getElementById('main-menu-overlay').classList.add('open');
+          const menuChips = document.getElementById('menu-chips');
+          if (menuChips) menuChips.textContent = `${fmt(playerChips)} Çip`;
+          updateHUD();
+        }
+
+        function enterGameplayTable(isKatlamali) {
           game.katlamali = Boolean(isKatlamali);
+          game.screen = 'playing';
+          game.paused = false;
           game.modeChosen = true;
           game.round = 1;
           game.dealer = 0;
           game.players.forEach((p) => (p.totalPenalty = 0));
+          document.body.classList.remove('menu-active');
+          document.getElementById('main-menu-overlay').classList.remove('open');
           document.getElementById('mode-modal').classList.remove('open');
+          document.getElementById('pause-modal').classList.remove('open');
           sound.playOpenFanfare();
           startNewRound();
         }
 
-        document.getElementById('btn-mode-classic').addEventListener('click', () => selectGameMode(false));
-        document.getElementById('btn-mode-katlamali').addEventListener('click', () => selectGameMode(true));
+        function pauseGame() {
+          if (game.screen !== 'playing' || game.phase === 'ended') return;
+          game.paused = true;
+          clearAllBotTimers();
+          sound.playTilePick();
+          document.getElementById('pause-modal').classList.add('open');
+        }
+
+        function resumeGame() {
+          game.paused = false;
+          document.getElementById('pause-modal').classList.remove('open');
+          sound.playTilePick();
+          if (game.screen === 'playing' && game.phase !== 'ended' && game.turn !== 0) {
+            scheduleBotTurn();
+          }
+        }
+
+        // Main Menu Buttons
+        document.getElementById('btn-menu-play').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('mode-modal').classList.add('open');
+        });
+
+        document.getElementById('btn-menu-online').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('online-modal').classList.add('open');
+        });
+
+        document.getElementById('btn-menu-settings').addEventListener('click', () => {
+          sound.playTilePick();
+          syncSettingsUI();
+          document.getElementById('settings-modal').classList.add('open');
+        });
+
+        document.getElementById('btn-menu-exit').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('exit-modal').classList.add('open');
+        });
+
+        // Mode Selection Modal
+        document.getElementById('btn-mode-classic').addEventListener('click', () => enterGameplayTable(false));
+        document.getElementById('btn-mode-katlamali').addEventListener('click', () => enterGameplayTable(true));
+        document.getElementById('btn-mode-cancel').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('mode-modal').classList.remove('open');
+        });
         document.getElementById('hud-mode-badge').addEventListener('click', () => {
           sound.playTilePick();
           document.getElementById('mode-modal').classList.add('open');
+        });
+
+        // Online Prep Modal Buttons
+        const onlinePendingMsg = () => {
+          sound.playTurnNotify();
+          showToast('Online sunucu altyapısı hazırlanıyor, çok yakında aktif!');
+        };
+        document.getElementById('btn-online-join').addEventListener('click', onlinePendingMsg);
+        document.getElementById('btn-online-quick').addEventListener('click', onlinePendingMsg);
+        document.getElementById('btn-online-create').addEventListener('click', onlinePendingMsg);
+        document.getElementById('btn-online-play-bots').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('online-modal').classList.remove('open');
+          document.getElementById('mode-modal').classList.add('open');
+        });
+        document.getElementById('btn-online-close').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('online-modal').classList.remove('open');
+        });
+
+        // Settings Modal Buttons (Instant Live 3D + UI Theme Switch + Persistence)
+        document.getElementById('btn-theme-dark').addEventListener('click', () => {
+          settings.theme = 'dark';
+          saveSettings();
+          syncSettingsUI();
+          sound.playTileClack(1.02);
+          showToast('Siyah Tema (VIP Gece Modu) uygulandı.', 'success');
+        });
+        document.getElementById('btn-theme-light').addEventListener('click', () => {
+          settings.theme = 'light';
+          saveSettings();
+          syncSettingsUI();
+          sound.playTileClack(1.16);
+          showToast('Beyaz Tema (Mermer & Meşe Modu) uygulandı.', 'success');
+        });
+        document.getElementById('btn-settings-sound').addEventListener('click', () => {
+          settings.sound = !settings.sound;
+          saveSettings();
+          syncSettingsUI();
+          if (settings.sound) sound.playTileClack(1.1);
+        });
+        document.querySelectorAll('.seg-btn[data-diff]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            settings.difficulty = btn.dataset.diff;
+            saveSettings();
+            syncSettingsUI();
+            sound.playTilePick();
+            const labels = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' };
+            showToast(`Yapay zeka zorluğu: ${labels[settings.difficulty]}`);
+          });
+        });
+        document.getElementById('btn-settings-close').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('settings-modal').classList.remove('open');
+        });
+
+        // In-Game Pause Menu
+        document.getElementById('btn-pause-menu').addEventListener('click', pauseGame);
+        document.getElementById('btn-pause-resume').addEventListener('click', resumeGame);
+        document.getElementById('btn-pause-settings').addEventListener('click', () => {
+          sound.playTilePick();
+          syncSettingsUI();
+          document.getElementById('settings-modal').classList.add('open');
+        });
+        document.getElementById('btn-pause-mainmenu').addEventListener('click', () => {
+          sound.playTilePick();
+          openMainMenu();
+        });
+        document.getElementById('btn-pause-exit').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('exit-modal').classList.add('open');
+        });
+
+        // Exit Confirmation Modal (Lobby Return / Safe Capacitor Exit)
+        document.getElementById('btn-exit-lobby').addEventListener('click', () => {
+          window.location.href = './index.html';
+        });
+        document.getElementById('btn-exit-app').addEventListener('click', () => {
+          try {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.exitApp === 'function') {
+              window.Capacitor.Plugins.App.exitApp();
+              return;
+            }
+          } catch (_) {}
+          try {
+            window.close();
+          } catch (_) {}
+          window.location.href = './index.html';
+        });
+        document.getElementById('btn-exit-cancel').addEventListener('click', () => {
+          sound.playTilePick();
+          document.getElementById('exit-modal').classList.remove('open');
         });
 
         document.getElementById('btn-next-round').addEventListener('click', () => {
@@ -4896,16 +6122,17 @@
           document.getElementById('ico-sound-off').style.display = sound.enabled ? 'none' : 'block';
           document.getElementById('sound-label').textContent = sound.enabled ? 'Ses' : 'Sessiz';
         }
-        syncSoundUI();
+        syncSettingsUI();
 
         document.getElementById('btn-sound').addEventListener('click', () => {
-          sound.enabled = !sound.enabled;
-          syncSoundUI();
+          settings.sound = !settings.sound;
+          saveSettings();
+          syncSettingsUI();
           if (sound.enabled) sound.playTileClack(1.1);
         });
 
         /* =========================================================================
-         * 8. MAIN 3D ANIMATION LOOP, VISIBILITY PAUSE & CONTEXT LOSS SAFETY
+         * 8. MAIN 3D ANIMATION LOOP (LIVE MENU ORBIT, GAMEPLAY CAMERA & SAFETY)
          * ========================================================================= */
         const clock = new THREE.Clock();
         const _desiredCamPos = new THREE.Vector3();
@@ -4918,8 +6145,8 @@
           if (contextLost || pageHidden) return;
           const dt = Math.min(clock.getDelta(), 0.1);
 
-          // 1. Live turn countdown bar
-          if (game.phase !== 'ended' && game.modeChosen) {
+          // 1. Live turn countdown bar (paused cleanly when in Menu or Pause modal)
+          if (game.screen === 'playing' && !game.paused && game.phase !== 'ended' && game.modeChosen) {
             game.turnTimeLeft = Math.max(0, game.turnTimeLeft - dt);
             const bar = document.getElementById(`ptimer-${game.turn}`);
             if (bar) {
@@ -4994,15 +6221,21 @@
             }
           }
 
-          // 4. Ergonomic 3D tabletop perspective + tactile impact micro-shake
-          const aspect = window.innerWidth / Math.max(1, window.innerHeight);
-          const narrowBoost = aspect < 1.5 ? (1.5 - aspect) * 3.6 : 0;
-          const gentlePanX = game.turn === 1 ? 0.42 : game.turn === 3 ? -0.42 : 0;
+          // 4. Camera Choreography: Smooth Cinematic Orbit on Main Menu <-> Ergonomic Tabletop in Gameplay
+          if (game.screen === 'menu') {
+            const orbitA = clock.elapsedTime * 0.18;
+            const rad = 13.4;
+            _desiredCamPos.set(Math.sin(orbitA) * rad, 8.6 + Math.sin(orbitA * 1.4) * 0.55, Math.cos(orbitA) * rad);
+            _desiredCamLook.set(0, 0.25, -0.35);
+          } else {
+            const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+            const narrowBoost = aspect < 1.5 ? (1.5 - aspect) * 3.6 : 0;
+            const gentlePanX = game.turn === 1 ? 0.42 : game.turn === 3 ? -0.42 : 0;
+            _desiredCamPos.set(gentlePanX, 11.1 + narrowBoost * 0.56, 9.1 + narrowBoost * 0.56);
+            _desiredCamLook.set(gentlePanX * 0.42, 0.05, 0.45);
+          }
 
-          _desiredCamPos.set(gentlePanX, 11.1 + narrowBoost * 0.56, 9.1 + narrowBoost * 0.56);
-          _desiredCamLook.set(gentlePanX * 0.42, 0.05, 0.45);
-
-          const camEase = 1 - Math.exp(-3.4 * dt);
+          const camEase = 1 - Math.exp(-(game.screen === 'menu' ? 2.2 : 3.6) * dt);
           camPosCurrent.lerp(_desiredCamPos, camEase);
           camLookCurrent.lerp(_desiredCamLook, camEase);
 
@@ -5023,7 +6256,7 @@
           let activeBot = false;
           for (let p = 1; p <= 3; p++) {
             const nr = botNeonRings[p];
-            const isAct = game.modeChosen && game.phase !== 'ended' && game.turn === p;
+            const isAct = game.screen === 'playing' && !game.paused && game.modeChosen && game.phase !== 'ended' && game.turn === p;
             nr.level = THREE.MathUtils.damp(nr.level, isAct ? 1 : 0, 8, dt);
             nr.mat.opacity = nr.level * 0.52 * pulse;
             if (isAct) {
@@ -5084,7 +6317,7 @@
           if (!pageHidden) tick();
         });
 
-        // Deal preview table live behind mode modal and start 3D loop
+        // Deal live preview table behind the orbiting 3D Main Menu and start render loop
         startNewRound();
         syncViewportSize();
         requestAnimationFrame(syncViewportSize);
