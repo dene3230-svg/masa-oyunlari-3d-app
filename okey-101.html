@@ -11,19 +11,23 @@
     />
     <style>
       :root {
-        --bg-void: #050b16;
-        --panel-bg: rgba(8, 16, 34, 0.88);
-        --panel-soft: rgba(13, 25, 50, 0.82);
-        --border-gold: rgba(212, 175, 55, 0.34);
-        --border-subtle: rgba(148, 163, 184, 0.2);
-        --gold: #f3d06b;
-        --gold-deep: #c79a26;
-        --cyan: #22d3ee;
-        --emerald: #34d399;
+        --bg-void: #041510;
+        --emerald-deep: #06281c;
+        --emerald-mid: #0d4b34;
+        --panel-dark: rgba(6, 22, 17, 0.88);
+        --panel-glass: rgba(8, 30, 23, 0.78);
+        --gold: #f5d271;
+        --gold-bright: #ffe599;
+        --gold-deep: #b88724;
+        --border-gold: rgba(245, 210, 113, 0.38);
+        --border-subtle: rgba(187, 247, 208, 0.16);
+        --emerald-glow: #22c55e;
+        --emerald-bright: #4ade80;
+        --cyan: #38bdf8;
         --danger: #f87171;
         --text-main: #f8fafc;
-        --text-dim: #cbd5e1;
-        --text-muted: #8ca0bf;
+        --text-dim: #d1fae5;
+        --text-muted: #86b6a5;
         --ease: cubic-bezier(0.16, 1, 0.3, 1);
       }
 
@@ -33,6 +37,7 @@
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        -webkit-tap-highlight-color: transparent;
       }
 
       html,
@@ -42,9 +47,11 @@
         overflow: hidden;
         background: var(--bg-void);
         color: var(--text-main);
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         user-select: none;
+        -webkit-user-select: none;
         -webkit-font-smoothing: antialiased;
+        touch-action: manipulation;
       }
 
       /* Fullscreen 3D WebGL Canvas */
@@ -52,7 +59,7 @@
         position: fixed;
         inset: 0;
         z-index: 0;
-        background: radial-gradient(ellipse 80% 70% at 50% 45%, #112a3d 0%, #071324 58%, #040914 100%);
+        background: radial-gradient(ellipse 85% 75% at 50% 42%, #135a3d 0%, #093524 58%, #041811 100%);
         touch-action: none;
       }
 
@@ -62,219 +69,201 @@
         height: 100%;
       }
 
-      /* ================= TOP HUD BAR ================= */
+      /* ================= SLIM TOP BAR ================= */
       .hud-top {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
-        z-index: 20;
-        padding: 10px 18px;
-        background: linear-gradient(180deg, rgba(5, 11, 24, 0.94) 0%, rgba(7, 15, 32, 0.8) 100%);
+        height: 52px;
+        z-index: 30;
+        padding: 0 14px;
+        background: linear-gradient(180deg, rgba(4, 18, 13, 0.94) 0%, rgba(6, 26, 19, 0.78) 100%);
         border-bottom: 1px solid var(--border-gold);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.42);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 14px;
+        gap: 10px;
       }
 
       .hud-left {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 10px;
         flex-shrink: 0;
       }
 
-      .game-title-wrap {
+      .brand-block {
         display: flex;
         flex-direction: column;
-        gap: 1px;
+        line-height: 1.05;
       }
 
       .game-title {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.05rem;
-        font-weight: 800;
-        letter-spacing: 0.05em;
+        font-size: 0.96rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
         color: var(--gold);
+        text-shadow: 0 1px 6px rgba(245, 210, 113, 0.25);
         white-space: nowrap;
       }
 
       .game-stake-sub {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         color: var(--text-muted);
-        font-family: 'JetBrains Mono', monospace;
         font-variant-numeric: tabular-nums;
+        font-weight: 600;
       }
 
-      /* Mini Gösterge & Okey Indicator */
       .okey-indicator-group {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 4px 10px;
+        padding: 3px 9px;
         border-radius: 10px;
-        background: rgba(14, 28, 56, 0.85);
-        border: 1px solid rgba(243, 208, 107, 0.28);
+        background: rgba(5, 24, 17, 0.9);
+        border: 1px solid rgba(245, 210, 113, 0.34);
       }
 
       .mini-tile-slot {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         white-space: nowrap;
       }
 
       .mini-tile-label {
-        font-size: 0.7rem;
+        font-size: 0.66rem;
         color: var(--text-muted);
-        font-weight: 600;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
       }
 
       .mini-tile {
-        min-width: 28px;
-        height: 34px;
-        padding: 0 5px;
-        border-radius: 5px;
-        background: linear-gradient(180deg, #fffdf7 0%, #eae0c9 100%);
-        border: 1px solid rgba(180, 145, 70, 0.65);
+        min-width: 26px;
+        height: 32px;
+        padding: 0 4px;
+        border-radius: 6px;
+        background: linear-gradient(180deg, #fcf8ec 0%, #ede3c8 100%);
+        border: 1px solid rgba(184, 135, 36, 0.72);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        font-family: 'Outfit', sans-serif;
-        font-weight: 800;
-        font-size: 0.92rem;
+        font-weight: 900;
+        font-size: 0.88rem;
         line-height: 1;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.9);
       }
 
       .mini-tile .dot {
-        width: 5px;
-        height: 5px;
+        width: 4.5px;
+        height: 4.5px;
         border-radius: 50%;
         margin-top: 2px;
       }
 
       .mini-tile.is-okey {
-        box-shadow: 0 0 0 2px rgba(243, 208, 107, 0.85), 0 0 12px rgba(243, 208, 107, 0.4);
+        box-shadow: 0 0 0 2px rgba(245, 210, 113, 0.92), 0 0 10px rgba(245, 210, 113, 0.45);
       }
 
-      /* 4-Player Status Strip */
-      .players-strip {
+      .deck-pill {
         display: flex;
         align-items: center;
-        gap: 8px;
-        min-width: 0;
-        overflow-x: auto;
-      }
-
-      .player-box {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 5px 11px;
-        border-radius: 9px;
-        background: rgba(14, 26, 52, 0.76);
-        border: 1px solid var(--border-subtle);
-        white-space: nowrap;
-        flex-shrink: 0;
-        transition: border-color 180ms var(--ease), background-color 180ms var(--ease);
-      }
-
-      .player-box.active-turn {
-        border-color: var(--gold);
-        background: rgba(34, 48, 84, 0.92);
-        box-shadow: 0 0 14px rgba(243, 208, 107, 0.22);
-      }
-
-      .player-name {
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: var(--text-main);
-      }
-
-      .player-meta {
-        font-size: 0.72rem;
-        color: var(--text-muted);
-        font-family: 'JetBrains Mono', monospace;
+        gap: 5px;
+        padding: 4px 8px;
+        border-radius: 8px;
+        background: rgba(12, 46, 34, 0.85);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+        font-size: 0.74rem;
+        font-weight: 800;
+        color: #bbf7d0;
         font-variant-numeric: tabular-nums;
       }
 
-      .player-status {
-        font-size: 0.7rem;
+      /* Turn Banner embedded cleanly in top center */
+      .turn-banner {
+        flex: 1 1 auto;
+        max-width: 480px;
+        text-align: center;
+        padding: 6px 14px;
+        border-radius: 10px;
+        background: rgba(6, 26, 19, 0.86);
+        border: 1px solid rgba(245, 210, 113, 0.26);
+        color: var(--text-dim);
+        font-size: 0.78rem;
         font-weight: 700;
-        padding: 2px 6px;
-        border-radius: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: border-color 180ms var(--ease), color 180ms var(--ease), background-color 180ms var(--ease);
       }
 
-      .player-status.opened {
-        color: #6ee7b7;
-        background: rgba(16, 185, 129, 0.16);
+      .turn-banner.highlight {
+        background: linear-gradient(90deg, rgba(16, 85, 55, 0.92), rgba(22, 108, 68, 0.92));
+        border-color: var(--emerald-bright);
+        color: #ecfdf5;
+        box-shadow: 0 0 16px rgba(34, 197, 94, 0.28);
       }
 
-      .player-status.closed {
-        color: #94a3b8;
-        background: rgba(148, 163, 184, 0.12);
-      }
-
-      /* Right HUD Zone */
       .hud-right {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
         flex-shrink: 0;
       }
 
       .chip-box {
         display: flex;
         align-items: center;
-        gap: 7px;
-        height: 36px;
-        padding: 0 12px;
+        gap: 6px;
+        height: 34px;
+        padding: 0 10px;
         border-radius: 9px;
-        background: rgba(20, 32, 62, 0.86);
+        background: rgba(9, 34, 24, 0.92);
         border: 1px solid var(--border-gold);
         white-space: nowrap;
       }
 
       .chip-val {
-        font-family: 'JetBrains Mono', monospace;
         font-variant-numeric: tabular-nums;
-        font-size: 0.88rem;
-        font-weight: 700;
+        font-size: 0.84rem;
+        font-weight: 800;
         color: var(--gold);
       }
 
       .chip-unit {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         color: var(--text-muted);
+        font-weight: 700;
       }
 
       .hud-btn {
         appearance: none;
-        height: 36px;
-        padding: 0 12px;
+        height: 34px;
+        padding: 0 11px;
         border-radius: 9px;
         border: 1px solid var(--border-subtle);
-        background: rgba(14, 26, 52, 0.82);
+        background: rgba(8, 32, 24, 0.88);
         color: var(--text-dim);
         font-family: inherit;
-        font-size: 0.78rem;
-        font-weight: 600;
+        font-size: 0.76rem;
+        font-weight: 700;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         cursor: pointer;
         text-decoration: none;
         white-space: nowrap;
-        transition: background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease), transform 120ms var(--ease);
+        transition: background-color 140ms var(--ease), border-color 140ms var(--ease), transform 110ms var(--ease);
       }
 
       .hud-btn:hover {
-        background: rgba(24, 42, 82, 0.92);
-        border-color: rgba(243, 208, 107, 0.45);
-        color: var(--text-main);
+        background: rgba(14, 52, 38, 0.95);
+        border-color: rgba(245, 210, 113, 0.55);
+        color: #ffffff;
       }
 
       .hud-btn:active {
@@ -282,57 +271,33 @@
       }
 
       .hud-btn.lobby-link {
-        border-color: rgba(243, 208, 107, 0.48);
+        border-color: rgba(245, 210, 113, 0.55);
         color: var(--gold);
-        background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(14, 26, 52, 0.9));
+        background: linear-gradient(135deg, rgba(184, 135, 36, 0.24), rgba(7, 29, 21, 0.95));
       }
 
-      .hud-btn.lobby-link:hover {
-        background: linear-gradient(135deg, rgba(212, 175, 55, 0.28), rgba(20, 36, 70, 0.95));
-      }
-
-      /* ================= TURN BANNER & TOAST ================= */
-      .turn-banner {
-        position: fixed;
-        top: 66px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 18;
-        padding: 6px 16px;
-        border-radius: 9px;
-        background: rgba(7, 15, 32, 0.84);
-        border: 1px solid rgba(243, 208, 107, 0.32);
-        color: var(--text-main);
-        font-size: 0.82rem;
-        font-weight: 600;
-        pointer-events: none;
-        white-space: nowrap;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-      }
-
-      .turn-banner.highlight {
-        border-color: var(--gold);
-        color: var(--gold);
-      }
-
+      /* ================= TOAST ================= */
       .toast {
         position: fixed;
-        top: 106px;
+        top: 62px;
         left: 50%;
-        transform: translateX(-50%) translateY(-10px);
-        z-index: 35;
-        padding: 9px 18px;
-        border-radius: 9px;
-        background: rgba(8, 16, 36, 0.95);
+        transform: translateX(-50%) translateY(-8px);
+        z-index: 60;
+        padding: 8px 16px;
+        border-radius: 10px;
+        background: rgba(4, 20, 15, 0.96);
         border: 1px solid var(--border-gold);
         color: var(--text-main);
-        font-size: 0.83rem;
-        font-weight: 600;
+        font-size: 0.82rem;
+        font-weight: 700;
         opacity: 0;
         pointer-events: none;
         white-space: nowrap;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
-        transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+        max-width: 92vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+        transition: opacity 170ms var(--ease), transform 170ms var(--ease);
       }
 
       .toast.visible {
@@ -341,130 +306,766 @@
       }
 
       .toast.error {
-        border-color: rgba(248, 113, 113, 0.7);
+        border-color: rgba(248, 113, 113, 0.8);
         color: #fecaca;
       }
 
       .toast.success {
-        border-color: rgba(52, 211, 153, 0.7);
-        color: #a7f3d0;
+        border-color: rgba(74, 222, 128, 0.85);
+        color: #bbf7d0;
       }
 
-      /* ================= BOTTOM ACTION DOCK ================= */
-      .action-dock {
+      /* ================= 4 COMPACT CORNER PLAYER CARDS ================= */
+      .player-card {
         position: fixed;
-        bottom: 12px;
+        z-index: 22;
+        width: 158px;
+        padding: 7px 9px 8px;
+        border-radius: 12px;
+        background: linear-gradient(155deg, rgba(6, 26, 19, 0.92), rgba(4, 16, 12, 0.9));
+        border: 1.5px solid rgba(245, 210, 113, 0.26);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.46);
+        pointer-events: none;
+        transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease), transform 180ms var(--ease);
+      }
+
+      .player-card.active-turn {
+        border-color: var(--emerald-bright);
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.35), 0 0 22px rgba(34, 197, 94, 0.42);
+      }
+
+      /* Corner placements leaving the center emerald felt completely clean */
+      .pcard-top {
+        top: 62px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 20;
-        max-width: min(1220px, 96vw);
-        padding: 8px 12px;
-        border-radius: 14px;
-        background: linear-gradient(180deg, rgba(10, 20, 44, 0.92) 0%, rgba(6, 12, 28, 0.95) 100%);
-        border: 1px solid var(--border-gold);
-        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6);
+      }
+
+      .pcard-left {
+        top: 64px;
+        left: 12px;
+      }
+
+      .pcard-right {
+        top: 64px;
+        right: 12px;
+      }
+
+      .pcard-self {
+        bottom: 204px;
+        left: 12px;
+      }
+
+      .pcard-head {
         display: flex;
         align-items: center;
         gap: 8px;
-        flex-wrap: nowrap;
-        overflow-x: auto;
       }
 
-      .dock-divider {
-        width: 1px;
-        height: 26px;
-        background: rgba(148, 163, 184, 0.22);
-        flex-shrink: 0;
-        margin: 0 2px;
-      }
-
-      .act-btn {
-        appearance: none;
-        height: 40px;
-        padding: 0 14px;
-        border-radius: 9px;
-        border: 1px solid rgba(148, 163, 184, 0.24);
-        background: rgba(18, 34, 68, 0.85);
-        color: var(--text-main);
-        font-family: inherit;
-        font-size: 0.8rem;
-        font-weight: 700;
-        display: inline-flex;
+      .pcard-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
         align-items: center;
-        gap: 7px;
-        cursor: pointer;
-        white-space: nowrap;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 0.84rem;
+        color: #ffffff;
+        border: 2px solid rgba(245, 210, 113, 0.7);
         flex-shrink: 0;
-        transition: background-color 150ms var(--ease), border-color 150ms var(--ease), transform 120ms var(--ease), opacity 150ms var(--ease);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
       }
 
-      .act-btn:hover:not(:disabled) {
-        background: rgba(28, 50, 98, 0.95);
-        border-color: rgba(243, 208, 107, 0.55);
+      .pcard-info {
+        min-width: 0;
+        flex: 1;
       }
 
-      .act-btn:active:not(:disabled) {
-        transform: scale(0.96);
+      .pcard-name-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
       }
 
-      .act-btn:disabled {
-        opacity: 0.42;
+      .pcard-name {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #f8fafc;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .pcard-badge {
+        font-size: 0.62rem;
+        font-weight: 800;
+        padding: 1px 5px;
+        border-radius: 5px;
+        flex-shrink: 0;
+      }
+
+      .pcard-badge.opened {
+        background: rgba(34, 197, 94, 0.24);
+        color: #86efac;
+        border: 1px solid rgba(74, 222, 128, 0.42);
+      }
+
+      .pcard-badge.closed {
+        background: rgba(148, 163, 184, 0.14);
+        color: #94a3b8;
+      }
+
+      .pcard-stats {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 2px;
+        font-size: 0.68rem;
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+
+      .pcard-penalty {
+        color: #fca5a5;
+      }
+
+      .pcard-timer-track {
+        width: 100%;
+        height: 4px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        margin-top: 6px;
+      }
+
+      .pcard-timer-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #22c55e, #4ade80);
+        transition: width 120ms linear, background-color 220ms ease;
+      }
+
+      .pcard-timer-fill.warn {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      }
+
+      .pcard-timer-fill.danger {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+      }
+
+      /* ================= LEFT SIDE-DRAW WIDGET ================= */
+      .side-draw-wrap {
+        position: fixed;
+        left: 12px;
+        top: 158px;
+        z-index: 24;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .side-draw-btn {
+        appearance: none;
+        width: 82px;
+        padding: 7px 6px;
+        border-radius: 12px;
+        background: linear-gradient(160deg, rgba(9, 36, 26, 0.92), rgba(5, 21, 15, 0.94));
+        border: 1.5px solid rgba(245, 210, 113, 0.34);
+        color: var(--text-dim);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+        transition: transform 130ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease), opacity 160ms var(--ease);
+      }
+
+      .side-draw-btn:disabled {
+        opacity: 0.48;
         cursor: not-allowed;
       }
 
-      .act-btn.primary {
-        background: linear-gradient(135deg, #e5bf4b 0%, #c19220 100%);
-        border-color: rgba(254, 240, 138, 0.6);
-        color: #070d1c;
+      .side-draw-btn:not(:disabled) {
+        border-color: rgba(56, 189, 248, 0.85);
+        box-shadow: 0 0 18px rgba(56, 189, 248, 0.32);
       }
 
-      .act-btn.primary:hover:not(:disabled) {
+      .side-draw-btn:active:not(:disabled) {
+        transform: scale(0.95);
+      }
+
+      .side-draw-label {
+        font-size: 0.66rem;
+        font-weight: 800;
+        color: var(--gold);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .side-return-btn {
+        appearance: none;
+        width: 82px;
+        padding: 7px 6px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.94));
+        border: 1.5px solid rgba(252, 165, 165, 0.72);
+        color: #fff;
+        font-size: 0.68rem;
+        font-weight: 800;
+        cursor: pointer;
+        text-align: center;
+        box-shadow: 0 6px 16px rgba(220, 38, 38, 0.36);
+      }
+
+      /* ================= CENTER OPEN MELDS BOARD ================= */
+      .open-melds-board {
+        position: fixed;
+        top: 146px;
+        left: 110px;
+        right: 110px;
+        bottom: 204px;
+        z-index: 18;
+        pointer-events: none;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        justify-content: center;
+        gap: 8px;
+        padding: 6px 10px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+      }
+
+      .open-melds-empty {
+        align-self: center;
+        margin: auto;
+        padding: 8px 16px;
+        border-radius: 12px;
+        background: rgba(5, 24, 17, 0.42);
+        border: 1px dashed rgba(245, 210, 113, 0.25);
+        color: rgba(209, 250, 229, 0.58);
+        font-size: 0.76rem;
+        font-weight: 700;
+        pointer-events: none;
+      }
+
+      .meld-panel {
+        pointer-events: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px 8px;
+        border-radius: 11px;
+        background: rgba(5, 28, 20, 0.84);
+        border: 1.5px solid rgba(245, 210, 113, 0.32);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.38);
+        transition: transform 150ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease), background-color 160ms var(--ease);
+      }
+
+      .meld-panel.is-layoff-target {
+        cursor: pointer;
+        border-color: var(--emerald-bright);
+        background: rgba(14, 68, 46, 0.92);
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.4), 0 0 20px rgba(34, 197, 94, 0.5);
+        animation: meldPulse 1.4s ease-in-out infinite;
+      }
+
+      .meld-panel.is-layoff-target:hover,
+      .meld-panel.is-drag-over {
+        transform: translateY(-2px) scale(1.03);
+        border-color: #fde047;
+        box-shadow: 0 0 0 3px rgba(253, 224, 71, 0.55), 0 0 24px rgba(74, 222, 128, 0.65);
+      }
+
+      @keyframes meldPulse {
+        0%, 100% { box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.32), 0 0 14px rgba(34, 197, 94, 0.34); }
+        50% { box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.62), 0 0 24px rgba(34, 197, 94, 0.62); }
+      }
+
+      .meld-panel-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 0.64rem;
+        font-weight: 800;
+        color: var(--text-muted);
+      }
+
+      .meld-layoff-tag {
+        color: #052e16;
+        background: #4ade80;
+        padding: 1px 6px;
+        border-radius: 6px;
+        font-size: 0.62rem;
+        font-weight: 900;
+      }
+
+      .meld-tiles-row {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .meld-tile {
+        width: 28px;
+        height: 38px;
+        border-radius: 6px;
+        background: linear-gradient(180deg, #fcf8ec 0%, #eadec2 100%);
+        border: 1px solid rgba(150, 114, 48, 0.6);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        font-weight: 900;
+        font-size: 0.92rem;
+        line-height: 1;
+      }
+
+      .meld-tile .tile-pip {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        margin-top: 3px;
+      }
+
+      .meld-tile.is-okey-tile {
+        background: linear-gradient(180deg, #fffbeb 0%, #fde68a 100%);
+        border-color: #d97706;
+      }
+
+      /* ================= ERGONOMIC BOTTOM RACK STAGE ================= */
+      .rack-stage {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 8px;
+        z-index: 35;
+        padding: 0 10px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 10px;
+        pointer-events: none;
+      }
+
+      .rack-side-col {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        pointer-events: auto;
+        flex-shrink: 0;
+      }
+
+      .smart-btn {
+        appearance: none;
+        width: 96px;
+        height: 48px;
+        padding: 4px 8px;
+        border-radius: 13px;
+        border: 1.5px solid rgba(245, 210, 113, 0.35);
+        background: linear-gradient(160deg, rgba(11, 44, 32, 0.95), rgba(6, 24, 18, 0.96));
+        color: #f0fdf4;
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 800;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        transition: transform 110ms var(--ease), border-color 150ms var(--ease), box-shadow 150ms var(--ease), opacity 150ms var(--ease), filter 150ms var(--ease);
+        position: relative;
+      }
+
+      .smart-btn svg {
+        width: 17px;
+        height: 17px;
+        flex-shrink: 0;
+      }
+
+      .smart-btn:hover:not(:disabled) {
+        border-color: var(--gold);
         filter: brightness(1.08);
       }
 
-      .act-btn.emerald {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(6, 78, 59, 0.72));
-        border-color: rgba(52, 211, 153, 0.62);
-        color: #a7f3d0;
+      .smart-btn:active:not(:disabled) {
+        transform: scale(0.95);
       }
 
-      .act-btn.cyan {
-        background: linear-gradient(135deg, rgba(34, 211, 238, 0.22), rgba(14, 54, 82, 0.78));
-        border-color: rgba(34, 211, 238, 0.55);
-        color: #a5f3fc;
+      .smart-btn:disabled {
+        opacity: 0.42;
+        cursor: not-allowed;
+        filter: grayscale(0.35);
       }
 
-      .act-btn.danger {
-        background: linear-gradient(135deg, rgba(244, 63, 94, 0.24), rgba(88, 16, 36, 0.78));
-        border-color: rgba(251, 113, 133, 0.58);
-        color: #fecdd3;
+      .smart-btn.draw-btn {
+        height: 56px;
+        background: linear-gradient(155deg, rgba(14, 116, 144, 0.92), rgba(12, 74, 110, 0.96));
+        border-color: rgba(125, 211, 252, 0.72);
+        color: #e0f2fe;
       }
 
-      .act-btn.active-mode {
-        border-color: var(--cyan);
-        background: rgba(14, 66, 94, 0.9);
-        color: #67e8f9;
+      .smart-btn.draw-btn.pulse-ready {
+        border-color: #7dd3fc;
+        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.42), 0 0 22px rgba(56, 189, 248, 0.55);
       }
 
-      .score-inline {
-        font-family: 'JetBrains Mono', monospace;
+      .btn-mini-badge {
+        position: absolute;
+        top: -6px;
+        right: -5px;
+        min-width: 22px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 99px;
+        background: #0f172a;
+        border: 1px solid rgba(125, 211, 252, 0.7);
+        color: #7dd3fc;
+        font-size: 0.65rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-variant-numeric: tabular-nums;
-        font-size: 0.76rem;
-        padding: 2px 6px;
-        border-radius: 5px;
-        background: rgba(0, 0, 0, 0.28);
+      }
+
+      /* El Aç Button */
+      .smart-btn.open-btn {
+        width: 108px;
+        height: 58px;
+        background: linear-gradient(160deg, rgba(15, 52, 38, 0.94), rgba(8, 30, 22, 0.96));
+        border-color: rgba(148, 163, 184, 0.35);
+        color: #cbd5e1;
+      }
+
+      .smart-btn.open-btn.is-ready:not(:disabled) {
+        background: linear-gradient(155deg, #22c55e 0%, #15803d 100%);
+        border-color: #bbf7d0;
+        color: #ffffff;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.35), 0 0 26px rgba(34, 197, 94, 0.72);
+        animation: openGlow 1.5s ease-in-out infinite;
+      }
+
+      @keyframes openGlow {
+        0%, 100% { box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.35), 0 0 18px rgba(34, 197, 94, 0.6); }
+        50% { box-shadow: 0 0 0 4px rgba(134, 239, 172, 0.6), 0 0 30px rgba(34, 197, 94, 0.9); }
+      }
+
+      /* Prominent Taş At Drop Pad on the Right */
+      .discard-pad {
+        appearance: none;
+        width: 108px;
+        height: 98px;
+        padding: 7px 6px;
+        border-radius: 15px;
+        border: 2px dashed rgba(245, 210, 113, 0.56);
+        background: linear-gradient(160deg, rgba(58, 34, 14, 0.9), rgba(26, 15, 7, 0.94));
+        color: var(--gold);
+        font-family: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.52);
+        transition: transform 130ms var(--ease), border-color 150ms var(--ease), box-shadow 150ms var(--ease), background-color 150ms var(--ease), opacity 150ms var(--ease);
+      }
+
+      .discard-pad:disabled {
+        opacity: 0.52;
+        cursor: not-allowed;
+      }
+
+      .discard-pad.can-discard:not(:disabled) {
+        border-style: solid;
+        border-color: #fbbf24;
+        background: linear-gradient(155deg, rgba(180, 112, 22, 0.92), rgba(114, 62, 11, 0.96));
+        color: #fef3c7;
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.42);
+      }
+
+      .discard-pad.is-drag-over {
+        transform: scale(1.06);
+        border-style: solid;
+        border-color: #fde047;
+        background: linear-gradient(155deg, rgba(217, 119, 6, 0.96), rgba(146, 64, 14, 0.98));
+        box-shadow: 0 0 0 3px rgba(253, 224, 71, 0.5), 0 0 28px rgba(251, 191, 36, 0.72);
+      }
+
+      .discard-pad-title {
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.03em;
+      }
+
+      .discard-pad-sub {
+        font-size: 0.62rem;
+        font-weight: 700;
+        opacity: 0.85;
+        text-align: center;
+      }
+
+      /* ================= WIDE DOUBLE-ROW WOODEN RACK ================= */
+      .wooden-rack-shell {
+        pointer-events: auto;
+        position: relative;
+        flex: 1 1 auto;
+        max-width: 820px;
+        min-width: 0;
+        padding: 12px 12px 10px;
+        border-radius: 16px;
+        background:
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 226, 179, 0.03) 0px,
+            rgba(255, 226, 179, 0.03) 3px,
+            rgba(0, 0, 0, 0.04) 3px,
+            rgba(0, 0, 0, 0.04) 9px
+          ),
+          linear-gradient(180deg, #7c4d2b 0%, #5b3419 48%, #472711 100%);
+        border: 2px solid #c69847;
+        box-shadow:
+          0 16px 36px rgba(0, 0, 0, 0.65),
+          inset 0 2px 2px rgba(255, 232, 185, 0.35),
+          inset 0 -4px 8px rgba(20, 8, 2, 0.72);
+        transition: box-shadow 220ms var(--ease), border-color 220ms var(--ease);
+      }
+
+      .wooden-rack-shell.is-my-turn {
+        border-color: var(--emerald-bright);
+        box-shadow:
+          0 0 0 2px rgba(74, 222, 128, 0.45),
+          0 0 28px rgba(34, 197, 94, 0.42),
+          0 16px 36px rgba(0, 0, 0, 0.65),
+          inset 0 2px 2px rgba(255, 232, 185, 0.35);
+      }
+
+      /* Live 101 Score Counter pinned to top-right corner of the wooden rack */
+      .rack-score-badge {
+        position: absolute;
+        top: -17px;
+        right: 14px;
+        z-index: 4;
+        height: 30px;
+        padding: 0 13px;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #0d2b20 0%, #071b14 100%);
+        border: 1.5px solid var(--gold);
+        color: var(--gold-bright);
+        font-size: 0.82rem;
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        box-shadow: 0 5px 14px rgba(0, 0, 0, 0.52);
+        transition: background 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease), box-shadow 200ms var(--ease);
+      }
+
+      .rack-score-badge .badge-label {
+        font-size: 0.66rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .rack-score-badge.is-ready {
+        background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+        border-color: #dcfce7;
+        color: #ffffff;
+        box-shadow: 0 0 18px rgba(34, 197, 94, 0.75), 0 4px 12px rgba(0, 0, 0, 0.45);
+      }
+
+      .rack-score-badge.is-ready .badge-label {
+        color: #dcfce7;
+      }
+
+      .touch-rack-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        touch-action: none;
+      }
+
+      .rack-row {
+        display: grid;
+        grid-template-columns: repeat(14, minmax(0, 1fr));
+        gap: 4px;
+        padding: 5px 6px 8px;
+        border-radius: 9px;
+        background: linear-gradient(180deg, rgba(28, 13, 5, 0.72) 0%, rgba(46, 24, 10, 0.56) 72%, rgba(128, 82, 42, 0.45) 100%);
+        box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255, 224, 178, 0.14);
+        position: relative;
+      }
+
+      .rack-slot {
+        position: relative;
+        height: 62px;
+        border-radius: 7px;
+        border: 1px dashed rgba(245, 210, 113, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 110ms ease, border-color 110ms ease;
+      }
+
+      .rack-slot.is-drop-target {
+        background: rgba(56, 189, 248, 0.28);
+        border: 1.5px solid #38bdf8;
+      }
+
+      .rack-slot.can-place-selected {
+        background: rgba(245, 210, 113, 0.1);
+        border-color: rgba(245, 210, 113, 0.34);
+      }
+
+      .rack-slot-glow {
+        position: absolute;
+        left: 3px;
+        right: 3px;
+        bottom: -6px;
+        height: 3.5px;
+        border-radius: 99px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 150ms ease;
+      }
+
+      .rack-slot.valid-meld .rack-slot-glow {
+        opacity: 1;
+        background: #f5d271;
+        box-shadow: 0 0 8px rgba(245, 210, 113, 0.75);
+      }
+
+      .rack-slot.valid-meld-ready .rack-slot-glow {
+        opacity: 1;
+        background: #4ade80;
+        box-shadow: 0 0 10px rgba(74, 222, 128, 0.9);
+      }
+
+      /* High-Contrast Satin Ivory Okey Tile */
+      .okey-tile {
+        width: 100%;
+        height: 100%;
+        max-width: 52px;
+        border-radius: 8px;
+        background: linear-gradient(180deg, #fdfaf0 0%, #f3ebd9 62%, #e6d8b9 100%);
+        border: 1.5px solid rgba(164, 130, 72, 0.65);
+        box-shadow:
+          0 4px 7px rgba(0, 0, 0, 0.46),
+          inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+          inset 0 -2px 0 rgba(160, 126, 70, 0.32);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: grab;
+        touch-action: none;
+        transition: transform 140ms var(--ease), box-shadow 140ms var(--ease), border-color 140ms var(--ease);
+      }
+
+      .okey-tile:active {
+        cursor: grabbing;
+      }
+
+      .okey-tile.is-selected {
+        transform: translateY(-9px) scale(1.06);
+        border-color: #fbbf24;
+        box-shadow:
+          0 0 0 2.5px rgba(251, 191, 36, 0.92),
+          0 12px 20px rgba(0, 0, 0, 0.56),
+          inset 0 1.5px 0 rgba(255, 255, 255, 0.95);
+        z-index: 6;
+      }
+
+      .okey-tile.is-dragging-origin {
+        opacity: 0.25;
+        transform: scale(0.92);
+      }
+
+      .okey-tile.is-okey-tile {
+        background: linear-gradient(180deg, #fffdf0 0%, #fef0c0 65%, #f5d87e 100%);
+        border-color: #d97706;
+      }
+
+      .okey-tile-num {
+        font-size: 1.38rem;
+        font-weight: 900;
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+        pointer-events: none;
+      }
+
+      .okey-tile-pip {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-top: 5px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+        pointer-events: none;
+      }
+
+      .okey-tile-star {
+        position: absolute;
+        top: 2px;
+        right: 3px;
+        font-size: 0.62rem;
+        line-height: 1;
+        color: #b45309;
+        pointer-events: none;
+      }
+
+      .okey-tile-joker {
+        font-size: 0.58rem;
+        font-weight: 900;
+        color: #7c3aed;
+        text-transform: uppercase;
+        margin-top: 2px;
+        pointer-events: none;
+      }
+
+      /* Floating Drag Ghost */
+      .drag-ghost {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 52px;
+        height: 66px;
+        z-index: 90;
+        pointer-events: none;
+        display: none;
+        transform: translate(-50%, -62%) rotate(-3deg) scale(1.1);
+        filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.62));
+      }
+
+      .drag-ghost.visible {
+        display: block;
       }
 
       /* ================= ROUND END MODAL ================= */
       .modal-backdrop {
         position: fixed;
         inset: 0;
-        z-index: 50;
-        background: rgba(3, 7, 18, 0.78);
+        z-index: 80;
+        background: rgba(2, 12, 9, 0.8);
         display: none;
         align-items: center;
         justify-content: center;
-        padding: 20px;
+        padding: 18px;
       }
 
       .modal-backdrop.open {
@@ -473,93 +1074,87 @@
 
       .modal-card {
         width: 100%;
-        max-width: 520px;
-        padding: 26px;
-        border-radius: 16px;
-        background: linear-gradient(160deg, rgba(16, 30, 64, 0.96) 0%, rgba(7, 14, 32, 0.98) 100%);
-        border: 1px solid var(--border-gold);
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+        max-width: 560px;
+        padding: 24px;
+        border-radius: 18px;
+        background: linear-gradient(160deg, rgba(10, 38, 28, 0.98) 0%, rgba(5, 20, 14, 0.99) 100%);
+        border: 1.5px solid var(--border-gold);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.78);
       }
 
       .modal-kicker {
-        font-size: 0.78rem;
-        font-weight: 700;
+        font-size: 0.75rem;
+        font-weight: 800;
         color: var(--gold);
+        letter-spacing: 0.08em;
         margin-bottom: 4px;
       }
 
       .modal-title {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.65rem;
-        font-weight: 800;
+        font-size: 1.55rem;
+        font-weight: 900;
         color: var(--text-main);
         margin-bottom: 6px;
       }
 
       .modal-sub {
-        font-size: 0.88rem;
+        font-size: 0.86rem;
         color: var(--text-dim);
-        margin-bottom: 18px;
+        margin-bottom: 16px;
       }
 
       .score-table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 18px;
+        margin-bottom: 16px;
       }
 
       .score-table th,
       .score-table td {
-        padding: 9px 10px;
+        padding: 8px 9px;
         text-align: left;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.14);
-        font-size: 0.84rem;
+        border-bottom: 1px solid rgba(187, 247, 208, 0.14);
+        font-size: 0.82rem;
       }
 
       .score-table th {
         color: var(--text-muted);
-        font-weight: 600;
-        font-size: 0.75rem;
+        font-weight: 700;
+        font-size: 0.72rem;
       }
 
       .score-table td.num,
       .score-table th.num {
         text-align: right;
-        font-family: 'JetBrains Mono', monospace;
         font-variant-numeric: tabular-nums;
       }
 
       .score-table tr.winner-row td {
         color: var(--gold);
-        font-weight: 700;
+        font-weight: 800;
       }
 
       .reward-summary {
-        padding: 12px 14px;
-        border-radius: 10px;
-        background: rgba(6, 13, 30, 0.78);
-        border: 1px solid rgba(243, 208, 107, 0.28);
+        padding: 11px 14px;
+        border-radius: 11px;
+        background: rgba(4, 18, 13, 0.82);
+        border: 1px solid rgba(245, 210, 113, 0.3);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 20px;
-        font-size: 0.88rem;
+        margin-bottom: 18px;
+        font-size: 0.86rem;
+        font-weight: 700;
       }
 
       .reward-amount {
-        font-family: 'JetBrains Mono', monospace;
         font-variant-numeric: tabular-nums;
-        font-weight: 700;
+        font-weight: 900;
         font-size: 1rem;
       }
 
-      .reward-amount.pos {
-        color: var(--emerald);
-      }
-
-      .reward-amount.neg {
-        color: var(--danger);
-      }
+      .reward-amount.pos { color: var(--emerald-bright); }
+      .reward-amount.neg { color: var(--danger); }
 
       .modal-actions {
         display: flex;
@@ -568,41 +1163,58 @@
         gap: 10px;
       }
 
-      @media (max-width: 1120px) {
-        .hud-top {
-          flex-wrap: wrap;
-          padding: 8px 12px;
-          gap: 8px;
-        }
-        .players-strip {
-          order: 3;
-          width: 100%;
-          justify-content: space-between;
-        }
-        .turn-banner {
-          top: 104px;
-        }
-        .toast {
-          top: 142px;
-        }
+      .modal-cta {
+        appearance: none;
+        height: 40px;
+        padding: 0 18px;
+        border-radius: 10px;
+        border: 1px solid rgba(254, 240, 138, 0.72);
+        background: linear-gradient(135deg, #f3ce63 0%, #c89420 100%);
+        color: #161002;
+        font-family: inherit;
+        font-size: 0.84rem;
+        font-weight: 900;
+        cursor: pointer;
       }
 
-      @media (max-width: 640px) {
-        .hud-btn span {
-          display: none;
-        }
-        .hud-btn.lobby-link span {
-          display: inline;
-        }
-        .action-dock {
-          padding: 6px 8px;
-          gap: 6px;
-        }
-        .act-btn {
-          height: 36px;
-          padding: 0 10px;
-          font-size: 0.74rem;
-        }
+      /* ================= RESPONSIVE TABLET & COMPACT SCREENS ================= */
+      @media (max-width: 1080px) {
+        .player-card { width: 142px; padding: 6px 8px; }
+        .smart-btn { width: 84px; height: 44px; font-size: 0.7rem; }
+        .smart-btn.draw-btn { height: 50px; }
+        .smart-btn.open-btn { width: 92px; height: 52px; }
+        .discard-pad { width: 92px; height: 90px; }
+        .rack-slot { height: 56px; }
+        .okey-tile-num { font-size: 1.2rem; }
+        .open-melds-board { left: 96px; right: 96px; bottom: 188px; }
+        .pcard-self { bottom: 188px; }
+      }
+
+      @media (max-width: 820px) {
+        .hud-top { height: 46px; padding: 0 8px; gap: 6px; }
+        .brand-block { display: none; }
+        .turn-banner { font-size: 0.7rem; padding: 4px 8px; }
+        .hud-btn span { display: none; }
+        .hud-btn.lobby-link span { display: inline; }
+        .player-card { width: 124px; padding: 5px 6px; }
+        .pcard-avatar { width: 24px; height: 24px; font-size: 0.72rem; }
+        .pcard-top { top: 52px; }
+        .pcard-left { top: 52px; left: 6px; }
+        .pcard-right { top: 52px; right: 6px; }
+        .side-draw-wrap { left: 6px; top: 132px; }
+        .side-draw-btn, .side-return-btn { width: 68px; }
+        .open-melds-board { top: 126px; left: 78px; right: 78px; bottom: 170px; }
+        .pcard-self { bottom: 170px; left: 6px; }
+        .rack-stage { gap: 6px; padding: 0 6px; bottom: 5px; }
+        .wooden-rack-shell { padding: 10px 7px 8px; }
+        .rack-row { gap: 2.5px; padding: 4px 4px 6px; }
+        .rack-slot { height: 48px; }
+        .okey-tile-num { font-size: 1.02rem; }
+        .okey-tile-pip { width: 6px; height: 6px; margin-top: 3px; }
+        .smart-btn { width: 68px; height: 40px; font-size: 0.65rem; border-radius: 10px; }
+        .smart-btn.draw-btn { height: 44px; }
+        .smart-btn.open-btn { width: 74px; height: 46px; }
+        .discard-pad { width: 74px; height: 78px; border-radius: 11px; }
       }
     </style>
   </head>
@@ -610,47 +1222,43 @@
     <!-- 3D Three.js Canvas Container -->
     <div id="canvas-wrap" aria-label="3D Okey 101 Oyun Masası"></div>
 
-    <!-- TOP HUD -->
+    <!-- SLIM TOP HUD -->
     <header class="hud-top">
       <div class="hud-left">
-        <div class="game-title-wrap">
-          <div class="game-title">3D OKEY 101</div>
+        <div class="brand-block">
+          <div class="game-title">101 OKEY</div>
           <div class="game-stake-sub" id="stake-sub">Masa: 500 Çip</div>
         </div>
 
-        <div class="okey-indicator-group" aria-label="Gösterge ve Okey Taşı">
+        <div class="okey-indicator-group" aria-label="Gösterge, Okey ve Kalan Taş">
           <div class="mini-tile-slot">
-            <span class="mini-tile-label">Gösterge</span>
+            <span class="mini-tile-label">Göst.</span>
             <div class="mini-tile" id="hud-indicator">-</div>
           </div>
           <div class="mini-tile-slot">
             <span class="mini-tile-label">Okey</span>
             <div class="mini-tile is-okey" id="hud-okey">-</div>
           </div>
+          <div class="deck-pill" title="Ortadaki kalan taş sayısı">
+            <span>Deste</span>
+            <span id="hud-deck-count">0</span>
+          </div>
         </div>
       </div>
 
-      <!-- 4 Players Status -->
-      <div class="players-strip" id="players-strip" aria-label="Oyuncu Durumları"></div>
+      <!-- Compact Turn Status -->
+      <div class="turn-banner" id="turn-banner">Oyun hazırlanıyor...</div>
 
-      <!-- Right: Chips, Audio, Camera, Lobby Return -->
+      <!-- Right: Chips, Audio, Lobby Return -->
       <div class="hud-right">
         <div class="chip-box" title="Ortak Platform Çip Bakiyesi">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" fill="rgba(243,208,107,0.18)" stroke="#F3D06B" stroke-width="1.8" />
-            <circle cx="12" cy="12" r="4.8" stroke="#D4AF37" stroke-width="1.4" stroke-dasharray="2.5 2" />
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="rgba(245,210,113,0.18)" stroke="#F5D271" stroke-width="1.8" />
+            <circle cx="12" cy="12" r="4.6" stroke="#D4AF37" stroke-width="1.4" stroke-dasharray="2.5 2" />
           </svg>
           <span class="chip-val" id="hud-chips">10.000</span>
           <span class="chip-unit">Çip</span>
         </div>
-
-        <button type="button" class="hud-btn" id="btn-cam" title="Kamera modunu değiştir (V)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-          <span id="cam-label">Dinamik Kamera</span>
-        </button>
 
         <button type="button" class="hud-btn" id="btn-sound" title="Ses efektlerini aç/kapat">
           <svg id="ico-sound-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -666,7 +1274,7 @@
         </button>
 
         <a href="index.html" class="hud-btn lobby-link" id="btn-lobby">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M3 12h18" />
             <path d="M9 6l-6 6 6 6" />
           </svg>
@@ -675,34 +1283,89 @@
       </div>
     </header>
 
-    <!-- Turn Banner & Toast -->
-    <div class="turn-banner" id="turn-banner">Oyun hazırlanıyor...</div>
+    <!-- Toast Notifications -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <!-- BOTTOM ACTION DOCK -->
-    <nav class="action-dock" aria-label="Okey 101 Aksiyonları">
-      <button type="button" class="act-btn cyan" id="btn-draw-center">Ortadan Çek</button>
-      <button type="button" class="act-btn" id="btn-draw-side">Yandan Al</button>
-      <button type="button" class="act-btn danger" id="btn-return-side" style="display:none">Yandan İade Et</button>
+    <!-- 4 COMPACT CORNER PLAYER CARDS -->
+    <div class="player-card pcard-self" id="pcard-0"></div>
+    <div class="player-card pcard-right" id="pcard-1"></div>
+    <div class="player-card pcard-top" id="pcard-2"></div>
+    <div class="player-card pcard-left" id="pcard-3"></div>
 
-      <div class="dock-divider" aria-hidden="true"></div>
-
-      <button type="button" class="act-btn emerald" id="btn-open-melds">
-        <span id="open-btn-text">Perleri Aç</span>
-        <span class="score-inline" id="live-meld-score">0 / 101</span>
+    <!-- LEFT SIDE-TILE QUICK PICKUP & RETURN -->
+    <div class="side-draw-wrap">
+      <button type="button" class="side-draw-btn" id="btn-draw-side" title="Sol oyuncunun attığı taşı al">
+        <span class="side-draw-label">Yandan Al</span>
+        <div class="mini-tile" id="side-tile-preview">-</div>
       </button>
-
-      <button type="button" class="act-btn" id="btn-layoff">İşlek Ekle</button>
-      <button type="button" class="act-btn primary" id="btn-discard">Seçili Taşı At</button>
-
-      <div class="dock-divider" aria-hidden="true"></div>
-
-      <button type="button" class="act-btn" id="btn-multiselect" title="Birden fazla taş seçmek için aç/kapat (veya Shift+Tıkla)">
-        Per Seç
+      <button type="button" class="side-return-btn" id="btn-return-side" style="display:none">
+        Yandan İade Et
       </button>
-      <button type="button" class="act-btn" id="btn-sort-series">Seri Diz</button>
-      <button type="button" class="act-btn" id="btn-sort-pairs">Çift Diz</button>
-    </nav>
+    </div>
+
+    <!-- CLEAN CENTER OPEN MELDS PANEL BOARD -->
+    <section class="open-melds-board" id="open-melds-board" aria-label="Masaya Açılan Perler"></section>
+
+    <!-- ERGONOMIC BOTTOM RACK & ONE-TAP SMART CONTROLS -->
+    <div class="rack-stage">
+      <!-- Left Smart Buttons: Seri Diz, Çift Diz, Taş Çek -->
+      <div class="rack-side-col">
+        <button type="button" class="smart-btn" id="btn-sort-series" title="Aynı renk sıralı ve farklı renk aynı sayı perlerini grupla">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+            <rect x="3" y="4" width="5" height="16" rx="1.5" />
+            <rect x="10" y="4" width="5" height="16" rx="1.5" />
+            <rect x="17" y="4" width="4" height="16" rx="1.5" />
+          </svg>
+          <span>Seri Diz</span>
+        </button>
+
+        <button type="button" class="smart-btn" id="btn-sort-pairs" title="Çift taşları otomatik yan yana diz">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+            <rect x="3" y="5" width="7" height="14" rx="2" />
+            <rect x="14" y="5" width="7" height="14" rx="2" />
+          </svg>
+          <span>Çift Diz</span>
+        </button>
+
+        <button type="button" class="smart-btn draw-btn" id="btn-draw-center" title="Ortadaki desteden yeni taş çek">
+          <span class="btn-mini-badge" id="draw-badge-count">0</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+          <span>Taş Çek</span>
+        </button>
+      </div>
+
+      <!-- Wide Double-Row Wooden Rack + Top-Right Live 101 Score Badge -->
+      <div class="wooden-rack-shell" id="wooden-rack-shell" aria-label="Çift Sıralı Ahşap Istaka">
+        <div class="rack-score-badge" id="rack-score-badge" title="Istakadaki geçerli perlerin canlı puan toplamı">
+          <span class="badge-label" id="rack-score-label">El Puanı</span>
+          <span id="live-meld-score">0 / 101</span>
+        </div>
+        <div class="touch-rack-rows" id="touch-rack-rows"></div>
+      </div>
+
+      <!-- Right Prominent Action Controls: El Aç & Taş At Drop Pad -->
+      <div class="rack-side-col">
+        <button type="button" class="smart-btn open-btn" id="btn-open-melds" title="101 puan veya 5 çift ile elini masaya aç">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19V5" />
+            <path d="M5 12l7-7 7 7" />
+          </svg>
+          <span id="open-btn-text">El Aç</span>
+        </button>
+
+        <button type="button" class="discard-pad" id="btn-discard" title="Seçili taşı atmak için dokun veya taşı buraya sürükle">
+          <div class="mini-tile" id="discard-last-preview">-</div>
+          <span class="discard-pad-title">Taş At</span>
+          <span class="discard-pad-sub" id="discard-pad-hint">Sürükle / Dokun</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Floating Drag Ghost -->
+    <div class="drag-ghost" id="drag-ghost" aria-hidden="true"></div>
 
     <!-- END-OF-ROUND SCOREBOARD MODAL -->
     <div class="modal-backdrop" id="round-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -715,8 +1378,9 @@
             <tr>
               <th>Oyuncu</th>
               <th>Durum</th>
-              <th class="num">Kalan Taş</th>
-              <th class="num">Ceza Puanı</th>
+              <th class="num">Kalan</th>
+              <th class="num">El Cezası</th>
+              <th class="num">Toplam</th>
             </tr>
           </thead>
           <tbody id="modal-tbody"></tbody>
@@ -727,7 +1391,7 @@
         </div>
         <div class="modal-actions">
           <a href="index.html" class="hud-btn lobby-link">Ana Lobiye Dön</a>
-          <button type="button" class="act-btn primary" id="btn-next-round">Yeni El Başlat</button>
+          <button type="button" class="modal-cta" id="btn-next-round">Yeni El Başlat</button>
         </div>
       </div>
     </div>
@@ -1051,36 +1715,38 @@
        * ========================================================================= */
       const COLORS = ['red', 'blue', 'black', 'yellow'];
       const COLOR_HEX = {
-        red: '#c81e1e',
-        blue: '#0369a1',
-        black: '#0f172a',
-        yellow: '#c2610c',
+        red: '#d61f2c',
+        blue: '#0b66c3',
+        black: '#111827',
+        yellow: '#df6400',
       };
       const COLOR_NAME = {
         red: 'Kırmızı',
         blue: 'Mavi',
         black: 'Siyah',
-        yellow: 'Sarı',
+        yellow: 'Turuncu',
       };
 
       const RACK_SLOTS = 28; // 2 tiers x 14 columns
+      const TURN_DURATION_SEC = 25;
 
       const game = {
         round: 1,
         dealer: 0,
         turn: 0,
         phase: 'draw', // 'draw' | 'play' | 'bot' | 'ended'
+        turnTimeLeft: TURN_DURATION_SEC,
         indicatorTile: null,
         okeyColor: 'red',
         okeyNumber: 1,
         drawPile: [],
         discards: [[], [], [], []], // discards[p] = tiles discarded by player p (sits to p's right)
-        openMelds: [], // { id, owner, type: 'run'|'set', color, startNum, endNum, setNum, tiles: [...], points }
+        openMelds: [], // { id, owner, type: 'run'|'set'|'pair', color, startNum, endNum, setNum, tiles: [...], points }
         players: [
-          { id: 0, name: humanName, isBot: false, hasOpened: false, rack: new Array(RACK_SLOTS).fill(null) },
-          { id: 1, name: 'Defne', isBot: true, hasOpened: false, hand: [] },
-          { id: 2, name: 'Kerem', isBot: true, hasOpened: false, hand: [] },
-          { id: 3, name: 'Zeynep', isBot: true, hasOpened: false, hand: [] },
+          { id: 0, name: humanName, isBot: false, avatarBg: '#0f766e', hasOpened: false, totalPenalty: 0, rack: new Array(RACK_SLOTS).fill(null) },
+          { id: 1, name: 'Defne', isBot: true, avatarBg: '#9f1239', hasOpened: false, totalPenalty: 0, hand: [] },
+          { id: 2, name: 'Kerem', isBot: true, avatarBg: '#1d4ed8', hasOpened: false, totalPenalty: 0, hand: [] },
+          { id: 3, name: 'Zeynep', isBot: true, avatarBg: '#b45309', hasOpened: false, totalPenalty: 0, hand: [] },
         ],
         tookSideTile: null, // tile object taken from Bot 3 this turn
         selectedTileId: null,
@@ -1292,6 +1958,53 @@
       }
 
       /**
+       * Detects contiguous valid pairs (identical color+number or tile+Real Okey) on the 2-row rack.
+       */
+      function getHumanRackPairs() {
+        const rack = game.players[0].rack;
+        const pairs = [];
+        for (let row = 0; row < 2; row++) {
+          const rowStart = row * 14;
+          let group = [];
+          let slotIndices = [];
+          for (let col = 0; col <= 14; col++) {
+            const tile = col < 14 ? rack[rowStart + col] : null;
+            if (tile) {
+              group.push(tile);
+              slotIndices.push(rowStart + col);
+            } else {
+              if (group.length === 2) {
+                const [a, b] = group;
+                const ea = getEffectiveTile(a);
+                const eb = getEffectiveTile(b);
+                const isPair =
+                  ea.wildcard ||
+                  eb.wildcard ||
+                  (ea.color === eb.color && ea.num === eb.num);
+                if (isPair) {
+                  const num = ea.wildcard ? (eb.wildcard ? game.okeyNumber : eb.num) : ea.num;
+                  pairs.push({
+                    type: 'pair',
+                    tiles: [a, b],
+                    slots: [
+                      { tile: a, assignedColor: ea.color || eb.color || game.okeyColor, assignedNum: num },
+                      { tile: b, assignedColor: eb.color || ea.color || game.okeyColor, assignedNum: num },
+                    ],
+                    points: num * 2,
+                    slotIndices: [...slotIndices],
+                    row,
+                  });
+                }
+              }
+              group = [];
+              slotIndices = [];
+            }
+          }
+        }
+        return pairs;
+      }
+
+      /**
        * Fast combinatorial solver used by AI bots AND "Seri Diz" auto-sort
        * to extract maximum-point disjoint valid melds from a hand.
        */
@@ -1453,6 +2166,7 @@
        * Also supports swapping out a real Okey from the meld if the tile matches the Okey's exact slot!
        */
       function tryLayoffOnMeld(tile, meld) {
+        if (!meld || meld.type === 'pair' || !Array.isArray(meld.slots)) return null;
         // 1. Check if tile can replace a real Okey inside the meld
         if (!isRealOkey(tile)) {
           const eff = getEffectiveTile(tile);
@@ -1608,51 +2322,34 @@
         c.height = h;
         const ctx = c.getContext('2d');
 
-        // Deep light-absorbing matte emerald-green / dark navy tournament baize felt
-        const g = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.62);
-        g.addColorStop(0, '#0c3b36');
-        g.addColorStop(0.52, '#08272f');
-        g.addColorStop(1, '#051420');
+        // Rich emerald-green velvet baize surface (matte, glare-absorbing)
+        const g = ctx.createRadialGradient(w / 2, h / 2, 35, w / 2, h / 2, w * 0.64);
+        g.addColorStop(0, '#126444');
+        g.addColorStop(0.54, '#0b4631');
+        g.addColorStop(1, '#052419');
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, w, h);
 
-        // Micro baize wool texture
-        ctx.fillStyle = 'rgba(255,255,255,0.016)';
-        for (let i = 0; i < 9500; i++) {
+        // Subtle velvet fiber texture
+        ctx.fillStyle = 'rgba(255,255,255,0.018)';
+        for (let i = 0; i < 9000; i++) {
           ctx.fillRect(Math.random() * w, Math.random() * h, 2, 1);
         }
 
-        // Gold border trim
-        ctx.strokeStyle = 'rgba(243, 208, 107, 0.42)';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(30, 30, w - 60, h - 60);
-        ctx.strokeStyle = 'rgba(212, 175, 55, 0.2)';
+        // Luxurious double gold border trim
+        ctx.strokeStyle = 'rgba(245, 211, 108, 0.56)';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(26, 26, w - 52, h - 52);
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.28)';
         ctx.lineWidth = 2;
-        ctx.strokeRect(42, 42, w - 84, h - 84);
+        ctx.strokeRect(40, 40, w - 80, h - 80);
 
-        // Subtle center oval frame for open melds
-        ctx.strokeStyle = 'rgba(243, 208, 107, 0.22)';
+        // Clean gold center arena frame
+        ctx.strokeStyle = 'rgba(245, 211, 108, 0.24)';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.roundRect(140, 120, w - 280, h - 250, 36);
+        ctx.roundRect(136, 114, w - 272, h - 240, 38);
         ctx.stroke();
-
-        // Corner discard zone markings (bottom-left YANDAN AL & bottom-right AT)
-        ctx.strokeStyle = 'rgba(34, 211, 238, 0.38)';
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([8, 6]);
-        ctx.strokeRect(66, h - 180, 106, 128);
-        ctx.strokeStyle = 'rgba(243, 208, 107, 0.45)';
-        ctx.strokeRect(w - 172, h - 180, 106, 128);
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = 'rgba(165, 243, 252, 0.65)';
-        ctx.font = '700 18px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('YANDAN AL', 119, h - 34);
-
-        ctx.fillStyle = 'rgba(243, 208, 107, 0.72)';
-        ctx.fillText('TAŞ AT', w - 119, h - 34);
 
         return makeColorTex(c);
       }
@@ -2168,7 +2865,8 @@
 
       const humanRackGroup = new THREE.Group();
       humanRackGroup.position.set(0, 0.14, 4.78);
-      humanRackGroup.rotation.x = -0.58; // Ergonomic tilt directly toward camera
+      humanRackGroup.rotation.x = -0.58;
+      humanRackGroup.visible = false; // Replaced visually by ergonomic 2-row wooden touch rack; kept as world flight anchor
       scene.add(humanRackGroup);
 
       // Backboard
@@ -3266,6 +3964,7 @@
 
         game.drawPile = deck;
         game.turn = game.dealer;
+        game.turnTimeLeft = TURN_DURATION_SEC;
         game.phase = game.turn === 0 ? 'play' : 'bot';
 
         // Auto-sort player's starting hand cleanly into series for great opening UX
@@ -3430,23 +4129,29 @@
       }
 
       function evaluateHumanOpenCandidate() {
-        // If multi-selection has >= 3 tiles, evaluate selected tiles first
-        if (game.multiSelectedIds.size >= 3) {
-          const rack = game.players[0].rack;
-          const selected = rack.filter((t) => t && game.multiSelectedIds.has(t.id));
-          const direct = evaluateMeld(selected);
-          if (direct) {
-            return { melds: [direct], totalPoints: direct.points, source: 'selection' };
-          }
-          const solved = findBestMelds(selected);
-          if (solved.melds.length > 0) {
-            return { melds: solved.melds, totalPoints: solved.totalPoints, source: 'selection' };
-          }
-          return { melds: [], totalPoints: 0, source: 'selection' };
-        }
-        // Otherwise evaluate all valid contiguous groups on the 2-tier rack
         const groups = getHumanRackGroups();
-        return { melds: groups.validMelds, totalPoints: groups.totalPoints, source: 'rack' };
+        const pairs = getHumanRackPairs();
+        const alreadyOpened = game.players[0].hasOpened;
+
+        if (!alreadyOpened && groups.totalPoints < 101 && pairs.length >= 5) {
+          return {
+            mode: 'pairs',
+            melds: pairs,
+            totalPoints: groups.totalPoints,
+            pairCount: pairs.length,
+            pairs,
+            source: 'pairs',
+          };
+        }
+
+        return {
+          mode: 'series',
+          melds: groups.validMelds,
+          totalPoints: groups.totalPoints,
+          pairCount: pairs.length,
+          pairs,
+          source: 'rack',
+        };
       }
 
       function humanOpenMelds() {
@@ -3457,16 +4162,16 @@
         }
 
         const evalRes = evaluateHumanOpenCandidate();
-        if (evalRes.melds.length === 0) {
-          sound.playError();
-          showToast('Istakada geçerli bir per bulunamadı. "Seri Diz" deneyebilirsin.', 'error');
-          return;
-        }
-
         const alreadyOpened = game.players[0].hasOpened;
-        if (!alreadyOpened && evalRes.totalPoints < 101) {
+        const canOpenSeries = evalRes.mode === 'series' && evalRes.melds.length > 0 && (alreadyOpened || evalRes.totalPoints >= 101);
+        const canOpenPairs = !alreadyOpened && evalRes.mode === 'pairs' && evalRes.pairCount >= 5;
+
+        if (!canOpenSeries && !canOpenPairs) {
           sound.playError();
-          showToast(`101 barajı için en az 101 puan gerekli (Mevcut: ${evalRes.totalPoints}).`, 'error');
+          showToast(
+            `El açmak için en az 101 puan (Mevcut: ${evalRes.totalPoints}) veya 5 çift (Mevcut: ${evalRes.pairCount}) gerekli.`,
+            'error'
+          );
           return;
         }
 
@@ -3480,25 +4185,14 @@
           }
         }
 
-        // Snapshot exact world start transforms on the human rack BEFORE removing tiles
         humanRackGroup.updateMatrixWorld(true);
         const startTransforms = new Map();
         const rack = game.players[0].rack;
         for (let i = 0; i < RACK_SLOTS; i++) {
           if (!rack[i]) continue;
-          const rec = rackTileVisuals.get(rack[i].id);
-          if (rec) {
-            const p = new THREE.Vector3();
-            const q = new THREE.Quaternion();
-            rec.mesh.getWorldPosition(p);
-            rec.mesh.getWorldQuaternion(q);
-            startTransforms.set(rack[i].id, { pos: p, quat: q });
-          } else {
-            startTransforms.set(rack[i].id, getRackSlotWorldTransform(i));
-          }
+          startTransforms.set(rack[i].id, getRackSlotWorldTransform(i));
         }
 
-        // Remove melded tiles from human rack & push onto 3D table
         const removeIds = new Set();
         const newlyOpenedMelds = [];
         evalRes.melds.forEach((m) => {
@@ -3535,10 +4229,8 @@
         rebuildOpenMelds3D();
         updateHUD();
 
-        // Briefly tilt camera wider toward center so player watches melds cascade into place
         centerFocusTimer = 1.45;
 
-        // Launch sequential cascading parabolic flight for every tile in each opened meld!
         let staggerIdx = 0;
         newlyOpenedMelds.forEach((meld, mIdx) => {
           meld.tiles.forEach((tile) => {
@@ -3547,7 +4239,7 @@
             const endPos = new THREE.Vector3(0, 0.14, 0);
             if (destMesh) destMesh.getWorldPosition(endPos);
 
-            const delay = staggerIdx * 0.062 + mIdx * 0.09;
+            const delay = staggerIdx * 0.055 + mIdx * 0.08;
             staggerIdx++;
 
             spawnFlyingTile({
@@ -3558,8 +4250,8 @@
               endQuat: _flatStandQuat,
               startScale: 1.0,
               endScale: 0.77,
-              arcHeight: 2.05 + (mIdx % 2) * 0.25,
-              duration: 0.48,
+              arcHeight: 2.0 + (mIdx % 2) * 0.24,
+              duration: 0.46,
               delay,
               spinX: 0.2,
               spinY: Math.PI * 0.75,
@@ -3574,13 +4266,14 @@
         });
 
         showToast(
-          alreadyOpened
-            ? `Yeni per masaya eklendi (+${evalRes.totalPoints} Puan)!`
-            : `Harika! ${evalRes.totalPoints} puanla elini açtın!`,
+          canOpenPairs
+            ? `Harika! ${evalRes.pairCount} çift ile elini açtın!`
+            : alreadyOpened
+              ? `Yeni per masaya eklendi (+${evalRes.totalPoints} Puan)!`
+              : `Harika! ${evalRes.totalPoints} puanla elini açtın!`,
           'success'
         );
 
-        // If 0 tiles left after opening, instant victory!
         if (getHumanHandList().length === 0) {
           finishRound(0, false);
         }
@@ -3891,6 +4584,7 @@
       /* ------------------ AI BOT INTELLIGENCE ------------------ */
       function advanceTurn() {
         game.turn = (game.turn + 1) % 4;
+        game.turnTimeLeft = TURN_DURATION_SEC;
         if (game.turn === 0) {
           game.phase = 'draw';
           updateHUD();
@@ -4193,10 +4887,17 @@
           } else {
             penalty = hand.reduce((acc, t) => acc + getTilePenaltyValue(t), 0);
           }
-          return { idx, name: p.name, hasOpened: p.hasOpened, leftCount: hand.length, penalty };
+          p.totalPenalty = (p.totalPenalty || 0) + penalty;
+          return {
+            idx,
+            name: p.name,
+            hasOpened: p.hasOpened,
+            leftCount: hand.length,
+            penalty,
+            totalPenalty: p.totalPenalty,
+          };
         });
 
-        // If draw pile ran out (no one emptied hand), lowest penalty wins!
         let resolvedWinner = winnerIdx;
         if (resolvedWinner === null) {
           const sorted = rows.slice().sort((a, b) => a.penalty - b.penalty);
@@ -4233,9 +4934,10 @@
             (r) => `
               <tr class="${r.idx === resolvedWinner ? 'winner-row' : ''}">
                 <td>${r.name}${r.idx === resolvedWinner ? ' ★' : ''}</td>
-                <td>${r.hasOpened ? '101 Açtı' : 'Açmadı'}</td>
+                <td>${r.hasOpened ? 'Açtı' : 'Açmadı'}</td>
                 <td class="num">${r.leftCount}</td>
                 <td class="num">${r.penalty}</td>
+                <td class="num">${r.totalPenalty}</td>
               </tr>
             `
           )
@@ -4250,11 +4952,52 @@
       }
 
       /* =========================================================================
-       * 6. HUD UPDATERS & BUTTON BINDINGS
+       * 6. YALLA-STYLE TABLET HUD, TOUCH RACK & DUAL DRAG / TAP INTERACTIONS
        * ========================================================================= */
-      function renderMiniTile(el, color, num) {
-        const hex = COLOR_HEX[color] || '#0f172a';
+      const rackRowsEl = document.getElementById('touch-rack-rows');
+      const openMeldsBoardEl = document.getElementById('open-melds-board');
+      const discardPadEl = document.getElementById('btn-discard');
+      const dragGhostEl = document.getElementById('drag-ghost');
+
+      const touchDrag = {
+        active: false,
+        dragging: false,
+        pointerId: null,
+        tileId: null,
+        fromSlot: -1,
+        startX: 0,
+        startY: 0,
+        hoverSlot: -1,
+        overDiscard: false,
+        hoverMeldId: null,
+      };
+
+      function renderMiniTile(el, color, num, isFakeJoker = false) {
+        if (!el) return;
+        if (!color && !isFakeJoker) {
+          el.innerHTML = '<span style="color:#94a3b8;font-size:0.75rem">—</span>';
+          return;
+        }
+        if (isFakeJoker) {
+          el.innerHTML = '<span style="color:#7c3aed;font-size:0.78rem">★</span><span class="dot" style="background:#7c3aed"></span>';
+          return;
+        }
+        const hex = COLOR_HEX[color] || '#111827';
         el.innerHTML = `<span style="color:${hex}">${num}</span><span class="dot" style="background:${hex}"></span>`;
+      }
+
+      function renderTileFaceHTML(tile, isMeldMini = false) {
+        if (tile.isFakeJoker) {
+          return isMeldMini
+            ? `<span style="color:#7c3aed;font-size:0.84rem">★</span><span class="tile-pip" style="background:#7c3aed"></span>`
+            : `<span class="okey-tile-num" style="color:#7c3aed;font-size:1.12rem">★</span><span class="okey-tile-joker">SAHTE</span>`;
+        }
+        const hex = COLOR_HEX[tile.color] || '#111827';
+        const okeyMark = isRealOkey(tile) ? '<span class="okey-tile-star">★</span>' : '';
+        if (isMeldMini) {
+          return `${okeyMark}<span style="color:${hex}">${tile.number}</span><span class="tile-pip" style="background:${hex}"></span>`;
+        }
+        return `${okeyMark}<span class="okey-tile-num" style="color:${hex}">${tile.number}</span><span class="okey-tile-pip" style="background:${hex}"></span>`;
       }
 
       function updateIndicatorHUD() {
@@ -4267,95 +5010,461 @@
         renderMiniTile(document.getElementById('hud-okey'), game.okeyColor, game.okeyNumber);
       }
 
-      function updateHUD() {
-        // Players top strip
-        const strip = document.getElementById('players-strip');
-        strip.innerHTML = game.players
-          .map((p, idx) => {
-            const count = idx === 0 ? getHumanHandList().length : p.hand.length;
-            const active = game.turn === idx && game.phase !== 'ended';
+      function renderCornerPlayerCards() {
+        for (let idx = 0; idx < 4; idx++) {
+          const card = document.getElementById(`pcard-${idx}`);
+          if (!card) continue;
+          const p = game.players[idx];
+          const count = idx === 0 ? getHumanHandList().length : p.hand.length;
+          const active = game.turn === idx && game.phase !== 'ended';
+          const pct = active ? Math.max(0, Math.min(100, (game.turnTimeLeft / TURN_DURATION_SEC) * 100)) : 0;
+          const timerCls = pct < 25 ? 'danger' : pct < 50 ? 'warn' : '';
+          const initials = p.name.slice(0, 1).toUpperCase();
+
+          card.classList.toggle('active-turn', active);
+          card.innerHTML = `
+            <div class="pcard-head">
+              <div class="pcard-avatar" style="background:${p.avatarBg || '#0d9488'}">${initials}</div>
+              <div class="pcard-info">
+                <div class="pcard-name-row">
+                  <span class="pcard-name">${p.name}</span>
+                  <span class="pcard-badge ${p.hasOpened ? 'opened' : 'closed'}">${p.hasOpened ? 'Açtı' : 'Kapalı'}</span>
+                </div>
+                <div class="pcard-stats">
+                  <span>${count} taş</span>
+                  <span class="pcard-penalty">Ceza: ${p.totalPenalty || 0}</span>
+                </div>
+              </div>
+            </div>
+            <div class="pcard-timer-track">
+              <div class="pcard-timer-fill ${timerCls}" id="ptimer-${idx}" style="width:${pct.toFixed(1)}%"></div>
+            </div>
+          `;
+        }
+      }
+
+      function renderOpenMeldsBoard() {
+        if (!openMeldsBoardEl) return;
+        if (game.openMelds.length === 0) {
+          openMeldsBoardEl.innerHTML =
+            '<div class="open-melds-empty">101 puan veya 5 çift toplayıp El Aç — Açılan perler burada görünür</div>';
+          return;
+        }
+
+        const canLayoffNow = game.turn === 0 && game.phase === 'play' && game.players[0].hasOpened;
+        const selectedTile =
+          game.selectedTileId !== null
+            ? game.players[0].rack.find((t) => t && t.id === game.selectedTileId)
+            : null;
+        const handTiles = canLayoffNow ? (selectedTile ? [selectedTile] : getHumanHandList()) : [];
+
+        openMeldsBoardEl.innerHTML = game.openMelds
+          .map((meld) => {
+            const acceptsTile =
+              canLayoffNow &&
+              meld.type !== 'pair' &&
+              handTiles.some((t) => Boolean(tryLayoffOnMeld(t, meld)));
+            const ownerName = game.players[meld.owner]?.name || 'Masa';
+            const tilesHtml = meld.tiles
+              .map(
+                (t) =>
+                  `<div class="meld-tile ${isRealOkey(t) ? 'is-okey-tile' : ''}">${renderTileFaceHTML(t, true)}</div>`
+              )
+              .join('');
+
             return `
-              <div class="player-box ${active ? 'active-turn' : ''}">
-                <span class="player-name">${p.name}</span>
-                <span class="player-meta">${count} taş</span>
-                <span class="player-status ${p.hasOpened ? 'opened' : 'closed'}">
-                  ${p.hasOpened ? '101 Açtı' : 'Açmadı'}
-                </span>
+              <div class="meld-panel ${acceptsTile ? 'is-layoff-target' : ''}" data-meld-id="${meld.id}" title="${
+                acceptsTile ? 'Taşını bu pere işlemek için dokun veya sürükle' : `${ownerName} (${meld.points} puan)`
+              }">
+                <div class="meld-panel-meta">
+                  <span>${ownerName} · ${meld.points}p</span>
+                  ${acceptsTile ? '<span class="meld-layoff-tag">+ İşle</span>' : ''}
+                </div>
+                <div class="meld-tiles-row">${tilesHtml}</div>
               </div>
             `;
           })
           .join('');
+      }
 
-        // Turn banner
+      function moveRackTileToSlot(fromSlot, toSlot) {
+        if (fromSlot === toSlot || fromSlot < 0 || toSlot < 0 || fromSlot >= RACK_SLOTS || toSlot >= RACK_SLOTS) {
+          return;
+        }
+        const rack = game.players[0].rack;
+        const movingTile = rack[fromSlot];
+        if (!movingTile) return;
+
+        if (!rack[toSlot]) {
+          rack[toSlot] = movingTile;
+          rack[fromSlot] = null;
+        } else {
+          // Try shifting nearby empty slot in the same row first, otherwise swap cleanly
+          const rowStart = Math.floor(toSlot / 14) * 14;
+          const rowEnd = rowStart + 13;
+          let shifted = false;
+
+          if (Math.floor(fromSlot / 14) === Math.floor(toSlot / 14)) {
+            rack[fromSlot] = rack[toSlot];
+            rack[toSlot] = movingTile;
+            shifted = true;
+          } else {
+            let emptyRight = -1;
+            for (let i = toSlot + 1; i <= rowEnd; i++) {
+              if (!rack[i]) {
+                emptyRight = i;
+                break;
+              }
+            }
+            if (emptyRight !== -1) {
+              for (let i = emptyRight; i > toSlot; i--) rack[i] = rack[i - 1];
+              rack[toSlot] = movingTile;
+              rack[fromSlot] = null;
+              shifted = true;
+            }
+          }
+          if (!shifted) {
+            const temp = rack[toSlot];
+            rack[toSlot] = movingTile;
+            rack[fromSlot] = temp;
+          }
+        }
+
+        sound.playTileClack(1.06 + (Math.random() - 0.5) * 0.08);
+        rebuildRackVisuals(true);
+        updateHUD();
+      }
+
+      function renderTouchRack(evalRes) {
+        if (!rackRowsEl) return;
+        const rack = game.players[0].rack;
+        const validSlots = new Set();
+        const readyReady =
+          evalRes.totalPoints >= 101 ||
+          evalRes.pairCount >= 5 ||
+          (game.players[0].hasOpened && evalRes.melds.length > 0);
+
+        if (evalRes.mode === 'pairs' && evalRes.pairCount >= 5) {
+          evalRes.pairs.forEach((p) => p.slotIndices.forEach((s) => validSlots.add(s)));
+        } else {
+          getHumanRackGroups().validMelds.forEach((m) => m.slotIndices.forEach((s) => validSlots.add(s)));
+        }
+
+        const hasSelection = game.selectedTileId !== null;
+        let html = '';
+        for (let row = 0; row < 2; row++) {
+          html += '<div class="rack-row">';
+          for (let col = 0; col < 14; col++) {
+            const slotIdx = row * 14 + col;
+            const tile = rack[slotIdx];
+            const isValid = validSlots.has(slotIdx);
+            const slotCls = [
+              'rack-slot',
+              isValid ? (readyReady ? 'valid-meld-ready' : 'valid-meld') : '',
+              !tile && hasSelection ? 'can-place-selected' : '',
+            ]
+              .filter(Boolean)
+              .join(' ');
+
+            if (tile) {
+              const selectedCls = game.selectedTileId === tile.id ? 'is-selected' : '';
+              const okeyCls = isRealOkey(tile) ? 'is-okey-tile' : '';
+              html += `
+                <div class="${slotCls}" data-slot="${slotIdx}">
+                  <div class="okey-tile ${selectedCls} ${okeyCls}" data-tile-id="${tile.id}" data-slot="${slotIdx}">
+                    ${renderTileFaceHTML(tile, false)}
+                  </div>
+                  <div class="rack-slot-glow"></div>
+                </div>
+              `;
+            } else {
+              html += `
+                <div class="${slotCls}" data-slot="${slotIdx}">
+                  <div class="rack-slot-glow"></div>
+                </div>
+              `;
+            }
+          }
+          html += '</div>';
+        }
+        rackRowsEl.innerHTML = html;
+      }
+
+      function clearTouchDragHighlights() {
+        rackRowsEl.querySelectorAll('.rack-slot.is-drop-target').forEach((el) => el.classList.remove('is-drop-target'));
+        rackRowsEl
+          .querySelectorAll('.okey-tile.is-dragging-origin')
+          .forEach((el) => el.classList.remove('is-dragging-origin'));
+        discardPadEl.classList.remove('is-drag-over');
+        openMeldsBoardEl
+          .querySelectorAll('.meld-panel.is-drag-over')
+          .forEach((el) => el.classList.remove('is-drag-over'));
+      }
+
+      rackRowsEl.addEventListener('pointerdown', (e) => {
+        if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
+        const tileEl = e.target.closest('.okey-tile');
+        const slotEl = e.target.closest('.rack-slot');
+
+        if (!tileEl) {
+          // Tap on an empty slot while a tile is selected -> move selected tile directly there!
+          if (slotEl && game.selectedTileId !== null) {
+            const targetSlot = Number(slotEl.dataset.slot);
+            const fromSlot = game.players[0].rack.findIndex((t) => t && t.id === game.selectedTileId);
+            if (fromSlot !== -1 && targetSlot !== fromSlot) {
+              game.selectedTileId = null;
+              moveRackTileToSlot(fromSlot, targetSlot);
+            }
+          }
+          return;
+        }
+
+        const tileId = Number(tileEl.dataset.tileId);
+        const fromSlot = Number(tileEl.dataset.slot);
+        touchDrag.active = true;
+        touchDrag.dragging = false;
+        touchDrag.pointerId = e.pointerId;
+        touchDrag.tileId = tileId;
+        touchDrag.fromSlot = fromSlot;
+        touchDrag.startX = e.clientX;
+        touchDrag.startY = e.clientY;
+        touchDrag.hoverSlot = -1;
+        touchDrag.overDiscard = false;
+        touchDrag.hoverMeldId = null;
+
+        try {
+          rackRowsEl.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      });
+
+      rackRowsEl.addEventListener('pointermove', (e) => {
+        if (!touchDrag.active || e.pointerId !== touchDrag.pointerId) return;
+        const dx = e.clientX - touchDrag.startX;
+        const dy = e.clientY - touchDrag.startY;
+
+        if (!touchDrag.dragging && Math.hypot(dx, dy) > 8) {
+          touchDrag.dragging = true;
+          const tile = game.players[0].rack[touchDrag.fromSlot];
+          if (tile) {
+            dragGhostEl.innerHTML = `<div class="okey-tile ${isRealOkey(tile) ? 'is-okey-tile' : ''}">${renderTileFaceHTML(tile, false)}</div>`;
+            dragGhostEl.classList.add('visible');
+            const origEl = rackRowsEl.querySelector(`.okey-tile[data-tile-id="${tile.id}"]`);
+            if (origEl) origEl.classList.add('is-dragging-origin');
+            sound.playTilePick();
+          }
+        }
+
+        if (!touchDrag.dragging) return;
+        dragGhostEl.style.left = `${e.clientX}px`;
+        dragGhostEl.style.top = `${e.clientY}px`;
+
+        clearTouchDragHighlights();
+        const origEl = rackRowsEl.querySelector(`.okey-tile[data-tile-id="${touchDrag.tileId}"]`);
+        if (origEl) origEl.classList.add('is-dragging-origin');
+
+        touchDrag.hoverSlot = -1;
+        touchDrag.overDiscard = false;
+        touchDrag.hoverMeldId = null;
+
+        const elUnder = document.elementFromPoint(e.clientX, e.clientY);
+        if (!elUnder) return;
+
+        const discardHit = elUnder.closest('#btn-discard');
+        if (discardHit && game.turn === 0 && game.phase === 'play' && !game.tookSideTile) {
+          touchDrag.overDiscard = true;
+          discardPadEl.classList.add('is-drag-over');
+          return;
+        }
+
+        const meldHit = elUnder.closest('.meld-panel.is-layoff-target');
+        if (meldHit && game.turn === 0 && game.phase === 'play' && game.players[0].hasOpened) {
+          touchDrag.hoverMeldId = Number(meldHit.dataset.meldId);
+          meldHit.classList.add('is-drag-over');
+          return;
+        }
+
+        const slotHit = elUnder.closest('.rack-slot');
+        if (slotHit) {
+          touchDrag.hoverSlot = Number(slotHit.dataset.slot);
+          slotHit.classList.add('is-drop-target');
+        }
+      });
+
+      function finishTouchPointer(e, cancelled = false) {
+        if (!touchDrag.active || (e && e.pointerId !== touchDrag.pointerId)) return;
+        const wasDragging = touchDrag.dragging;
+        const tileId = touchDrag.tileId;
+        const fromSlot = touchDrag.fromSlot;
+        const hoverSlot = touchDrag.hoverSlot;
+        const overDiscard = touchDrag.overDiscard;
+        const hoverMeldId = touchDrag.hoverMeldId;
+
+        touchDrag.active = false;
+        touchDrag.dragging = false;
+        touchDrag.pointerId = null;
+        dragGhostEl.classList.remove('visible');
+        clearTouchDragHighlights();
+
+        if (cancelled) return;
+
+        if (wasDragging) {
+          if (overDiscard) {
+            humanDiscardTile(tileId);
+          } else if (hoverMeldId !== null) {
+            game.selectedTileId = tileId;
+            humanLayoffToSpecificMeld(hoverMeldId);
+          } else if (hoverSlot !== -1 && hoverSlot !== fromSlot) {
+            game.selectedTileId = null;
+            moveRackTileToSlot(fromSlot, hoverSlot);
+          }
+          return;
+        }
+
+        // Crisp tap-to-select / tap-to-swap behavior
+        if (game.selectedTileId === null) {
+          game.selectedTileId = tileId;
+          sound.playTilePick();
+          updateHUD();
+        } else if (game.selectedTileId === tileId) {
+          game.selectedTileId = null;
+          sound.playTileClack(0.95);
+          updateHUD();
+        } else {
+          // Swap previously selected tile with tapped tile for ultra-fast tablet sorting
+          const prevSlot = game.players[0].rack.findIndex((t) => t && t.id === game.selectedTileId);
+          if (prevSlot !== -1 && prevSlot !== fromSlot) {
+            game.selectedTileId = null;
+            moveRackTileToSlot(prevSlot, fromSlot);
+          } else {
+            game.selectedTileId = tileId;
+            sound.playTilePick();
+            updateHUD();
+          }
+        }
+      }
+
+      rackRowsEl.addEventListener('pointerup', (e) => finishTouchPointer(e, false));
+      rackRowsEl.addEventListener('pointercancel', (e) => finishTouchPointer(e, true));
+
+      // Tap glowing open meld panel to lay off selected or eligible tile directly
+      openMeldsBoardEl.addEventListener('click', (e) => {
+        const panel = e.target.closest('.meld-panel.is-layoff-target');
+        if (!panel) return;
+        const meldId = Number(panel.dataset.meldId);
+        if (!Number.isNaN(meldId)) {
+          humanLayoffToSpecificMeld(meldId);
+        }
+      });
+
+      function updateHUD() {
+        // 1. 4 Corner Player Cards
+        renderCornerPlayerCards();
+
+        // 2. Deck count badges
+        const deckLen = game.drawPile.length;
+        const hudDeck = document.getElementById('hud-deck-count');
+        const drawBadge = document.getElementById('draw-badge-count');
+        if (hudDeck) hudDeck.textContent = String(deckLen);
+        if (drawBadge) drawBadge.textContent = String(deckLen);
+
+        // 3. Turn status in slim top bar
         const banner = document.getElementById('turn-banner');
+        const rackShell = document.getElementById('wooden-rack-shell');
+        const isMyTurn = game.turn === 0 && game.phase !== 'ended';
+        if (rackShell) rackShell.classList.toggle('is-my-turn', isMyTurn);
+
         if (game.phase === 'ended') {
           banner.textContent = 'El tamamlandı.';
           banner.className = 'turn-banner';
         } else if (game.turn === 0) {
           banner.className = 'turn-banner highlight';
           if (game.phase === 'draw') {
-            banner.textContent = 'Sıra Sende — Ortadan taş çek veya sol oyuncunun taşını (Yandan Al) al';
+            banner.textContent = 'Sıra Sende — Taş Çek veya Yandan Al';
           } else if (game.tookSideTile) {
-            banner.textContent = 'Yandan Taş Aldın — 101+ Per Aç veya "Yandan İade Et"';
+            banner.textContent = 'Yandan Aldın — 101+ El Aç veya Yandan İade Et';
           } else {
-            banner.textContent = 'Sıra Sende — Taşlarını diz, 101+ el aç veya sağa bir taş at';
+            banner.textContent = 'Sıra Sende — Perlerini diz, El Aç veya sağa Taş At';
           }
         } else {
           banner.className = 'turn-banner';
           banner.textContent = `${game.players[game.turn].name} hamle yapıyor...`;
         }
 
-        // Live valid meld score & rack glow indicators
+        // 4. Live 101 Score Counter on top-right corner of the wooden rack
         const evalRes = evaluateHumanOpenCandidate();
         const scoreEl = document.getElementById('live-meld-score');
+        const scoreBadge = document.getElementById('rack-score-badge');
+        const scoreLabel = document.getElementById('rack-score-label');
         const openBtn = document.getElementById('btn-open-melds');
         const openText = document.getElementById('open-btn-text');
 
-        if (game.players[0].hasOpened) {
-          openText.textContent = 'Yeni Per Aç';
-          scoreEl.textContent = `${evalRes.totalPoints} Puan`;
-        } else {
-          openText.textContent = game.multiSelectedIds.size >= 3 ? 'Seçili Perleri Aç' : 'El Aç (101+)';
-          scoreEl.textContent = `${evalRes.totalPoints} / 101`;
-        }
-
         const canDraw = game.turn === 0 && game.phase === 'draw';
         const canPlay = game.turn === 0 && game.phase === 'play';
-        const canOpen =
-          canPlay &&
-          evalRes.melds.length > 0 &&
-          (game.players[0].hasOpened || evalRes.totalPoints >= 101);
+        const isReadyByPoints = evalRes.totalPoints >= 101;
+        const isReadyByPairs = !game.players[0].hasOpened && evalRes.pairCount >= 5;
+        const isOpenReady = game.players[0].hasOpened
+          ? evalRes.melds.length > 0
+          : isReadyByPoints || isReadyByPairs;
 
-        document.getElementById('btn-draw-center').disabled = !canDraw || game.drawPile.length === 0;
-        document.getElementById('btn-draw-side').disabled = !canDraw || game.discards[3].length === 0;
-        document.getElementById('btn-return-side').style.display =
-          canPlay && game.tookSideTile ? 'inline-flex' : 'none';
-        openBtn.disabled = !canOpen;
-        document.getElementById('btn-layoff').disabled =
-          !canPlay || !game.players[0].hasOpened || game.openMelds.length === 0;
-        document.getElementById('btn-discard').disabled =
-          !canPlay || game.selectedTileId === null || Boolean(game.tookSideTile);
-
-        const msBtn = document.getElementById('btn-multiselect');
-        msBtn.classList.toggle('active-mode', game.multiSelectMode);
-        msBtn.textContent =
-          game.multiSelectedIds.size > 0 ? `Per Seç (${game.multiSelectedIds.size})` : 'Per Seç';
-
-        // Update subtle rack slot glow bars under valid contiguous melds
-        const validSlots = new Set();
-        getHumanRackGroups().validMelds.forEach((m) => m.slotIndices.forEach((s) => validSlots.add(s)));
-        for (let i = 0; i < RACK_SLOTS; i++) {
-          const mat = slotGlowMeshes[i].material;
-          if (dragState && dragState.active && dragState.targetSlot === i) {
-            mat.color.setHex(0x22d3ee);
-            mat.opacity = 0.92;
-          } else if (validSlots.has(i)) {
-            mat.color.setHex(evalRes.totalPoints >= 101 || game.players[0].hasOpened ? 0x34d399 : 0xf3d06b);
-            mat.opacity = 0.72;
-          } else {
-            mat.opacity = 0;
-          }
+        if (game.players[0].hasOpened) {
+          scoreLabel.textContent = 'Yeni Per';
+          scoreEl.textContent = `${evalRes.totalPoints} Puan`;
+          openText.textContent = 'Per Aç';
+        } else if (isReadyByPairs && !isReadyByPoints) {
+          scoreLabel.textContent = 'Çift Hazır';
+          scoreEl.textContent = `${evalRes.pairCount} / 5 Çift`;
+          openText.textContent = 'Çift Aç';
+        } else {
+          scoreLabel.textContent = 'El Puanı';
+          scoreEl.textContent = `${evalRes.totalPoints} / 101`;
+          openText.textContent = 'El Aç';
         }
+
+        scoreBadge.classList.toggle('is-ready', isOpenReady);
+
+        const canOpen = canPlay && isOpenReady;
+        openBtn.disabled = !canOpen;
+        openBtn.classList.toggle('is-ready', canOpen);
+
+        // 5. Left side-draw & right discard previews
+        const drawCenterBtn = document.getElementById('btn-draw-center');
+        drawCenterBtn.disabled = !canDraw || deckLen === 0;
+        drawCenterBtn.classList.toggle('pulse-ready', canDraw && deckLen > 0);
+
+        const sideStack = game.discards[3];
+        const sideTop = sideStack.length > 0 ? sideStack[sideStack.length - 1] : null;
+        renderMiniTile(
+          document.getElementById('side-tile-preview'),
+          sideTop ? sideTop.color : null,
+          sideTop ? sideTop.number : '',
+          sideTop ? sideTop.isFakeJoker : false
+        );
+        document.getElementById('btn-draw-side').disabled = !canDraw || !sideTop;
+        document.getElementById('btn-return-side').style.display =
+          canPlay && game.tookSideTile ? 'block' : 'none';
+
+        const myDiscardStack = game.discards[0];
+        const myDiscardTop = myDiscardStack.length > 0 ? myDiscardStack[myDiscardStack.length - 1] : null;
+        renderMiniTile(
+          document.getElementById('discard-last-preview'),
+          myDiscardTop ? myDiscardTop.color : null,
+          myDiscardTop ? myDiscardTop.number : '',
+          myDiscardTop ? myDiscardTop.isFakeJoker : false
+        );
+
+        const canDiscardNow = canPlay && !game.tookSideTile;
+        discardPadEl.disabled = !canDiscardNow || game.selectedTileId === null;
+        discardPadEl.classList.toggle('can-discard', canDiscardNow && game.selectedTileId !== null);
+        document.getElementById('discard-pad-hint').textContent =
+          canDiscardNow && game.selectedTileId !== null
+            ? 'Atmak için dokun'
+            : canDiscardNow
+              ? 'Taş sürükle / seç'
+              : 'Sıranı bekle';
+
+        // 6. Center Open Melds & Bottom Touch Rack
+        renderOpenMeldsBoard();
+        renderTouchRack(evalRes);
       }
 
       // Bind DOM buttons
@@ -4363,17 +5472,9 @@
       document.getElementById('btn-draw-side').addEventListener('click', humanDrawFromSide);
       document.getElementById('btn-return-side').addEventListener('click', humanReturnSideTile);
       document.getElementById('btn-open-melds').addEventListener('click', humanOpenMelds);
-      document.getElementById('btn-layoff').addEventListener('click', () => humanLayoffToSpecificMeld(null));
       document.getElementById('btn-discard').addEventListener('click', () => humanDiscardTile(game.selectedTileId));
       document.getElementById('btn-sort-series').addEventListener('click', () => sortHumanRackBySeries(false));
       document.getElementById('btn-sort-pairs').addEventListener('click', sortHumanRackByPairs);
-
-      document.getElementById('btn-multiselect').addEventListener('click', () => {
-        game.multiSelectMode = !game.multiSelectMode;
-        if (!game.multiSelectMode) game.multiSelectedIds.clear();
-        sound.playTileClack(1.12);
-        updateHUD();
-      });
 
       document.getElementById('btn-next-round').addEventListener('click', () => {
         game.round++;
@@ -4394,25 +5495,8 @@
         if (sound.enabled) sound.playTileClack(1.1);
       });
 
-      function toggleCameraMode() {
-        const order = ['auto', 'rack', 'overview'];
-        const labels = {
-          auto: 'Dinamik Kamera',
-          rack: 'Istaka Odak',
-          overview: 'Geniş Masa',
-        };
-        cameraMode = order[(order.indexOf(cameraMode) + 1) % order.length];
-        document.getElementById('cam-label').textContent = labels[cameraMode];
-        sound.playTileClack(1.16);
-      }
-
-      document.getElementById('btn-cam').addEventListener('click', toggleCameraMode);
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'v' || e.key === 'V') toggleCameraMode();
-      });
-
       /* =========================================================================
-       * 7. ANIMATION LOOP (PARABOLIC FLIGHTS, IMPACT FX, DYNAMIC CAMERA & PACING)
+       * 7. ANIMATION LOOP (PARABOLIC FLIGHTS, IMPACT FX, ERGONOMIC 3D CAMERA & TIMER)
        * ========================================================================= */
       const clock = new THREE.Clock();
       const _desiredCamPos = new THREE.Vector3();
@@ -4445,6 +5529,37 @@
         if (contextLost || pageHidden) return;
         const dt = Math.min(clock.getDelta(), 0.1);
 
+        // 0. Smooth live turn countdown timer bar on active corner player card
+        if (game.phase !== 'ended') {
+          game.turnTimeLeft = Math.max(0, game.turnTimeLeft - dt);
+          const bar = document.getElementById(`ptimer-${game.turn}`);
+          if (bar) {
+            const pct = (game.turnTimeLeft / TURN_DURATION_SEC) * 100;
+            bar.style.width = `${pct.toFixed(1)}%`;
+            bar.classList.toggle('warn', pct < 50 && pct >= 25);
+            bar.classList.toggle('danger', pct < 25);
+          }
+          // Gentle auto-play safety when human turn clock expires
+          if (game.turn === 0 && game.turnTimeLeft <= 0) {
+            if (game.phase === 'draw') {
+              game.turnTimeLeft = TURN_DURATION_SEC;
+              humanDrawFromCenter();
+            } else if (game.phase === 'play') {
+              if (game.tookSideTile) {
+                humanReturnSideTile();
+                game.turnTimeLeft = TURN_DURATION_SEC;
+              } else {
+                const hand = getHumanHandList();
+                const autoTile = hand.find((t) => !isRealOkey(t)) || hand[hand.length - 1];
+                if (autoTile) {
+                  showToast('Süre doldu, otomatik taş atıldı.', 'error');
+                  humanDiscardTile(autoTile.id);
+                }
+              }
+            }
+          }
+        }
+
         // 1. Update parabolic flying tile animations
         for (let i = activeFlights.length - 1; i >= 0; i--) {
           const f = activeFlights[i];
@@ -4458,16 +5573,13 @@
           f.mesh.visible = true;
           f.elapsed += dt;
           const rawP = Math.min(1, f.elapsed / f.duration);
-          // Smooth ease-in-out cubic for graceful take-off and crisp tactile settle
           const p = rawP < 0.5 ? 4 * rawP * rawP * rawP : 1 - Math.pow(-2 * rawP + 2, 3) / 2;
 
-          // Parabolic arc interpolation
           _tmpVec.lerpVectors(f.startPos, f.endPos, p);
           const arcY = 4 * rawP * (1 - rawP) * f.arcHeight;
           _tmpVec.y += arcY;
           f.mesh.position.copy(_tmpVec);
 
-          // Slerp base orientation + smooth mid-air spin envelope (peaks at mid-flight, 0 at start & end)
           _tmpQuat.slerpQuaternions(f.startQuat, f.endQuat, p);
           const spinEnv = Math.sin(rawP * Math.PI);
           _spinEuler.set(f.spinX * spinEnv, f.spinY * spinEnv, f.spinZ * spinEnv);
@@ -4522,66 +5634,27 @@
           }
         }
 
-        // 3. Dynamic turn-aware camera framing (adaptive to viewport aspect ratio)
+        // 3. Ergonomic mildly-angled 3D emerald tabletop perspective
         if (centerFocusTimer > 0) centerFocusTimer = Math.max(0, centerFocusTimer - dt);
         const aspect = window.innerWidth / Math.max(1, window.innerHeight);
-        const narrowBoost = aspect < 1.5 ? (1.5 - aspect) * 4.4 : 0;
+        const narrowBoost = aspect < 1.5 ? (1.5 - aspect) * 3.6 : 0;
+        const gentlePanX = game.turn === 1 ? 0.42 : game.turn === 3 ? -0.42 : 0;
 
-        if (cameraMode === 'overview') {
-          _desiredCamPos.set(0, 12.6 + narrowBoost * 0.7, 7.6 + narrowBoost * 0.6);
-          _desiredCamLook.set(0, 0, 0.25);
-        } else if (cameraMode === 'rack') {
-          _desiredCamPos.set(0, 7.05 + narrowBoost * 0.52, 9.95 + narrowBoost * 0.82);
-          _desiredCamLook.set(0, 0.36, 1.92);
-        } else {
-          // Automatic Dinamik Kamera:
-          // - Human turn: intimate focus on the lacquered walnut ıstaka (slightly wider during draw or meld cascade)
-          // - Bot turns: cinematic wide table overview gently tracking active bot side
-          if (game.turn === 0 && game.phase !== 'ended') {
-            if (centerFocusTimer > 0) {
-              _desiredCamPos.set(0, 10.2 + narrowBoost * 0.6, 9.2 + narrowBoost * 0.65);
-              _desiredCamLook.set(0, 0.08, 0.45);
-            } else if (game.phase === 'draw') {
-              _desiredCamPos.set(0, 7.85 + narrowBoost * 0.55, 10.6 + narrowBoost * 0.85);
-              _desiredCamLook.set(0, 0.22, 1.38);
-            } else {
-              _desiredCamPos.set(0, 7.12 + narrowBoost * 0.52, 10.05 + narrowBoost * 0.82);
-              _desiredCamLook.set(0, 0.34, 1.86);
-            }
-          } else {
-            const botPanX = game.turn === 1 ? 0.65 : game.turn === 3 ? -0.65 : 0;
-            const botLookX = game.turn === 1 ? 0.45 : game.turn === 3 ? -0.45 : 0;
-            _desiredCamPos.set(botPanX, 11.45 + narrowBoost * 0.68, 8.65 + narrowBoost * 0.58);
-            _desiredCamLook.set(botLookX, 0.05, -0.2);
-          }
-        }
+        _desiredCamPos.set(gentlePanX, 11.2 + narrowBoost * 0.58, 9.1 + narrowBoost * 0.58);
+        _desiredCamLook.set(gentlePanX * 0.45, 0.05, 0.45);
 
-        const camEase = 1 - Math.exp(-3.6 * dt);
+        const camEase = 1 - Math.exp(-3.4 * dt);
         camPosCurrent.lerp(_desiredCamPos, camEase);
         camLookCurrent.lerp(_desiredCamLook, camEase);
         camera.position.copy(camPosCurrent);
         camera.lookAt(camLookCurrent);
 
-        // 4. Smoothly damp all rack tiles toward their slot / selection / hover positions
-        for (const [id, rec] of rackTileVisuals.entries()) {
-          if (dragState && dragState.active && dragState.tileId === id) continue;
-
-          const isSelected = game.selectedTileId === id || game.multiSelectedIds.has(id);
-          const isHovered = hoveredTileId === id;
-          const liftY = isSelected ? 0.24 : isHovered ? 0.09 : 0;
-          const liftZ = isSelected ? 0.18 : isHovered ? 0.06 : 0;
-
-          rec.mesh.position.x = THREE.MathUtils.damp(rec.mesh.position.x, rec.targetPos.x, 14, dt);
-          rec.mesh.position.y = THREE.MathUtils.damp(rec.mesh.position.y, rec.targetPos.y + liftY, 14, dt);
-          rec.mesh.position.z = THREE.MathUtils.damp(rec.mesh.position.z, rec.targetPos.z + liftZ, 14, dt);
-        }
-
-        // 5. Animate unmistakable neon green active-turn light ring around the active player's rack
+        // 4. Animate neon green active-turn light ring around the active opponent's 3D rack
         const elapsed = clock.elapsedTime;
         const neonPulse = 0.84 + Math.sin(elapsed * 3.8) * 0.16;
         for (let p = 0; p < 4; p++) {
           const entry = rackTurnRings[p];
-          const isActiveTurn = game.phase !== 'ended' && game.turn === p;
+          const isActiveTurn = game.phase !== 'ended' && game.turn === p && p !== 0;
           entry.primary.level = THREE.MathUtils.damp(entry.primary.level, isActiveTurn ? 1.0 : 0.0, 8.0, dt);
           const lv = entry.primary.level;
           const visible = lv > 0.008;
@@ -4609,13 +5682,13 @@
             activeTurnLight.intensity = THREE.MathUtils.damp(activeTurnLight.intensity, 1.35 * neonPulse, 8.0, dt);
           }
         }
-        if (game.phase === 'ended') {
+        if (game.phase === 'ended' || game.turn === 0) {
           activeTurnLight.intensity = THREE.MathUtils.damp(activeTurnLight.intensity, 0, 8.0, dt);
         }
 
-        // Pulse drag highlight gently on discard pad when dragging a tile
+        // Subtle pad feedback on 3D discard holders
         const discardPadMat = discardHolders[0].pad.material;
-        discardPadMat.opacity = dragState && dragState.overDiscard ? 0.65 : game.turn === 0 && game.phase === 'play' ? 0.28 : 0.14;
+        discardPadMat.opacity = touchDrag.overDiscard ? 0.65 : game.turn === 0 && game.phase === 'play' ? 0.28 : 0.14;
 
         const sidePadMat = discardHolders[3].pad.material;
         sidePadMat.opacity =
