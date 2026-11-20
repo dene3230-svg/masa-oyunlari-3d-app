@@ -3588,15 +3588,13 @@
             updateBtn.disabled = true;
             updateBtn.textContent = 'GÜNCELLENİYOR...';
             try {
+              if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map((reg) => reg.unregister().catch(() => false)));
+              }
               if ('caches' in window) {
                 const keys = await caches.keys();
                 await Promise.all(keys.map((key) => caches.delete(key)));
-              }
-              if (swRegistration) {
-                await swRegistration.update().catch(() => {});
-                if (swRegistration.waiting) {
-                  swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                }
               }
               if (pendingNewVersion) {
                 localStorage.setItem(APP_VERSION_KEY, String(pendingNewVersion));
@@ -3608,7 +3606,7 @@
                 } catch (__) {}
               }
             }
-            window.location.reload();
+            window.location.href = './index.html?v=' + Date.now();
           });
         }
 

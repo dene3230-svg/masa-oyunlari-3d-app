@@ -1,4 +1,4 @@
-const CACHE_NAME = 'masa-oyunlari-3d-cache-v2.2';
+const CACHE_NAME = 'masa-oyunlari-v2-4';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -70,7 +70,7 @@ self.addEventListener('fetch', (event) => {
 
   // Network-First: İnternet varken güncel sürümü ağdan çekip önbelleği yenile; internet yokken önbellekten aç
   event.respondWith(
-    fetch(req)
+    fetch(req, { cache: 'no-cache' })
       .then((networkRes) => {
         if (networkRes && networkRes.ok && networkRes.type === 'basic') {
           const copy = networkRes.clone();
