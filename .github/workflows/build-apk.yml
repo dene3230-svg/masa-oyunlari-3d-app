@@ -65,12 +65,13 @@ jobs:
               fs.writeFileSync(gradlePath, gradle, "utf8");
             }
 
-            // 2. AndroidManifest.xml -> INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED izinleri
+            // 2. AndroidManifest.xml -> INTERNET, POST_NOTIFICATIONS, WAKE_LOCK, RECEIVE_BOOT_COMPLETED izinleri
             const manifestPath = "android/app/src/main/AndroidManifest.xml";
             let manifest = fs.readFileSync(manifestPath, "utf8");
             const perms = [
               "android.permission.INTERNET",
               "android.permission.POST_NOTIFICATIONS",
+              "android.permission.WAKE_LOCK",
               "android.permission.RECEIVE_BOOT_COMPLETED"
             ];
             const missingPerms = perms
@@ -113,12 +114,27 @@ jobs:
               public static final String PREFS_NAME = "MasaOyunlariOtaPrefs";
               public static final String KEY_LAST_VERSION = "last_seen_version";
               public static final String KEY_NOTIFIED_VERSION = "last_notified_version";
-              public static final String CHANNEL_ID = "masa_oyunlari_ota_updates";
+              public static final String CHANNEL_ID = "updates_channel";
               private static final int NOTIFICATION_ID = 3801;
-              private static final String VERSION_URL = "https://dene3230-svg.github.io/masa-oyunlari-3d-app/version.json";
 
               public UpdateCheckWorker(@NonNull Context context, @NonNull WorkerParameters params) {
                   super(context, params);
+              }
+
+              public static void ensureNotificationChannel(@NonNull Context context) {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                      if (nm == null) return;
+                      NotificationChannel channel = new NotificationChannel(
+                              CHANNEL_ID,
+                              "Oyun Guncellemeleri",
+                              NotificationManager.IMPORTANCE_HIGH
+                      );
+                      channel.setDescription("Masa Oyunlari 3D yeni surum bildirimleri");
+                      channel.enableVibration(true);
+                      channel.setVibrationPattern(new long[]{0, 200, 100, 200});
+                      nm.createNotificationChannel(channel);
+                  }
               }
 
               @NonNull
@@ -126,13 +142,16 @@ jobs:
               public Result doWork() {
                   HttpURLConnection conn = null;
                   try {
-                      URL url = new URL(VERSION_URL + "?t=" + System.currentTimeMillis());
+                      String baseUrl = MainActivity.LIVE_PAGES_URL.replaceAll("/+$", "");
+                      String fullVersionUrl = baseUrl + "/version.json?t=" + System.currentTimeMillis();
+                      URL url = new URL(fullVersionUrl);
                       conn = (HttpURLConnection) url.openConnection();
                       conn.setRequestMethod("GET");
                       conn.setConnectTimeout(10000);
                       conn.setReadTimeout(10000);
                       conn.setUseCaches(false);
-                      conn.setRequestProperty("Cache-Control", "no-cache");
+                      conn.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
+                      conn.setRequestProperty("Pragma", "no-cache");
 
                       int statusCode = conn.getResponseCode();
                       if (statusCode != HttpURLConnection.HTTP_OK) {
@@ -158,21 +177,23 @@ jobs:
                       Context context = getApplicationContext();
                       SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
                       String savedVersion = prefs.getString(KEY_LAST_VERSION, null);
-                      String notifiedVersion = prefs.getString(KEY_NOTIFIED_VERSION, null);
 
+                      // Ilk kurulumda kayitli surum yoksa mevcut surumu kaydet
                       if (savedVersion == null || savedVersion.isEmpty()) {
                           prefs.edit()
                                   .putString(KEY_LAST_VERSION, remoteVersion)
                                   .putString(KEY_NOTIFIED_VERSION, remoteVersion)
-                                  .apply();
+                                  .commit();
                           return Result.success();
                       }
 
-                      if (!savedVersion.equals(remoteVersion) && !remoteVersion.equals(notifiedVersion)) {
-                          prefs.edit()
-                                  .putString(KEY_NOTIFIED_VERSION, remoteVersion)
-                                  .apply();
+                      // Sonraki kontrollerde version kayitli surumden farkliysa bildirimi goster ve yeni surumu kaydet
+                      if (!savedVersion.equals(remoteVersion)) {
                           sendUpdateNotification(context, remoteVersion, message);
+                          prefs.edit()
+                                  .putString(KEY_LAST_VERSION, remoteVersion)
+                                  .putString(KEY_NOTIFIED_VERSION, remoteVersion)
+                                  .commit();
                       }
                   } catch (Exception ignored) {
                       // Cevrimdisi veya gecici ag hatasinda sessizce devam et
@@ -195,17 +216,7 @@ jobs:
                   NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                   if (nm == null) return;
 
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                      NotificationChannel channel = new NotificationChannel(
-                              CHANNEL_ID,
-                              "Oyun Guncellemeleri",
-                              NotificationManager.IMPORTANCE_HIGH
-                      );
-                      channel.setDescription("Masa Oyunlari 3D yeni surum bildirimleri");
-                      channel.enableVibration(true);
-                      channel.setVibrationPattern(new long[]{0, 200, 100, 200});
-                      nm.createNotificationChannel(channel);
-                  }
+                  ensureNotificationChannel(context);
 
                   Intent launchIntent = new Intent(context, MainActivity.class);
                   launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -224,10 +235,11 @@ jobs:
 
                   NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                           .setSmallIcon(R.mipmap.ic_launcher)
-                          .setContentTitle("Masa Oyunları 3D Güncellendi!")
+                          .setContentTitle("Masa Oyunları 3D Güncellendi! (v" + version + ")")
                           .setContentText(bodyText)
                           .setStyle(new NotificationCompat.BigTextStyle().bigText(bodyText))
                           .setPriority(NotificationCompat.PRIORITY_HIGH)
+                          .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                           .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
                           .setDefaults(NotificationCompat.DEFAULT_ALL)
                           .setAutoCancel(true)
@@ -253,24 +265,32 @@ jobs:
           import androidx.core.content.ContextCompat;
           import androidx.work.Constraints;
           import androidx.work.ExistingPeriodicWorkPolicy;
+          import androidx.work.ExistingWorkPolicy;
           import androidx.work.NetworkType;
+          import androidx.work.OneTimeWorkRequest;
+          import androidx.work.Operation;
           import androidx.work.PeriodicWorkRequest;
           import androidx.work.WorkManager;
           import com.getcapacitor.BridgeActivity;
           import java.util.concurrent.TimeUnit;
 
           public class MainActivity extends BridgeActivity {
+              public static final String LIVE_PAGES_URL = "https://dene3230-svg.github.io/masa-oyunlari-3d-app";
               private static final int REQ_POST_NOTIFICATIONS = 1001;
-              private static final String UPDATE_WORK_NAME = "masa_oyunlari_ota_update_check";
+              private static final String PERIODIC_UPDATE_WORK_NAME = "masa_oyunlari_ota_update_check";
+              private static final String DELAYED_UPDATE_WORK_NAME = "masa_oyunlari_ota_delayed_check";
 
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
+                  UpdateCheckWorker.ensureNotificationChannel(getApplicationContext());
+
                   this.bridge.getWebView().getSettings().setJavaScriptEnabled(true);
                   this.bridge.getWebView().addJavascriptInterface(new Object() {
                       @JavascriptInterface
                       public void exitApp() {
+                          scheduleDelayedUpdateCheck(true);
                           runOnUiThread(() -> {
                               finishAndRemoveTask();
                               System.exit(0);
@@ -304,6 +324,12 @@ jobs:
                   schedulePeriodicUpdateCheck();
               }
 
+              @Override
+              public void onStop() {
+                  super.onStop();
+                  scheduleDelayedUpdateCheck(false);
+              }
+
               private void requestNotificationPermissionIfNeeded() {
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                       if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -331,16 +357,44 @@ jobs:
                           .build();
 
                   WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork(
-                          UPDATE_WORK_NAME,
+                          PERIODIC_UPDATE_WORK_NAME,
                           ExistingPeriodicWorkPolicy.KEEP,
                           updateWorkRequest
                   );
+              }
+
+              private void scheduleDelayedUpdateCheck(boolean waitForEnqueue) {
+                  Constraints constraints = new Constraints.Builder()
+                          .setRequiredNetworkType(NetworkType.CONNECTED)
+                          .build();
+
+                  OneTimeWorkRequest delayedRequest = new OneTimeWorkRequest.Builder(UpdateCheckWorker.class)
+                          .setInitialDelay(1, TimeUnit.MINUTES)
+                          .setConstraints(constraints)
+                          .build();
+
+                  Operation op = WorkManager.getInstance(getApplicationContext()).enqueueUniqueWork(
+                          DELAYED_UPDATE_WORK_NAME,
+                          ExistingWorkPolicy.REPLACE,
+                          delayedRequest
+                  );
+
+                  if (waitForEnqueue) {
+                      try {
+                          op.getResult().get(2, TimeUnit.SECONDS);
+                      } catch (Exception ignored) {
+                      }
+                  }
               }
           }
           `.replace(/^          /gm, "");
             fs.writeFileSync(mainActivityPath, mainActivityCode, "utf8");
           '
 
+          echo "========== ANDROIDMANIFEST.XML IZINLERI =========="
+          grep -E "uses-permission" android/app/src/main/AndroidManifest.xml || true
+          echo "========== UPDATECHECKWORKER.JAVA ICERIGI =========="
+          cat "$(dirname "$MAIN_ACTIVITY")/UpdateCheckWorker.java"
           echo "========== MAINACTIVITY.JAVA ICERIGI =========="
           cat "$MAIN_ACTIVITY"
           echo "============================================="
