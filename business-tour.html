@@ -672,6 +672,54 @@
           display: inline;
         }
       }
+
+      /* Global White Theme (Aydınlık Mermer & Meşe Modu) */
+      body.theme-light {
+        background: #efeae0;
+        color: #0f172a;
+      }
+      body.theme-light #canvas-wrap {
+        background: radial-gradient(ellipse 80% 70% at 50% 45%, #faf6ee 0%, #e5dccb 100%);
+      }
+      body.theme-light .topbar,
+      body.theme-light .log-panel,
+      body.theme-light .action-card,
+      body.theme-light .status-banner,
+      body.theme-light .modal-card,
+      body.theme-light .toast {
+        background: rgba(255, 253, 248, 0.92);
+        border-color: rgba(166, 120, 24, 0.42);
+        color: #0f172a;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+      }
+      body.theme-light .hud-btn,
+      body.theme-light .chip-pill,
+      body.theme-light .player-pill,
+      body.theme-light .tile-preview,
+      body.theme-light .auction-box,
+      body.theme-light .reward-pill,
+      body.theme-light .act-btn:not(.primary):not(.gold):not(.emerald):not(.danger) {
+        background: rgba(255, 255, 255, 0.88);
+        border-color: rgba(148, 163, 184, 0.38);
+        color: #0f172a;
+      }
+      body.theme-light .hud-btn.lobby-link {
+        color: #8a5a12;
+        border-color: rgba(166, 120, 24, 0.5);
+      }
+      body.theme-light .modal-title,
+      body.theme-light .tile-name,
+      body.theme-light .log-header {
+        color: #0f172a;
+      }
+      body.theme-light .modal-kicker {
+        color: #92630c;
+      }
+      body.theme-light .modal-desc,
+      body.theme-light .tile-sub,
+      body.theme-light .log-list li {
+        color: #334155;
+      }
     </style>
   </head>
   <body>
@@ -739,12 +787,12 @@
           <span id="sound-label">Ses</span>
         </button>
 
-        <a href="index.html" class="hud-btn lobby-link">
+        <a href="./index.html" class="hud-btn lobby-link">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
             <path d="M3 12h18" />
             <path d="M9 6l-6 6 6 6" />
           </svg>
-          <span>Ana Lobiye Dön</span>
+          <span>Ana Menüye Dön</span>
         </a>
       </div>
     </header>
@@ -828,7 +876,7 @@
           <span class="reward-val pos" id="vic-reward">+2.500 Çip</span>
         </div>
         <div class="modal-actions">
-          <a href="index.html" class="hud-btn lobby-link">Ana Lobiye Dön</a>
+          <a href="./index.html" class="hud-btn lobby-link">Ana Menüye Dön</a>
           <button type="button" class="act-btn primary" id="btn-restart">Yeni Oyun Başlat</button>
         </div>
       </div>
@@ -1098,8 +1146,15 @@
           this.ctx = null;
           this.enabled = true;
           try {
-            const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
-            if (p.soundEnabled === false) this.enabled = false;
+            const globalSound = localStorage.getItem('app_sound');
+            if (globalSound === 'false' || globalSound === 'off' || globalSound === '0') {
+              this.enabled = false;
+            } else if (globalSound === 'true' || globalSound === 'on' || globalSound === '1') {
+              this.enabled = true;
+            } else {
+              const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+              if (p.soundEnabled === false) this.enabled = false;
+            }
           } catch {}
         }
 
@@ -1478,9 +1533,18 @@
 
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
+      const isLightTheme = (() => {
+        try {
+          return localStorage.getItem('app_theme') === 'light';
+        } catch {
+          return false;
+        }
+      })();
+      if (isLightTheme) document.body.classList.add('theme-light');
+
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x040712);
-      scene.fog = new THREE.FogExp2(0x040712, 0.014);
+      scene.background = new THREE.Color(isLightTheme ? 0xeae2d3 : 0x040712);
+      scene.fog = new THREE.FogExp2(isLightTheme ? 0xeae2d3 : 0x040712, isLightTheme ? 0.009 : 0.014);
 
       // Balanced studio PMREM environment with subtle cyan, crimson & gold reflection strips
       const pmrem = new THREE.PMREMGenerator(renderer);

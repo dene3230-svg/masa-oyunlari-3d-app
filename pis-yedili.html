@@ -573,6 +573,63 @@
           font-size: 0.76rem;
         }
       }
+
+      /* Global White Theme (Aydınlık Mermer & Meşe Modu) */
+      body.theme-light {
+        background: #efeae0;
+        color: #0f172a;
+      }
+      body.theme-light #canvas-wrap {
+        background: radial-gradient(ellipse 80% 70% at 50% 45%, #faf6ee 0%, #e5dccb 100%);
+      }
+      body.theme-light .topbar,
+      body.theme-light .action-dock,
+      body.theme-light .modal-card,
+      body.theme-light .toast {
+        background: rgba(255, 253, 248, 0.92);
+        border-color: rgba(166, 120, 24, 0.42);
+        color: #0f172a;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+      }
+      body.theme-light .hud-btn,
+      body.theme-light .chip-pill,
+      body.theme-light .suit-pill,
+      body.theme-light .act-btn:not(.primary):not(.danger),
+      body.theme-light .suit-choice,
+      body.theme-light .reward-bar {
+        background: rgba(255, 255, 255, 0.88);
+        border-color: rgba(148, 163, 184, 0.38);
+        color: #0f172a;
+      }
+      body.theme-light .hud-btn.lobby-link {
+        color: #8a5a12;
+        border-color: rgba(166, 120, 24, 0.5);
+      }
+      .suit-choice .sym {
+        color: #e2e8f0;
+      }
+      .suit-choice[data-suit="hearts"] .sym,
+      .suit-choice[data-suit="diamonds"] .sym {
+        color: #fb7185;
+      }
+      body.theme-light .suit-choice .sym {
+        color: #0f172a;
+      }
+      body.theme-light .suit-choice[data-suit="hearts"] .sym,
+      body.theme-light .suit-choice[data-suit="diamonds"] .sym {
+        color: #dc2626;
+      }
+      body.theme-light .modal-title,
+      body.theme-light .flow-msg {
+        color: #0f172a;
+      }
+      body.theme-light .modal-kicker {
+        color: #92630c;
+      }
+      body.theme-light .modal-desc,
+      body.theme-light .rules-list {
+        color: #334155;
+      }
     </style>
   </head>
   <body>
@@ -623,12 +680,12 @@
           <span id="sound-label">Ses</span>
         </button>
 
-        <a href="index.html" class="hud-btn lobby-link">
+        <a href="./index.html" class="hud-btn lobby-link">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
             <path d="M3 12h18" />
             <path d="M9 6l-6 6 6 6" />
           </svg>
-          <span>Ana Lobiye Dön</span>
+          <span>Ana Menüye Dön</span>
         </a>
       </div>
     </header>
@@ -652,16 +709,16 @@
         <p class="modal-desc">Masada geçerli olacak yeni kart türünü seç.</p>
         <div class="suit-grid">
           <button type="button" class="suit-choice" data-suit="spades">
-            <span class="sym" style="color:#e2e8f0">♠</span><span>Maça</span>
+            <span class="sym">♠</span><span>Maça</span>
           </button>
           <button type="button" class="suit-choice" data-suit="hearts">
-            <span class="sym" style="color:#fb7185">♥</span><span>Kupa</span>
+            <span class="sym">♥</span><span>Kupa</span>
           </button>
           <button type="button" class="suit-choice" data-suit="diamonds">
-            <span class="sym" style="color:#fb7185">♦</span><span>Karo</span>
+            <span class="sym">♦</span><span>Karo</span>
           </button>
           <button type="button" class="suit-choice" data-suit="clubs">
-            <span class="sym" style="color:#e2e8f0">♣</span><span>Sinek</span>
+            <span class="sym">♣</span><span>Sinek</span>
           </button>
         </div>
       </div>
@@ -708,7 +765,7 @@
           <span class="reward-val" id="end-reward">+1.500 Çip</span>
         </div>
         <div class="modal-actions">
-          <a href="index.html" class="hud-btn lobby-link">Ana Lobiye Dön</a>
+          <a href="./index.html" class="hud-btn lobby-link">Ana Menüye Dön</a>
           <button type="button" class="act-btn primary" id="btn-next-round">Yeni El Başlat</button>
         </div>
       </div>
@@ -827,8 +884,15 @@
           this.ctx = null;
           this.enabled = true;
           try {
-            const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
-            if (p.soundEnabled === false) this.enabled = false;
+            const globalSound = localStorage.getItem('app_sound');
+            if (globalSound === 'false' || globalSound === 'off' || globalSound === '0') {
+              this.enabled = false;
+            } else if (globalSound === 'true' || globalSound === 'on' || globalSound === '1') {
+              this.enabled = true;
+            } else {
+              const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+              if (p.soundEnabled === false) this.enabled = false;
+            }
           } catch {}
         }
 
@@ -1162,16 +1226,25 @@
 
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
+      const isLightTheme = (() => {
+        try {
+          return localStorage.getItem('app_theme') === 'light';
+        } catch {
+          return false;
+        }
+      })();
+      if (isLightTheme) document.body.classList.add('theme-light');
+
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x07050c);
-      scene.fog = new THREE.FogExp2(0x07050c, 0.02);
+      scene.background = new THREE.Color(isLightTheme ? 0xeae2d3 : 0x07050c);
+      scene.fog = new THREE.FogExp2(isLightTheme ? 0xeae2d3 : 0x07050c, isLightTheme ? 0.011 : 0.02);
 
       // Soft, glare-free studio PMREM environment (keeps brass trim rich without blowing out card faces)
       const pmrem = new THREE.PMREMGenerator(renderer);
       const roomEnv = createStudioEnvScene();
       scene.environment = pmrem.fromScene(roomEnv, 0.05).texture;
       if ('environmentIntensity' in scene) {
-        scene.environmentIntensity = 0.42;
+        scene.environmentIntensity = isLightTheme ? 0.62 : 0.42;
       }
       disposeEnvScene(roomEnv);
       pmrem.dispose();
@@ -1181,14 +1254,14 @@
       camera.lookAt(0, 0.1, 1.4);
 
       // Balanced Anti-Glare Lighting Rig (Soft Ambient + Oblique Key Light + Subtle Crimson Rim)
-      const ambientLight = new THREE.AmbientLight(0xfff4e6, 0.45);
+      const ambientLight = new THREE.AmbientLight(0xfff4e6, isLightTheme ? 0.72 : 0.45);
       scene.add(ambientLight);
 
-      const hemi = new THREE.HemisphereLight(0x8fa9d6, 0x1e0a14, 0.26);
+      const hemi = new THREE.HemisphereLight(isLightTheme ? 0xffffff : 0x8fa9d6, isLightTheme ? 0xdccdb3 : 0x1e0a14, isLightTheme ? 0.6 : 0.26);
       scene.add(hemi);
 
       // Oblique top-side directional key light illuminates table & fanned hand cards without reflecting glare into camera
-      const mainKeyLight = new THREE.DirectionalLight(0xfff0d4, 0.92);
+      const mainKeyLight = new THREE.DirectionalLight(0xfff0d4, isLightTheme ? 1.2 : 0.92);
       mainKeyLight.position.set(-6.8, 12.8, 1.8);
       mainKeyLight.target.position.set(0, 0, 0.6);
       mainKeyLight.castShadow = renderer.shadowMap.enabled;

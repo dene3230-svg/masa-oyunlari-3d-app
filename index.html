@@ -955,9 +955,802 @@
         opacity: 0.72;
         cursor: wait;
       }
+
+      /* ================= GLOBAL MAIN MENU & VIEW SWITCHING ================= */
+      body.menu-active .lobby-shell {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(16px);
+      }
+
+      body.menu-active .lobby-shell .topbar,
+      body.menu-active .lobby-shell .hero-copy,
+      body.menu-active .lobby-shell .games-dock {
+        pointer-events: none;
+      }
+
+      .lobby-shell {
+        transition: opacity 280ms var(--ease-out), transform 300ms var(--ease-out);
+      }
+
+      .main-menu-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: radial-gradient(ellipse 75% 70% at 50% 48%, rgba(5, 10, 24, 0.22) 0%, rgba(3, 7, 18, 0.68) 100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 300ms var(--ease-out);
+      }
+
+      .main-menu-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .main-menu-card {
+        width: min(460px, 100%);
+        padding: 28px 26px 24px;
+        border-radius: 26px;
+        background: linear-gradient(162deg, rgba(10, 20, 44, 0.82) 0%, rgba(5, 11, 26, 0.9) 100%);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1.5px solid rgba(243, 208, 107, 0.52);
+        box-shadow:
+          0 28px 72px rgba(2, 6, 18, 0.66),
+          0 0 42px rgba(212, 175, 55, 0.14),
+          inset 0 1px 0 rgba(255, 244, 204, 0.22);
+        text-align: center;
+        animation: menuFloatIn 380ms var(--ease-out) both;
+      }
+
+      @keyframes menuFloatIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .menu-brand-head {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .menu-emblem {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        background: linear-gradient(145deg, rgba(243, 208, 107, 0.22), rgba(14, 28, 60, 0.78));
+        border: 1.5px solid rgba(243, 208, 107, 0.6);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 12px 28px rgba(2, 6, 18, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      }
+
+      .menu-title-row {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .menu-main-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        background: linear-gradient(90deg, #ffffff 0%, #f3d06b 58%, #d4af37 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .menu-meta-line {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .menu-meta-line strong {
+        color: var(--gold-bright);
+        font-weight: 800;
+      }
+
+      .menu-btn-stack {
+        margin-top: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+      }
+
+      .menu-btn {
+        position: relative;
+        width: 100%;
+        min-height: 58px;
+        padding: 12px 16px;
+        border-radius: 15px;
+        border: 1px solid rgba(243, 208, 107, 0.34);
+        background: rgba(14, 28, 58, 0.76);
+        color: var(--text-primary);
+        font-family: inherit;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        text-align: left;
+        transition: transform 150ms var(--ease-out), border-color 170ms ease, background 170ms ease, box-shadow 170ms ease;
+      }
+
+      .menu-btn:hover {
+        transform: translateY(-2px);
+        border-color: rgba(243, 208, 107, 0.78);
+        background: rgba(20, 38, 76, 0.9);
+        box-shadow: 0 12px 28px rgba(2, 6, 18, 0.45);
+      }
+
+      .menu-btn:active {
+        transform: scale(0.985);
+      }
+
+      .menu-btn:focus-visible {
+        outline: 2px solid var(--neon-cyan);
+        outline-offset: 2px;
+      }
+
+      .menu-btn.is-primary {
+        border-color: rgba(254, 240, 138, 0.62);
+        background: linear-gradient(135deg, rgba(229, 191, 75, 0.95) 0%, rgba(196, 146, 30, 0.96) 100%);
+        color: #070d1c;
+        box-shadow: 0 10px 28px rgba(212, 175, 55, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.46);
+      }
+
+      .menu-btn.is-primary:hover {
+        filter: brightness(1.06);
+        box-shadow: 0 14px 32px rgba(243, 208, 107, 0.42);
+      }
+
+      .menu-btn.is-danger {
+        border-color: rgba(248, 113, 113, 0.36);
+        background: rgba(69, 18, 30, 0.56);
+      }
+
+      .menu-btn.is-danger:hover {
+        border-color: rgba(248, 113, 113, 0.76);
+        background: rgba(94, 22, 38, 0.78);
+      }
+
+      .menu-btn-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: rgba(6, 13, 28, 0.48);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+      }
+
+      .menu-btn.is-primary .menu-btn-icon {
+        background: rgba(7, 13, 28, 0.16);
+        border-color: rgba(7, 13, 28, 0.18);
+        color: #070d1c;
+      }
+
+      .menu-btn-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .menu-btn-text strong {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.02rem;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .menu-btn-text small {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        line-height: 1.3;
+      }
+
+      .menu-btn.is-primary .menu-btn-text small {
+        color: rgba(7, 13, 28, 0.78);
+        font-weight: 600;
+      }
+
+      .online-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 9px;
+        border-radius: 7px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: #cffafe;
+        background: rgba(6, 182, 212, 0.24);
+        border: 1px solid rgba(34, 211, 238, 0.62);
+        flex-shrink: 0;
+      }
+
+      /* Back to Main Menu Button in Game Selection Topbar */
+      .back-menu-btn {
+        appearance: none;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(243, 208, 107, 0.44);
+        background: rgba(14, 28, 58, 0.8);
+        color: var(--gold-bright);
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out), transform 140ms var(--ease-out);
+      }
+
+      .back-menu-btn:hover {
+        background: rgba(24, 44, 88, 0.92);
+        border-color: rgba(243, 208, 107, 0.78);
+      }
+
+      .back-menu-btn:active {
+        transform: scale(0.96);
+      }
+
+      .topbar-brand-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+
+      /* ================= APP MODALS (ONLINE, SETTINGS, EXIT) ================= */
+      .app-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(3, 8, 20, 0.76);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms ease;
+      }
+
+      .app-modal-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #exit-modal {
+        z-index: 88;
+      }
+
+      .app-modal-card {
+        width: min(470px, 100%);
+        padding: 26px 24px 22px;
+        border-radius: 22px;
+        background: linear-gradient(162deg, rgba(11, 22, 48, 0.96) 0%, rgba(6, 13, 30, 0.98) 100%);
+        border: 1.5px solid rgba(243, 208, 107, 0.56);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.68), inset 0 1px 0 rgba(255, 243, 199, 0.2);
+        color: var(--text-primary);
+        text-align: center;
+      }
+
+      .modal-kicker {
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold-bright);
+      }
+
+      .modal-title {
+        margin-top: 6px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.42rem;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+
+      .modal-sub {
+        margin-top: 6px;
+        font-size: 0.86rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
+      .online-status-banner {
+        margin-top: 16px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(6, 182, 212, 0.14);
+        border: 1px solid rgba(34, 211, 238, 0.45);
+        color: #cffafe;
+        font-size: 0.83rem;
+        font-weight: 600;
+        line-height: 1.48;
+        text-align: left;
+      }
+
+      .online-draft-box {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(6, 13, 30, 0.65);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: left;
+      }
+
+      .room-input-row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .room-code-input {
+        flex: 1;
+        min-width: 0;
+        height: 42px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(243, 208, 107, 0.36);
+        background: rgba(5, 10, 24, 0.88);
+        color: var(--text-primary);
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.92rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        user-select: text;
+      }
+
+      .room-code-input:focus {
+        outline: none;
+        border-color: var(--neon-cyan);
+      }
+
+      .settings-section {
+        margin-top: 16px;
+        text-align: left;
+      }
+
+      .settings-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .theme-choice-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .theme-card-btn {
+        padding: 12px;
+        border-radius: 14px;
+        border: 1.5px solid rgba(148, 163, 184, 0.24);
+        background: rgba(8, 18, 40, 0.75);
+        color: var(--text-primary);
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-family: inherit;
+        transition: border-color 160ms ease, transform 140ms var(--ease-out), box-shadow 160ms ease;
+      }
+
+      .theme-card-btn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(243, 208, 107, 0.65);
+      }
+
+      .theme-card-btn.is-active {
+        border-color: #f3d06b;
+        box-shadow: 0 0 0 1px rgba(243, 208, 107, 0.4), 0 10px 24px rgba(0, 0, 0, 0.3);
+      }
+
+      .theme-card-btn strong {
+        font-size: 0.92rem;
+        font-weight: 800;
+      }
+
+      .theme-card-btn small {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        line-height: 1.3;
+      }
+
+      .theme-swatch-bar {
+        height: 22px;
+        width: 100%;
+        border-radius: 7px;
+        margin-bottom: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+      }
+
+      .theme-swatch-dark {
+        background: linear-gradient(90deg, #050a18 0%, #10244d 55%, #d4af37 100%);
+      }
+
+      .theme-swatch-light {
+        background: linear-gradient(90deg, #f8fafc 0%, #e7decb 55%, #b88b2e 100%);
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-radius: 13px;
+        background: rgba(8, 18, 40, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        font-size: 0.88rem;
+        font-weight: 600;
+      }
+
+      .switch-btn {
+        position: relative;
+        width: 50px;
+        height: 28px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(30, 41, 59, 0.9);
+        cursor: pointer;
+        transition: background 180ms ease, border-color 180ms ease;
+        flex-shrink: 0;
+      }
+
+      .switch-btn::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #f8fafc;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+        transition: transform 180ms var(--ease-out);
+      }
+
+      .switch-btn.is-on {
+        background: linear-gradient(135deg, #22c55e, #059669);
+        border-color: rgba(110, 231, 183, 0.7);
+      }
+
+      .switch-btn.is-on::after {
+        transform: translateX(22px);
+      }
+
+      .modal-actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .modal-cta {
+        appearance: none;
+        min-height: 42px;
+        padding: 10px 18px;
+        border-radius: 11px;
+        border: 1px solid rgba(254, 240, 138, 0.52);
+        background: linear-gradient(135deg, #e5bf4b 0%, #c99a24 100%);
+        color: #070d1c;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 800;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform 140ms var(--ease-out), filter 150ms ease;
+      }
+
+      .modal-cta:hover {
+        filter: brightness(1.07);
+      }
+
+      .modal-cta:active {
+        transform: scale(0.97);
+      }
+
+      .modal-cta.secondary {
+        border-color: rgba(243, 208, 107, 0.4);
+        background: rgba(14, 28, 58, 0.86);
+        color: var(--gold-bright);
+      }
+
+      .modal-cta.danger {
+        border-color: rgba(248, 113, 113, 0.65);
+        background: linear-gradient(135deg, #dc2626, #991b1b);
+        color: #fff;
+      }
+
+      .toast {
+        z-index: 96;
+      }
+
+      /* ================= BEYAZ TEMA (AYDINLIK MERMER & MEŞE MODU) ================= */
+      body.theme-light {
+        --bg-void: #efeae0;
+        --bg-navy: #e5decb;
+        --text-primary: #0f172a;
+        --text-secondary: #334155;
+        --text-muted: #64748b;
+        --gold-primary: #a67818;
+        --gold-bright: #92630c;
+        background-color: #efeae0;
+        color: #0f172a;
+      }
+
+      body.theme-light #canvas-container {
+        background: radial-gradient(ellipse 75% 65% at 50% 42%, #faf6ee 0%, #e7dfd0 65%, #d6cbb7 100%);
+      }
+
+      body.theme-light .viewport-scrim {
+        background: linear-gradient(180deg, rgba(248, 245, 238, 0.65) 0%, rgba(248, 245, 238, 0.04) 26%, rgba(248, 245, 238, 0.04) 55%, rgba(242, 236, 224, 0.78) 100%);
+      }
+
+      body.theme-light .main-menu-overlay {
+        background: radial-gradient(ellipse 75% 70% at 50% 48%, rgba(250, 247, 240, 0.18) 0%, rgba(218, 208, 190, 0.54) 100%);
+      }
+
+      body.theme-light .main-menu-card,
+      body.theme-light .app-modal-card,
+      body.theme-light .ota-modal {
+        background: linear-gradient(162deg, rgba(255, 253, 249, 0.9) 0%, rgba(244, 239, 228, 0.95) 100%);
+        border-color: rgba(166, 120, 24, 0.5);
+        box-shadow: 0 24px 60px rgba(30, 41, 59, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+        color: #0f172a;
+      }
+
+      body.theme-light .menu-main-title,
+      body.theme-light .brand-title {
+        background: linear-gradient(90deg, #0f172a 0%, #8a5a12 58%, #b37c19 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      body.theme-light .brand-version {
+        color: #065f46;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.14));
+        border-color: rgba(5, 150, 105, 0.55);
+      }
+
+      body.theme-light .menu-emblem,
+      body.theme-light .brand-emblem {
+        background: linear-gradient(145deg, rgba(255, 252, 245, 0.95), rgba(236, 226, 204, 0.9));
+        border-color: rgba(166, 120, 24, 0.55);
+      }
+
+      body.theme-light .menu-btn {
+        background: rgba(255, 255, 255, 0.84);
+        border-color: rgba(148, 163, 184, 0.36);
+        color: #0f172a;
+      }
+
+      body.theme-light .menu-btn:hover {
+        background: #ffffff;
+        border-color: rgba(166, 120, 24, 0.72);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+      }
+
+      body.theme-light .menu-btn.is-primary {
+        background: linear-gradient(135deg, #d8a735 0%, #b58218 100%);
+        color: #ffffff;
+        border-color: rgba(146, 99, 12, 0.65);
+      }
+
+      body.theme-light .menu-btn.is-primary .menu-btn-icon {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.35);
+        color: #ffffff;
+      }
+
+      body.theme-light .menu-btn.is-primary .menu-btn-text small {
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      body.theme-light .menu-btn.is-danger {
+        background: rgba(254, 242, 242, 0.9);
+        border-color: rgba(220, 38, 38, 0.32);
+        color: #991b1b;
+      }
+
+      body.theme-light .menu-btn.is-danger .menu-btn-text small {
+        color: #b91c1c;
+      }
+
+      body.theme-light .menu-btn-icon {
+        background: rgba(241, 245, 249, 0.95);
+        border-color: rgba(148, 163, 184, 0.32);
+      }
+
+      body.theme-light .online-badge {
+        color: #0e7490;
+        background: rgba(6, 182, 212, 0.14);
+        border-color: rgba(8, 145, 178, 0.45);
+      }
+
+      body.theme-light .topbar {
+        background: linear-gradient(180deg, rgba(255, 253, 249, 0.92) 0%, rgba(245, 240, 230, 0.88) 100%);
+        border-bottom-color: rgba(166, 120, 24, 0.25);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      body.theme-light .profile-segment,
+      body.theme-light .utility-btn,
+      body.theme-light .back-menu-btn {
+        background: rgba(255, 255, 255, 0.84);
+        border-color: rgba(148, 163, 184, 0.34);
+        color: #1e293b;
+      }
+
+      body.theme-light .profile-segment.gold-accent {
+        background: linear-gradient(135deg, rgba(255, 250, 235, 0.95), rgba(247, 238, 212, 0.92));
+        border-color: rgba(166, 120, 24, 0.44);
+      }
+
+      body.theme-light .segment-value.cyan {
+        color: #0369a1;
+      }
+
+      body.theme-light .bonus-btn {
+        background: rgba(180, 128, 24, 0.14);
+        border-color: rgba(166, 120, 24, 0.45);
+        color: #85560a;
+      }
+
+      body.theme-light .username-input,
+      body.theme-light .room-code-input {
+        background: #ffffff;
+        color: #0f172a;
+        border-color: rgba(166, 120, 24, 0.45);
+      }
+
+      body.theme-light .hero-headline,
+      body.theme-light .hero-subtitle {
+        text-shadow: 0 2px 14px rgba(255, 255, 255, 0.85);
+      }
+
+      body.theme-light .game-card {
+        background: linear-gradient(160deg, rgba(255, 254, 250, 0.9) 0%, rgba(244, 239, 229, 0.94) 100%);
+        border-color: rgba(166, 120, 24, 0.28);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 14px 32px rgba(15, 23, 42, 0.12);
+      }
+
+      body.theme-light .game-card.is-selected,
+      body.theme-light .game-card:hover {
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 241, 228, 0.98) 100%);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(var(--card-accent-rgb), 0.36);
+      }
+
+      body.theme-light .card-icon-wrap {
+        background: rgba(241, 245, 249, 0.92);
+        border-color: rgba(148, 163, 184, 0.32);
+      }
+
+      body.theme-light .stake-group {
+        background: rgba(226, 232, 240, 0.62);
+        border-color: rgba(148, 163, 184, 0.28);
+      }
+
+      body.theme-light .stake-btn {
+        color: #334155;
+      }
+
+      body.theme-light .stake-btn.selected {
+        background: #ffffff;
+        border-color: rgba(166, 120, 24, 0.55);
+        color: #8a5a12;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+      }
+
+      body.theme-light .stake-reward {
+        color: #0369a1;
+      }
+
+      body.theme-light .online-status-banner {
+        background: rgba(224, 242, 254, 0.92);
+        border-color: rgba(2, 132, 199, 0.35);
+        color: #0c4a6e;
+      }
+
+      body.theme-light .online-draft-box,
+      body.theme-light .toggle-row,
+      body.theme-light .theme-card-btn {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(148, 163, 184, 0.34);
+        color: #0f172a;
+      }
+
+      body.theme-light .theme-card-btn.is-active {
+        border-color: #a67818;
+        background: #fffdf7;
+      }
+
+      body.theme-light .modal-cta.secondary {
+        background: #ffffff;
+        border-color: rgba(166, 120, 24, 0.45);
+        color: #8a5a12;
+      }
+
+      body.theme-light .ota-title {
+        color: #0f172a;
+      }
+
+      body.theme-light .ota-message {
+        color: #334155;
+      }
+
+      body.theme-light .toast {
+        background: rgba(255, 253, 249, 0.96);
+        border-color: rgba(166, 120, 24, 0.5);
+        color: #0f172a;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+      }
+
+      body.theme-light .toast.success {
+        color: #065f46;
+      }
+
+      body.theme-light .toast.error {
+        color: #991b1b;
+      }
+
+      @media (max-width: 520px) {
+        .theme-choice-grid {
+          grid-template-columns: 1fr;
+        }
+        .main-menu-card {
+          padding: 22px 18px 20px;
+        }
+      }
     </style>
   </head>
-  <body>
+  <body class="menu-active">
     <!-- Dedicated Three.js 3D WebGL Viewport -->
     <div id="canvas-container" aria-label="3D Masa Oyunları Sahnesi"></div>
     <div class="viewport-scrim" aria-hidden="true"></div>
@@ -985,31 +1778,199 @@
       </div>
     </div>
 
-    <!-- Lobby Semantic DOM Overlay -->
-    <div class="lobby-shell">
+    <!-- GLOBAL APPLICATION MAIN MENU OVER LIVE 3D TABLETOP SCENE -->
+    <main class="main-menu-overlay open" id="main-menu-overlay" aria-label="Masa Oyunları 3D Ana Menü">
+      <div class="main-menu-card">
+        <div class="menu-brand-head">
+          <div class="menu-emblem" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2.5L20.5 7.4V16.6L12 21.5L3.5 16.6V7.4L12 2.5Z" stroke="#F3D06B" stroke-width="1.8" />
+              <path d="M12 7L16.2 9.4V14.6L12 17L7.8 14.6V9.4L12 7Z" fill="rgba(34, 211, 238, 0.25)" stroke="#22D3EE" stroke-width="1.4" />
+            </svg>
+          </div>
+          <div class="menu-title-row">
+            <h1 class="menu-main-title">MASA OYUNLARI 3D</h1>
+            <span class="brand-version" aria-label="Sürüm 3.3">v3.3</span>
+          </div>
+          <div class="menu-meta-line">
+            <span id="menu-username">Oyuncu</span>
+            <span aria-hidden="true">·</span>
+            <strong id="menu-chips">10.000 Çip</strong>
+            <span aria-hidden="true">·</span>
+            <span id="menu-theme-label">Siyah VIP</span>
+          </div>
+        </div>
+
+        <div class="menu-btn-stack">
+          <button type="button" class="menu-btn is-primary" id="btn-menu-play">
+            <span class="menu-btn-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="6 4 20 12 6 20 6 4" />
+              </svg>
+            </span>
+            <span class="menu-btn-text">
+              <strong>Oyuna Giriş</strong>
+              <small>101 Okey, Tavla, Pis Yedili ve Business Tour seç</small>
+            </span>
+          </button>
+
+          <button type="button" class="menu-btn" id="btn-menu-online">
+            <span class="menu-btn-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+              </svg>
+            </span>
+            <span class="menu-btn-text">
+              <strong>Online Oyna</strong>
+              <small>Oda Kur, Oda Koduyla Katıl &amp; Hızlı Eşleşme</small>
+            </span>
+            <span class="online-badge">ONLINE</span>
+          </button>
+
+          <button type="button" class="menu-btn" id="btn-menu-settings">
+            <span class="menu-btn-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f3d06b" stroke-width="2">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </span>
+            <span class="menu-btn-text">
+              <strong>Ayarlar</strong>
+              <small>Siyah / Beyaz Genel Tema ve Ses Efektleri</small>
+            </span>
+          </button>
+
+          <button type="button" class="menu-btn is-danger" id="btn-menu-exit">
+            <span class="menu-btn-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </span>
+            <span class="menu-btn-text">
+              <strong>Oyundan Çıkış</strong>
+              <small>Uygulamayı güvenli şekilde kapat</small>
+            </span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ONLINE LOBBY PREP MODAL -->
+    <div class="app-modal-backdrop" id="online-modal" role="dialog" aria-modal="true" aria-labelledby="online-modal-title">
+      <div class="app-modal-card">
+        <div class="modal-kicker">ÇOK OYUNCULU LOBİ HAZIRLIĞI</div>
+        <h2 class="modal-title" id="online-modal-title">Online Masa Oyunları</h2>
+        <div class="online-status-banner">
+          Online sunucu altyapısı hazırlanıyor, çok yakında aktif! Oda oluşturma, oda koduna katılma ve gerçek zamanlı eşleşme bağlandığında burada aktif olacak.
+        </div>
+
+        <div class="online-draft-box">
+          <span class="settings-label" style="margin-bottom:0">Oda Koduyla Katıl (Önizleme)</span>
+          <div class="room-input-row">
+            <input type="text" class="room-code-input" id="online-room-input" maxlength="6" placeholder="Örn: MASA3D" />
+            <button type="button" class="modal-cta secondary" id="btn-online-join">Katıl</button>
+          </div>
+          <div class="modal-actions" style="margin-top:4px; justify-content:stretch;">
+            <button type="button" class="modal-cta secondary" id="btn-online-create" style="flex:1">Oda Oluştur</button>
+            <button type="button" class="modal-cta secondary" id="btn-online-quick" style="flex:1">Hızlı Eşleşme</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="modal-cta" id="btn-online-go-games">Tek Oyunculu Masalara Git</button>
+          <button type="button" class="modal-cta secondary" id="btn-online-close">Kapat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLOBAL SETTINGS MODAL (BLACK / WHITE THEME & SOUND) -->
+    <div class="app-modal-backdrop" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+      <div class="app-modal-card">
+        <div class="modal-kicker">UYGULAMA GENELİ TERCİHLER</div>
+        <h2 class="modal-title" id="settings-modal-title">Ayarlar</h2>
+        <p class="modal-sub">Seçtiğin tema ve ses ayarı hem Ana Menüye hem de tüm 3D oyunlara otomatik uygulanır.</p>
+
+        <div class="settings-section">
+          <span class="settings-label">Genel Tema Seçimi</span>
+          <div class="theme-choice-grid">
+            <button type="button" class="theme-card-btn" id="btn-theme-dark">
+              <div class="theme-swatch-bar theme-swatch-dark"></div>
+              <strong>Siyah Tema</strong>
+              <small>VIP Gece Modu · Koyu Ceviz</small>
+            </button>
+            <button type="button" class="theme-card-btn" id="btn-theme-light">
+              <div class="theme-swatch-bar theme-swatch-light"></div>
+              <strong>Beyaz Tema</strong>
+              <small>Aydınlık Mermer &amp; Meşe Modu</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <span class="settings-label">Ses Efektleri</span>
+          <div class="toggle-row">
+            <span id="settings-sound-status">Ses Efektleri Açık</span>
+            <button type="button" class="switch-btn is-on" id="btn-settings-sound" aria-label="Ses efektlerini aç veya kapat"></button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="modal-cta" id="btn-settings-close">Kaydet ve Kapat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXIT CONFIRMATION MODAL -->
+    <div class="app-modal-backdrop" id="exit-modal" role="dialog" aria-modal="true" aria-labelledby="exit-modal-title">
+      <div class="app-modal-card">
+        <div class="modal-kicker">ÇIKIŞ ONAYI</div>
+        <h2 class="modal-title" id="exit-modal-title">Oyundan çıkmak istiyor musun?</h2>
+        <p class="modal-sub">Çip bakiyen, galibiyetlerin ve tema tercihlerin cihazında güvenle saklandı.</p>
+        <div class="modal-actions">
+          <button type="button" class="modal-cta danger" id="btn-exit-confirm">Evet, Çıkış Yap</button>
+          <button type="button" class="modal-cta secondary" id="btn-exit-cancel">Vazgeç</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Selection Screen Overlay -->
+    <div class="lobby-shell" id="game-select-view">
       <!-- TOP BAR -->
       <header class="topbar">
         <div class="topbar-inner">
-          <!-- Brand Wordmark -->
-          <a href="index.html" class="brand-lockup" id="brand-link">
-            <span class="brand-emblem" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 2.5L20.5 7.4V16.6L12 21.5L3.5 16.6V7.4L12 2.5Z"
-                  stroke="#F3D06B"
-                  stroke-width="1.8"
-                />
-                <path
-                  d="M12 7L16.2 9.4V14.6L12 17L7.8 14.6V9.4L12 7Z"
-                  fill="rgba(34, 211, 238, 0.25)"
-                  stroke="#22D3EE"
-                  stroke-width="1.4"
-                />
+          <div class="topbar-brand-group">
+            <button type="button" class="back-menu-btn" id="btn-back-to-menu" title="Ana Menüye Dön">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M19 12H5" />
+                <polyline points="12 19 5 12 12 5" />
               </svg>
-            </span>
-            <span class="brand-title">MASA OYUNLARI 3D</span>
-            <span class="brand-version" aria-label="Sürüm 2">v2</span>
-          </a>
+              <span>Ana Menü</span>
+            </button>
+
+            <!-- Brand Wordmark -->
+            <a href="index.html" class="brand-lockup" id="brand-link">
+              <span class="brand-emblem" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 2.5L20.5 7.4V16.6L12 21.5L3.5 16.6V7.4L12 2.5Z"
+                    stroke="#F3D06B"
+                    stroke-width="1.8"
+                  />
+                  <path
+                    d="M12 7L16.2 9.4V14.6L12 17L7.8 14.6V9.4L12 7Z"
+                    fill="rgba(34, 211, 238, 0.25)"
+                    stroke="#22D3EE"
+                    stroke-width="1.4"
+                  />
+                </svg>
+              </span>
+              <span class="brand-title">MASA OYUNLARI 3D</span>
+              <span class="brand-version" aria-label="Sürüm 3.3">v3.3</span>
+            </a>
+          </div>
 
           <!-- Shared Player Profile (localStorage Synced) -->
           <div class="profile-bar" aria-label="Oyuncu Profili">
@@ -1113,6 +2074,19 @@
                 <line x1="17" y1="9" x2="23" y2="15" />
               </svg>
               <span id="sound-label">Ses Açık</span>
+            </button>
+
+            <button
+              type="button"
+              class="utility-btn"
+              id="btn-topbar-settings"
+              title="Genel Tema ve Ses Ayarları"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span>Ayarlar</span>
             </button>
 
             <button
@@ -1360,12 +2334,60 @@
       let profile = loadProfile();
 
       /* =========================================================================
+       * 1B. GLOBAL APP SETTINGS (app_theme & app_sound in localStorage)
+       * ========================================================================= */
+      const APP_THEME_KEY = 'app_theme';
+      const APP_SOUND_KEY = 'app_sound';
+
+      function loadAppTheme() {
+        try {
+          const direct = localStorage.getItem(APP_THEME_KEY);
+          if (direct === 'light' || direct === 'dark') return direct;
+          const legacyRaw = localStorage.getItem('okey101_settings_v1');
+          if (legacyRaw) {
+            const parsed = JSON.parse(legacyRaw);
+            if (parsed && (parsed.theme === 'light' || parsed.theme === 'dark')) return parsed.theme;
+          }
+        } catch (_) {}
+        return 'dark';
+      }
+
+      function loadAppSound() {
+        try {
+          const direct = localStorage.getItem(APP_SOUND_KEY);
+          if (direct === 'false' || direct === 'off' || direct === '0') return false;
+          if (direct === 'true' || direct === 'on' || direct === '1') return true;
+        } catch (_) {}
+        return profile.soundEnabled !== false;
+      }
+
+      let currentAppTheme = loadAppTheme();
+      const initialSoundEnabled = loadAppSound();
+      profile.soundEnabled = initialSoundEnabled;
+
+      function persistGlobalSettings(themeVal, soundVal) {
+        currentAppTheme = themeVal === 'light' ? 'light' : 'dark';
+        const isSoundOn = Boolean(soundVal);
+        profile.soundEnabled = isSoundOn;
+        saveProfile(profile);
+        try {
+          localStorage.setItem(APP_THEME_KEY, currentAppTheme);
+          localStorage.setItem(APP_SOUND_KEY, String(isSoundOn));
+          const okeyRaw = localStorage.getItem('okey101_settings_v1');
+          const okeySettings = okeyRaw ? JSON.parse(okeyRaw) : { difficulty: 'medium' };
+          okeySettings.theme = currentAppTheme;
+          okeySettings.sound = isSoundOn;
+          localStorage.setItem('okey101_settings_v1', JSON.stringify(okeySettings));
+        } catch (_) {}
+      }
+
+      /* =========================================================================
        * 2. PROCEDURAL WEB AUDIO API SOUND ENGINE
        * ========================================================================= */
       class ProceduralSoundEngine {
         constructor() {
           this.ctx = null;
-          this.enabled = profile.soundEnabled !== false;
+          this.enabled = initialSoundEnabled;
           this.lastHoverAt = 0;
         }
 
@@ -1629,6 +2651,22 @@
         soundIconOn.style.display = sound.enabled ? 'block' : 'none';
         soundIconOff.style.display = sound.enabled ? 'none' : 'block';
         soundLabelEl.textContent = sound.enabled ? 'Ses Açık' : 'Ses Kapalı';
+        const menuUserEl = document.getElementById('menu-username');
+        const menuChipsEl = document.getElementById('menu-chips');
+        const menuThemeEl = document.getElementById('menu-theme-label');
+        if (menuUserEl) menuUserEl.textContent = profile.username;
+        if (menuChipsEl) menuChipsEl.textContent = `${formatNum(profile.chips)} Çip`;
+        if (menuThemeEl) menuThemeEl.textContent = currentAppTheme === 'light' ? 'Beyaz Mermer & Meşe' : 'Siyah VIP';
+
+        const btnDark = document.getElementById('btn-theme-dark');
+        const btnLight = document.getElementById('btn-theme-light');
+        if (btnDark) btnDark.classList.toggle('is-active', currentAppTheme === 'dark');
+        if (btnLight) btnLight.classList.toggle('is-active', currentAppTheme === 'light');
+
+        const sw = document.getElementById('btn-settings-sound');
+        const st = document.getElementById('settings-sound-status');
+        if (sw) sw.classList.toggle('is-on', sound.enabled);
+        if (st) st.textContent = sound.enabled ? 'Ses Efektleri Açık' : 'Ses Efektleri Kapalı';
       }
 
       editNameBtn.addEventListener('click', () => {
@@ -1691,8 +2729,7 @@
       soundToggleBtn.addEventListener('click', () => {
         const next = !sound.enabled;
         sound.setEnabled(next);
-        profile.soundEnabled = next;
-        saveProfile(profile);
+        persistGlobalSettings(currentAppTheme, next);
         renderProfileBar();
         if (next) sound.playClick();
       });
@@ -1709,9 +2746,159 @@
 
       zenToggleBtn.addEventListener('click', toggleZenMode);
 
+      /* ================= GLOBAL MAIN MENU & MODAL NAVIGATION ================= */
+      const mainMenuOverlay = document.getElementById('main-menu-overlay');
+      const onlineModal = document.getElementById('online-modal');
+      const settingsModal = document.getElementById('settings-modal');
+      const exitModal = document.getElementById('exit-modal');
+      let apply3DThemeFn = null;
+
+      function applyGlobalTheme(themeName) {
+        currentAppTheme = themeName === 'light' ? 'light' : 'dark';
+        document.body.classList.toggle('theme-light', currentAppTheme === 'light');
+        if (typeof apply3DThemeFn === 'function') {
+          apply3DThemeFn(currentAppTheme);
+        }
+        renderProfileBar();
+      }
+
+      function showMainMenuView() {
+        zenMode = false;
+        document.body.classList.remove('zen-mode');
+        document.body.classList.add('menu-active');
+        if (mainMenuOverlay) mainMenuOverlay.classList.add('open');
+        renderProfileBar();
+      }
+
+      function showGameSelectionView() {
+        document.body.classList.remove('menu-active');
+        if (mainMenuOverlay) mainMenuOverlay.classList.remove('open');
+        if (onlineModal) onlineModal.classList.remove('open');
+        renderProfileBar();
+        renderGameCards();
+      }
+
+      document.getElementById('btn-menu-play').addEventListener('click', () => {
+        sound.playClick();
+        showGameSelectionView();
+      });
+
+      document.getElementById('btn-back-to-menu').addEventListener('click', () => {
+        sound.playClick();
+        showMainMenuView();
+      });
+
+      document.getElementById('brand-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        sound.playClick();
+        showMainMenuView();
+      });
+
+      document.getElementById('btn-menu-online').addEventListener('click', () => {
+        sound.playClick();
+        onlineModal.classList.add('open');
+      });
+
+      const onlineComingSoon = () => {
+        sound.playChipSelect();
+        showToast('Online sunucu altyapısı hazırlanıyor, çok yakında aktif!');
+      };
+      document.getElementById('btn-online-join').addEventListener('click', onlineComingSoon);
+      document.getElementById('btn-online-create').addEventListener('click', onlineComingSoon);
+      document.getElementById('btn-online-quick').addEventListener('click', onlineComingSoon);
+      document.getElementById('btn-online-go-games').addEventListener('click', () => {
+        sound.playClick();
+        showGameSelectionView();
+      });
+      document.getElementById('btn-online-close').addEventListener('click', () => {
+        sound.playClick();
+        onlineModal.classList.remove('open');
+      });
+
+      const openSettingsModal = () => {
+        sound.playClick();
+        renderProfileBar();
+        settingsModal.classList.add('open');
+      };
+      document.getElementById('btn-menu-settings').addEventListener('click', openSettingsModal);
+      document.getElementById('btn-topbar-settings').addEventListener('click', openSettingsModal);
+      document.getElementById('btn-settings-close').addEventListener('click', () => {
+        sound.playClick();
+        settingsModal.classList.remove('open');
+      });
+
+      document.getElementById('btn-theme-dark').addEventListener('click', () => {
+        persistGlobalSettings('dark', sound.enabled);
+        applyGlobalTheme('dark');
+        sound.playChipSelect();
+        showToast('Siyah Tema (VIP Gece Modu) tüm uygulamaya uygulandı.', 'success');
+      });
+
+      document.getElementById('btn-theme-light').addEventListener('click', () => {
+        persistGlobalSettings('light', sound.enabled);
+        applyGlobalTheme('light');
+        sound.playChipSelect();
+        showToast('Beyaz Tema (Mermer & Meşe Modu) tüm uygulamaya uygulandı.', 'success');
+      });
+
+      document.getElementById('btn-settings-sound').addEventListener('click', () => {
+        const next = !sound.enabled;
+        sound.setEnabled(next);
+        persistGlobalSettings(currentAppTheme, next);
+        renderProfileBar();
+        if (next) sound.playClick();
+      });
+
+      document.getElementById('btn-menu-exit').addEventListener('click', () => {
+        sound.playClick();
+        exitModal.classList.add('open');
+      });
+
+      document.getElementById('btn-exit-cancel').addEventListener('click', () => {
+        sound.playClick();
+        exitModal.classList.remove('open');
+      });
+
+      document.getElementById('btn-exit-confirm').addEventListener('click', () => {
+        sound.playClick();
+        try {
+          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.exitApp === 'function') {
+            window.Capacitor.Plugins.App.exitApp();
+            return;
+          }
+        } catch (_) {}
+        try {
+          if (navigator.app && typeof navigator.app.exitApp === 'function') {
+            navigator.app.exitApp();
+            return;
+          }
+        } catch (_) {}
+        try {
+          window.close();
+        } catch (_) {}
+        exitModal.classList.remove('open');
+        showToast('Güvenli çıkış tamamlandı. Sekmeyi kapatabilirsiniz.', 'success');
+      });
+
+      // Allow deep-linking straight into game selection via ?view=games if needed
+      if (new URLSearchParams(window.location.search).get('view') === 'games') {
+        showGameSelectionView();
+      } else {
+        showMainMenuView();
+      }
+
+      // Apply saved global theme immediately on boot
+      applyGlobalTheme(currentAppTheme);
+
       window.addEventListener('keydown', (e) => {
         if (document.activeElement === usernameInputEl) return;
-        if (e.key === 'h' || e.key === 'H') {
+        if (e.key === 'Escape') {
+          onlineModal.classList.remove('open');
+          settingsModal.classList.remove('open');
+          exitModal.classList.remove('open');
+          return;
+        }
+        if ((e.key === 'h' || e.key === 'H') && !document.body.classList.contains('menu-active')) {
           toggleZenMode();
         }
       });
@@ -1940,10 +3127,14 @@
         }
       })();
 
+      const isMobileGpu =
+        /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints > 1 && Math.min(window.innerWidth || 1024, window.innerHeight || 768) <= 1024);
+
       let renderer;
       try {
         renderer = new THREE.WebGLRenderer({
-          antialias: !isSoftwareGl,
+          antialias: !isSoftwareGl && !isMobileGpu,
           powerPreference: 'high-performance',
           alpha: false,
         });
@@ -1954,11 +3145,11 @@
       if (renderer) {
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 0.85;
-        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
+        renderer.toneMappingExposure = 0.88;
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = !isSoftwareGl;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.enabled = !isSoftwareGl && !isMobileGpu;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
         container.appendChild(renderer.domElement);
 
         const maxAniso = renderer.capabilities.getMaxAnisotropy();
@@ -2555,6 +3746,99 @@
           return configureColorTexture(canvas);
         }
 
+        function createLightOakWoodTexture() {
+          const size = 512;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const g = ctx.createLinearGradient(0, 0, size, size);
+          g.addColorStop(0, '#c89e69');
+          g.addColorStop(0.5, '#b68952');
+          g.addColorStop(1, '#d7b482');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, size, size);
+          for (let i = 0; i < 65; i++) {
+            const y = (i / 65) * size;
+            ctx.strokeStyle = i % 2 === 0 ? 'rgba(116, 76, 36, 0.14)' : 'rgba(255, 240, 214, 0.18)';
+            ctx.lineWidth = 1.5 + (i % 3);
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.bezierCurveTo(size * 0.3, y + Math.sin(i) * 8, size * 0.7, y - Math.cos(i) * 8, size, y);
+            ctx.stroke();
+          }
+          return configureColorTexture(canvas);
+        }
+
+        function createLightMarbleFloorTexture() {
+          const size = 512;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const g = ctx.createRadialGradient(size / 2, size / 2, 20, size / 2, size / 2, size * 0.65);
+          g.addColorStop(0, '#faf7f0');
+          g.addColorStop(0.6, '#ece5d7');
+          g.addColorStop(1, '#ddd4c3');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, size, size);
+          ctx.strokeStyle = 'rgba(148, 138, 122, 0.22)';
+          ctx.lineWidth = 2;
+          for (let i = 0; i < 16; i++) {
+            ctx.beginPath();
+            ctx.moveTo(Math.random() * size, 0);
+            ctx.bezierCurveTo(Math.random() * size, size * 0.35, Math.random() * size, size * 0.65, Math.random() * size, size);
+            ctx.stroke();
+          }
+          return configureColorTexture(canvas);
+        }
+
+        function createLightFeltTexture() {
+          const size = 1024;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const grad = ctx.createRadialGradient(size / 2, size / 2, 40, size / 2, size / 2, size * 0.54);
+          grad.addColorStop(0, '#1f6f54');
+          grad.addColorStop(0.6, '#145540');
+          grad.addColorStop(1, '#0d3c2d');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, size, size);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+          for (let i = 0; i < 7000; i++) {
+            ctx.fillRect(Math.random() * size, Math.random() * size, 2, 1);
+          }
+          ctx.save();
+          ctx.translate(size / 2, size / 2);
+          ctx.strokeStyle = 'rgba(245, 218, 140, 0.65)';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4 + Math.PI / 8;
+            const r = size * 0.43;
+            const px = Math.cos(a) * r;
+            const py = Math.sin(a) * r;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          ctx.strokeStyle = 'rgba(255, 244, 214, 0.45)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+          return configureColorTexture(canvas);
+        }
+
+        const darkWalnutTex = createWalnutWoodTexture();
+        const lightOakTex = createLightOakWoodTexture();
+        const darkFeltTex = createNavyFeltTexture();
+        const lightFeltTex = createLightFeltTexture();
+        const lightMarbleFloorTex = createLightMarbleFloorTexture();
+
         /* ------------------ SHARED PBR MATERIALS (ANTI-GLARE SATIN FINISH) ------------------ */
         const goldMaterial = new THREE.MeshPhysicalMaterial({
           color: 0xdcb44e,
@@ -2568,7 +3852,7 @@
         });
 
         const walnutMaterial = new THREE.MeshPhysicalMaterial({
-          map: createWalnutWoodTexture(),
+          map: darkWalnutTex,
           roughness: 0.68,
           metalness: 0.04,
           clearcoat: 0.12,
@@ -2577,7 +3861,7 @@
         });
 
         const feltMaterial = new THREE.MeshPhysicalMaterial({
-          map: createNavyFeltTexture(),
+          map: darkFeltTex,
           roughness: 0.85,
           metalness: 0.0,
           clearcoat: 0,
@@ -3341,8 +4625,42 @@
           cards: 0.38,
         };
 
-        // Initialize ambient lighting to the initially selected game card
-        const initialTheme = AMBIENT_THEMES[selectedSceneFocus] || AMBIENT_THEMES.default;
+        const LIGHT_SCENE_THEME = {
+          ambient: new THREE.Color(0xfff7e8),
+          hemiSky: new THREE.Color(0xffffff),
+          hemiGround: new THREE.Color(0xdccdb3),
+          accent: new THREE.Color(0xb8861e),
+          sheen: new THREE.Color(0x3a8b6c),
+          bg: new THREE.Color(0xeae2d3),
+          softbox: new THREE.Color(0xfff1d6),
+        };
+
+        apply3DThemeFn = (themeName) => {
+          const isLight = themeName === 'light';
+          walnutMaterial.map = isLight ? lightOakTex : darkWalnutTex;
+          walnutMaterial.needsUpdate = true;
+          feltMaterial.map = isLight ? lightFeltTex : darkFeltTex;
+          feltMaterial.needsUpdate = true;
+          floorMesh.material.map = isLight ? lightMarbleFloorTex : null;
+          floorMesh.material.color.setHex(isLight ? 0xf5f0e6 : 0x050b1c);
+          floorMesh.material.roughness = isLight ? 0.52 : 0.85;
+          floorMesh.material.needsUpdate = true;
+          contactShadow.material.opacity = isLight ? 0.28 : 0.72;
+          keyLight.intensity = isLight ? 1.35 : 1.0;
+          hemiLight.intensity = isLight ? 0.88 : 0.42;
+          renderer.toneMappingExposure = isLight ? 1.02 : 0.88;
+          particleMat.opacity = isLight ? 0.42 : 0.85;
+          bokehMat.opacity = isLight ? 0.18 : 0.36;
+          if (isLight) {
+            scene.background.copy(LIGHT_SCENE_THEME.bg);
+            scene.fog.color.copy(LIGHT_SCENE_THEME.bg);
+          }
+        };
+
+        // Initialize ambient lighting to the initially selected game card or global light theme
+        const initialTheme = currentAppTheme === 'light'
+          ? LIGHT_SCENE_THEME
+          : AMBIENT_THEMES[selectedSceneFocus] || AMBIENT_THEMES.default;
         ambientLight.color.copy(initialTheme.ambient);
         hemiLight.color.copy(initialTheme.hemiSky);
         hemiLight.groundColor.copy(initialTheme.hemiGround);
@@ -3355,6 +4673,7 @@
         if (coolSoftbox) {
           coolSoftbox.color.copy(initialTheme.softbox);
         }
+        apply3DThemeFn(currentAppTheme);
 
         let frameId = 0;
         let contextLost = false;
@@ -3440,13 +4759,15 @@
           bokehPosAttr.needsUpdate = true;
           bokehPoints.rotation.y -= delta * 0.018 * motionScale;
 
-          // Smoothly shift ambient, hemisphere, atmosphere, felt sheen, and accent lighting per selected/hovered game card
-          const targetTheme = AMBIENT_THEMES[activeFocus] || AMBIENT_THEMES.default;
+          // Smoothly shift ambient, hemisphere, atmosphere, felt sheen, and accent lighting per global theme & card
+          const targetTheme = currentAppTheme === 'light'
+            ? LIGHT_SCENE_THEME
+            : AMBIENT_THEMES[activeFocus] || AMBIENT_THEMES.default;
           const ambientLerp = 1 - Math.exp(-3.2 * delta);
           const accentLerp = 1 - Math.exp(-4.0 * delta);
 
           ambientLight.color.lerp(targetTheme.ambient, ambientLerp);
-          ambientLight.intensity = 0.45 + Math.sin(elapsed * 0.85 * motionScale) * 0.03;
+          ambientLight.intensity = (currentAppTheme === 'light' ? 0.72 : 0.45) + Math.sin(elapsed * 0.85 * motionScale) * 0.03;
           hemiLight.color.lerp(targetTheme.hemiSky, ambientLerp);
           hemiLight.groundColor.lerp(targetTheme.hemiGround, ambientLerp);
           scene.background.lerp(targetTheme.bg, ambientLerp);

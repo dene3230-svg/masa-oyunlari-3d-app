@@ -553,6 +553,51 @@
           font-size: 0.76rem;
         }
       }
+
+      /* Global White Theme (Aydınlık Mermer & Meşe Modu) */
+      body.theme-light {
+        background: #efeae0;
+        color: #0f172a;
+      }
+      body.theme-light #canvas-wrap {
+        background: radial-gradient(ellipse 80% 70% at 50% 45%, #faf6ee 0%, #e5dccb 100%);
+      }
+      body.theme-light .topbar,
+      body.theme-light .control-dock,
+      body.theme-light .turn-banner,
+      body.theme-light .modal-card,
+      body.theme-light .toast {
+        background: rgba(255, 253, 248, 0.92);
+        border-color: rgba(166, 120, 24, 0.42);
+        color: #0f172a;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+      }
+      body.theme-light .hud-btn,
+      body.theme-light .chip-pill,
+      body.theme-light .score-pill,
+      body.theme-light .act-btn:not(.primary):not(.emerald),
+      body.theme-light .result-cell,
+      body.theme-light .reward-bar {
+        background: rgba(255, 255, 255, 0.88);
+        border-color: rgba(148, 163, 184, 0.38);
+        color: #0f172a;
+      }
+      body.theme-light .hud-btn.lobby-link {
+        color: #8a5a12;
+        border-color: rgba(166, 120, 24, 0.5);
+      }
+      body.theme-light .chip-val,
+      body.theme-light .modal-kicker {
+        color: #92630c;
+      }
+      body.theme-light .modal-title {
+        color: #0f172a;
+      }
+      body.theme-light .modal-desc,
+      body.theme-light .result-label,
+      body.theme-light .chip-unit {
+        color: #475569;
+      }
     </style>
   </head>
   <body>
@@ -613,12 +658,12 @@
           <span id="sound-label">Ses</span>
         </button>
 
-        <a href="index.html" class="hud-btn lobby-link">
+        <a href="./index.html" class="hud-btn lobby-link">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
             <path d="M3 12h18" />
             <path d="M9 6l-6 6 6 6" />
           </svg>
-          <span>Ana Lobiye Dön</span>
+          <span>Ana Menüye Dön</span>
         </a>
       </div>
     </header>
@@ -662,7 +707,7 @@
           <span class="reward-val" id="reward-val">+0 Çip</span>
         </div>
         <div class="modal-actions">
-          <a href="index.html" class="hud-btn lobby-link">Ana Lobiye Dön</a>
+          <a href="./index.html" class="hud-btn lobby-link">Ana Menüye Dön</a>
           <button type="button" class="act-btn primary" id="btn-rematch">Yeni Oyun</button>
         </div>
       </div>
@@ -952,8 +997,15 @@
           this.ctx = null;
           this.enabled = true;
           try {
-            const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
-            if (p.soundEnabled === false) this.enabled = false;
+            const globalSound = localStorage.getItem('app_sound');
+            if (globalSound === 'false' || globalSound === 'off' || globalSound === '0') {
+              this.enabled = false;
+            } else if (globalSound === 'true' || globalSound === 'on' || globalSound === '1') {
+              this.enabled = true;
+            } else {
+              const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+              if (p.soundEnabled === false) this.enabled = false;
+            }
           } catch {}
         }
 
@@ -1454,16 +1506,25 @@
 
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
+      const isLightTheme = (() => {
+        try {
+          return localStorage.getItem('app_theme') === 'light';
+        } catch {
+          return false;
+        }
+      })();
+      if (isLightTheme) document.body.classList.add('theme-light');
+
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x09080f);
-      scene.fog = new THREE.FogExp2(0x09080f, 0.018);
+      scene.background = new THREE.Color(isLightTheme ? 0xeae2d3 : 0x09080f);
+      scene.fog = new THREE.FogExp2(isLightTheme ? 0xeae2d3 : 0x09080f, isLightTheme ? 0.011 : 0.018);
 
       // Soft, glare-free studio PMREM environment for brass trim & satin wood depth
       const pmrem = new THREE.PMREMGenerator(renderer);
       const roomEnv = createStudioEnvScene();
       scene.environment = pmrem.fromScene(roomEnv, 0.05).texture;
       if ('environmentIntensity' in scene) {
-        scene.environmentIntensity = 0.42;
+        scene.environmentIntensity = isLightTheme ? 0.65 : 0.42;
       }
       disposeEnvScene(roomEnv);
       pmrem.dispose();
@@ -1483,13 +1544,13 @@
       controls.update();
 
       // Balanced Anti-Glare Lighting Rig with realistic PCFSoftShadowMap box shadows
-      const ambientLight = new THREE.AmbientLight(0xfff5e4, 0.42);
+      const ambientLight = new THREE.AmbientLight(0xfff5e4, isLightTheme ? 0.72 : 0.42);
       scene.add(ambientLight);
 
-      const hemi = new THREE.HemisphereLight(0x9bb8e4, 0x20120a, 0.28);
+      const hemi = new THREE.HemisphereLight(isLightTheme ? 0xffffff : 0x9bb8e4, isLightTheme ? 0xdccdb3 : 0x20120a, isLightTheme ? 0.62 : 0.28);
       scene.add(hemi);
 
-      const keyLight = new THREE.DirectionalLight(0xffe7bd, 0.95);
+      const keyLight = new THREE.DirectionalLight(0xffe7bd, isLightTheme ? 1.25 : 0.95);
       // Angled warm salon key light so the walnut frame walls cast rich soft shadows without direct glare
       keyLight.position.set(-7.6, 11.4, -3.2);
       keyLight.target.position.set(0.3, 0, 0);

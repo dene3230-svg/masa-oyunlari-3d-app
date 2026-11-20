@@ -1956,85 +1956,9 @@
       }
     </style>
   </head>
-  <body class="menu-active">
+  <body>
     <div id="canvas-wrap" aria-label="3D Okey 101 Oyun Masası"></div>
     <canvas id="celebration-canvas" aria-hidden="true"></canvas>
-
-    <!-- ANIMATED GLASSMORPHISM MAIN MENU OVER LIVE ROTATING 3D TABLE -->
-    <main class="main-menu-overlay open" id="main-menu-overlay" aria-label="3D Okey 101 Ana Menü">
-      <div class="main-menu-card">
-        <div class="menu-crest" aria-hidden="true">
-          <span class="menu-crest-num">13</span>
-          <span class="menu-crest-dot"></span>
-        </div>
-        <div class="menu-kicker">MASA OYUNLARI 3D · STÜDYO</div>
-        <h1 class="menu-title">3D OKEY 101</h1>
-        <div class="menu-meta-row">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" fill="rgba(245,210,113,0.2)" stroke="currentColor" stroke-width="1.9" />
-            <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.5 2" />
-          </svg>
-          <span id="menu-chips">10.000 Çip</span>
-          <span>·</span>
-          <span id="menu-theme-pill">Siyah VIP</span>
-        </div>
-
-        <div class="menu-btn-stack">
-          <button type="button" class="menu-btn is-primary" id="btn-menu-play">
-            <span class="menu-btn-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <polygon points="6 4 20 12 6 20 6 4" />
-              </svg>
-            </span>
-            <span class="menu-btn-text">
-              <strong>Oyuna Giriş</strong>
-              <small>Tek Oyunculu · 3 Akıllı Bot (Katlamalı / Katlamasız)</small>
-            </span>
-          </button>
-
-          <button type="button" class="menu-btn" id="btn-menu-online">
-            <span class="menu-btn-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
-              </svg>
-            </span>
-            <span class="menu-btn-text">
-              <strong>Online Oyna</strong>
-              <small>Çok Oyunculu Lobi · Oda Kodu & Hızlı Eşleşme</small>
-            </span>
-            <span class="online-pill-badge"><span class="online-dot"></span>ONLINE</span>
-          </button>
-
-          <button type="button" class="menu-btn" id="btn-menu-settings">
-            <span class="menu-btn-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f5d271" stroke-width="2" aria-hidden="true">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-            </span>
-            <span class="menu-btn-text">
-              <strong>Ayarlar</strong>
-              <small>Siyah / Beyaz Masa Teması, Ses, Yapay Zeka Zorluğu</small>
-            </span>
-          </button>
-
-          <button type="button" class="menu-btn is-danger" id="btn-menu-exit">
-            <span class="menu-btn-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </span>
-            <span class="menu-btn-text">
-              <strong>Oyundan Çıkış</strong>
-              <small>Ana Oyun Lobisine Dön veya Uygulamadan Çık</small>
-            </span>
-          </button>
-        </div>
-      </div>
-    </main>
 
     <!-- SLIM GLASSMORPHISM TOP BAR -->
     <header class="hud-top">
@@ -2091,12 +2015,12 @@
           <span>Menü</span>
         </button>
 
-        <a href="index.html" class="hud-btn hud-btn-lobby" title="Ana Lobiye Dön">
+        <a href="./index.html" class="hud-btn hud-btn-lobby" title="Ana Menüye Dön">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M19 12H5" />
             <polyline points="12 19 5 12 12 5" />
           </svg>
-          <span>Ana Lobiye Dön</span>
+          <span>Ana Menüye Dön</span>
         </a>
       </div>
     </header>
@@ -2182,13 +2106,13 @@
     <div id="drag-ghost" aria-hidden="true"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <!-- MODE SELECTION MODAL (KATLAMALI / KATLAMASIZ) -->
-    <div class="modal-backdrop" id="mode-modal" role="dialog" aria-modal="true" aria-labelledby="mode-modal-title">
+    <!-- MODE SELECTION MODAL (KATLAMALI / KATLAMASIZ — OPENS DIRECTLY ON ENTRY) -->
+    <div class="modal-backdrop open" id="mode-modal" role="dialog" aria-modal="true" aria-labelledby="mode-modal-title">
       <div class="modal-card">
-        <div class="modal-kicker">TEK OYUNCULU · 3 YAPAY ZEKA RAKİP</div>
+        <div class="modal-kicker">3D OKEY 101 · 3 YAPAY ZEKA RAKİP</div>
         <h2 class="modal-title" id="mode-modal-title">Oyun Modunu Seç</h2>
         <p class="modal-sub">
-          Klasik sabit 101 barajı veya her açılan elle yükselen Katlamalı 101 modunu seçerek masaya otur.
+          Klasik sabit 101 barajı veya her açılan elle yükselen Katlamalı 101 modunu seçerek hemen masaya otur.
         </p>
 
         <div class="mode-options-grid">
@@ -2206,36 +2130,7 @@
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="modal-cta secondary" id="btn-mode-cancel">Geri Dön</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ONLINE LOBBY PREP MODAL -->
-    <div class="modal-backdrop" id="online-modal" role="dialog" aria-modal="true" aria-labelledby="online-modal-title">
-      <div class="modal-card">
-        <div class="modal-kicker">ÇOK OYUNCULU LOBİ HAZIRLIĞI</div>
-        <h2 class="modal-title" id="online-modal-title">Online 101 Okey</h2>
-
-        <div class="online-status-banner">
-          Online sunucu altyapısı hazırlanıyor, çok yakında aktif! Oda kurma ve gerçek zamanlı eşleşme bağlandığında burada açılacak.
-        </div>
-
-        <div class="online-draft-box">
-          <span class="settings-label" style="margin-bottom:0">Oda Kodu İle Katıl (Önizleme)</span>
-          <div class="room-input-row">
-            <input type="text" class="room-code-input" id="online-room-input" maxlength="6" placeholder="Örn: OKY101" />
-            <button type="button" class="modal-cta secondary" id="btn-online-join">Katıl</button>
-          </div>
-          <div class="modal-actions" style="margin-top:4px; justify-content:stretch;">
-            <button type="button" class="modal-cta secondary" id="btn-online-quick" style="flex:1">Hızlı Eşleşme (Yakında)</button>
-            <button type="button" class="modal-cta secondary" id="btn-online-create" style="flex:1">Oda Kur (Yakında)</button>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="modal-cta" id="btn-online-play-bots">Botlara Karşı Oyna</button>
-          <button type="button" class="modal-cta secondary" id="btn-online-close">Kapat</button>
+          <button type="button" class="modal-cta secondary" id="btn-mode-cancel">Ana Menüye Dön</button>
         </div>
       </div>
     </div>
@@ -2308,13 +2203,13 @@
           <button type="button" class="menu-btn" id="btn-pause-mainmenu">
             <span class="menu-btn-text">
               <strong>Ana Menüye Dön</strong>
-              <small>Canlı 3D giriş ekranına geç</small>
+              <small>Uygulama ana giriş ekranına dön</small>
             </span>
           </button>
           <button type="button" class="menu-btn is-danger" id="btn-pause-exit">
             <span class="menu-btn-text">
               <strong>Oyundan Çıkış</strong>
-              <small>Ana Oyun Lobisine dön veya çık</small>
+              <small>Ana Menüye dön veya uygulamadan çık</small>
             </span>
           </button>
         </div>
@@ -2327,11 +2222,11 @@
         <div class="modal-kicker">ÇIKIŞ ONAYI</div>
         <h2 class="modal-title" id="exit-modal-title">Oyundan Çıkılsın mı?</h2>
         <p class="modal-sub">
-          Mevcut çip bakiyen otomatik olarak kaydedildi. Ana Oyun Lobisine dönebilir veya uygulamayı güvenle kapatabilirsin.
+          Mevcut çip bakiyen otomatik olarak kaydedildi. Uygulama Ana Menüsüne dönebilir veya uygulamayı güvenle kapatabilirsin.
         </p>
 
         <div class="modal-actions" style="flex-wrap:wrap">
-          <button type="button" class="modal-cta" id="btn-exit-lobby">Ana Lobiye Dön</button>
+          <button type="button" class="modal-cta" id="btn-exit-lobby">Ana Menüye Dön</button>
           <button type="button" class="modal-cta secondary" id="btn-exit-app">Uygulamadan Çık</button>
           <button type="button" class="modal-cta secondary" id="btn-exit-cancel">İptal</button>
         </div>
@@ -2668,18 +2563,24 @@
 
         const SETTINGS_STORAGE_KEY = 'okey101_settings_v1';
         function loadSettings() {
+          let theme = 'dark';
+          let soundOn = true;
+          let difficulty = 'medium';
           try {
             const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
             if (raw) {
               const s = JSON.parse(raw);
-              return {
-                theme: s.theme === 'light' ? 'light' : 'dark',
-                sound: s.sound !== false,
-                difficulty: ['easy', 'medium', 'hard'].includes(s.difficulty) ? s.difficulty : 'medium',
-              };
+              if (s.theme === 'light' || s.theme === 'dark') theme = s.theme;
+              if (typeof s.sound === 'boolean') soundOn = s.sound;
+              if (['easy', 'medium', 'hard'].includes(s.difficulty)) difficulty = s.difficulty;
             }
+            const globalTheme = localStorage.getItem('app_theme');
+            if (globalTheme === 'light' || globalTheme === 'dark') theme = globalTheme;
+            const globalSound = localStorage.getItem('app_sound');
+            if (globalSound === 'false' || globalSound === 'off' || globalSound === '0') soundOn = false;
+            else if (globalSound === 'true' || globalSound === 'on' || globalSound === '1') soundOn = true;
           } catch (_) {}
-          return { theme: 'dark', sound: true, difficulty: 'medium' };
+          return { theme, sound: soundOn, difficulty };
         }
 
         const settings = loadSettings();
@@ -2688,11 +2589,19 @@
         function saveSettings() {
           try {
             localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+            localStorage.setItem('app_theme', settings.theme);
+            localStorage.setItem('app_sound', String(settings.sound));
+            const rawP = localStorage.getItem(PROFILE_KEY);
+            if (rawP) {
+              const p = JSON.parse(rawP);
+              p.soundEnabled = settings.sound;
+              localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+            }
           } catch (_) {}
         }
 
         const game = {
-          screen: 'menu', // 'menu' | 'playing'
+          screen: 'playing', // Launches directly into 101 Okey table + mode picker
           paused: false,
           round: 1,
           dealer: 0,
@@ -3849,8 +3758,6 @@
 
           applyTouchRackWoodTheme(themeName);
 
-          const pill = document.getElementById('menu-theme-pill');
-          if (pill) pill.textContent = isLight ? 'Beyaz Mermer' : 'Siyah VIP';
           const btnDark = document.getElementById('btn-theme-dark');
           const btnLight = document.getElementById('btn-theme-light');
           if (btnDark) btnDark.classList.toggle('is-active', !isLight);
@@ -5932,24 +5839,10 @@
           document.querySelectorAll('.seg-btn[data-diff]').forEach((btn) => {
             btn.classList.toggle('is-active', btn.dataset.diff === settings.difficulty);
           });
-
-          const menuChips = document.getElementById('menu-chips');
-          if (menuChips) menuChips.textContent = `${fmt(playerChips)} Çip`;
         }
 
         function openMainMenu() {
-          clearAllBotTimers();
-          game.screen = 'menu';
-          game.paused = false;
-          game.modeChosen = false;
-          document.body.classList.add('menu-active');
-          document.getElementById('pause-modal').classList.remove('open');
-          document.getElementById('mode-modal').classList.remove('open');
-          document.getElementById('round-modal').classList.remove('open');
-          document.getElementById('main-menu-overlay').classList.add('open');
-          const menuChips = document.getElementById('menu-chips');
-          if (menuChips) menuChips.textContent = `${fmt(playerChips)} Çip`;
-          updateHUD();
+          window.location.href = './index.html';
         }
 
         function enterGameplayTable(isKatlamali) {
@@ -5961,7 +5854,6 @@
           game.dealer = 0;
           game.players.forEach((p) => (p.totalPenalty = 0));
           document.body.classList.remove('menu-active');
-          document.getElementById('main-menu-overlay').classList.remove('open');
           document.getElementById('mode-modal').classList.remove('open');
           document.getElementById('pause-modal').classList.remove('open');
           sound.playOpenFanfare();
@@ -5985,59 +5877,24 @@
           }
         }
 
-        // Main Menu Buttons
-        document.getElementById('btn-menu-play').addEventListener('click', () => {
-          sound.playTilePick();
-          document.getElementById('mode-modal').classList.add('open');
-        });
-
-        document.getElementById('btn-menu-online').addEventListener('click', () => {
-          sound.playTilePick();
-          document.getElementById('online-modal').classList.add('open');
-        });
-
-        document.getElementById('btn-menu-settings').addEventListener('click', () => {
-          sound.playTilePick();
-          syncSettingsUI();
-          document.getElementById('settings-modal').classList.add('open');
-        });
-
-        document.getElementById('btn-menu-exit').addEventListener('click', () => {
-          sound.playTilePick();
-          document.getElementById('exit-modal').classList.add('open');
-        });
-
         // Mode Selection Modal
         document.getElementById('btn-mode-classic').addEventListener('click', () => enterGameplayTable(false));
         document.getElementById('btn-mode-katlamali').addEventListener('click', () => enterGameplayTable(true));
         document.getElementById('btn-mode-cancel').addEventListener('click', () => {
           sound.playTilePick();
-          document.getElementById('mode-modal').classList.remove('open');
+          if (!game.modeChosen) {
+            window.location.href = './index.html';
+          } else {
+            document.getElementById('mode-modal').classList.remove('open');
+          }
         });
         document.getElementById('hud-mode-badge').addEventListener('click', () => {
           sound.playTilePick();
+          document.getElementById('btn-mode-cancel').textContent = game.modeChosen ? 'İptal' : 'Ana Menüye Dön';
           document.getElementById('mode-modal').classList.add('open');
         });
 
-        // Online Prep Modal Buttons
-        const onlinePendingMsg = () => {
-          sound.playTurnNotify();
-          showToast('Online sunucu altyapısı hazırlanıyor, çok yakında aktif!');
-        };
-        document.getElementById('btn-online-join').addEventListener('click', onlinePendingMsg);
-        document.getElementById('btn-online-quick').addEventListener('click', onlinePendingMsg);
-        document.getElementById('btn-online-create').addEventListener('click', onlinePendingMsg);
-        document.getElementById('btn-online-play-bots').addEventListener('click', () => {
-          sound.playTilePick();
-          document.getElementById('online-modal').classList.remove('open');
-          document.getElementById('mode-modal').classList.add('open');
-        });
-        document.getElementById('btn-online-close').addEventListener('click', () => {
-          sound.playTilePick();
-          document.getElementById('online-modal').classList.remove('open');
-        });
-
-        // Settings Modal Buttons (Instant Live 3D + UI Theme Switch + Persistence)
+        // Settings Modal Buttons (Instant Live 3D + UI Theme Switch + Global Persistence)
         document.getElementById('btn-theme-dark').addEventListener('click', () => {
           settings.theme = 'dark';
           saveSettings();
@@ -6090,7 +5947,7 @@
           document.getElementById('exit-modal').classList.add('open');
         });
 
-        // Exit Confirmation Modal (Lobby Return / Safe Capacitor Exit)
+        // Exit Confirmation Modal (Main Menu Return / Safe Capacitor Exit)
         document.getElementById('btn-exit-lobby').addEventListener('click', () => {
           window.location.href = './index.html';
         });
@@ -6098,6 +5955,12 @@
           try {
             if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.exitApp === 'function') {
               window.Capacitor.Plugins.App.exitApp();
+              return;
+            }
+          } catch (_) {}
+          try {
+            if (navigator.app && typeof navigator.app.exitApp === 'function') {
+              navigator.app.exitApp();
               return;
             }
           } catch (_) {}
