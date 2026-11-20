@@ -1982,7 +1982,7 @@
         <div class="ota-top-copy">
           <div class="ota-top-head">
             <strong class="ota-top-title" id="ota-top-title">Masa Oyunları 3D Güncellendi!</strong>
-            <span class="ota-top-ver" id="ota-top-ver">v3.6</span>
+            <span class="ota-top-ver" id="ota-top-ver">v3.8</span>
           </div>
           <p class="ota-top-msg" id="ota-top-msg">Yeni sürüm hazır, dokunarak güncelleyin.</p>
         </div>
@@ -2025,7 +2025,7 @@
           </div>
           <div class="menu-title-row">
             <h1 class="menu-main-title">MASA OYUNLARI 3D</h1>
-            <span class="brand-version" aria-label="Sürüm 3.6">v3.6</span>
+            <span class="brand-version" aria-label="Sürüm 3.8">v3.8</span>
           </div>
           <div class="menu-meta-line">
             <span id="menu-username">Oyuncu</span>
@@ -2223,7 +2223,7 @@
                 </svg>
               </span>
               <span class="brand-title">MASA OYUNLARI 3D</span>
-              <span class="brand-version" aria-label="Sürüm 3.6">v3.6</span>
+              <span class="brand-version" aria-label="Sürüm 3.8">v3.8</span>
             </a>
           </div>
 
@@ -3167,7 +3167,9 @@
 
       document.getElementById('btn-exit-confirm').addEventListener('click', () => {
         sound.playClick();
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        if (window.AndroidNative && window.AndroidNative.exitApp) {
+          window.AndroidNative.exitApp();
+        } else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
           window.Capacitor.Plugins.App.exitApp();
         } else if (navigator.app && navigator.app.exitApp) {
           navigator.app.exitApp();
@@ -5331,24 +5333,43 @@
             .catch(() => {});
         }
 
+        function syncVersionToNative(version, markOnly = false) {
+          if (!version) return;
+          try {
+            if (!window.AndroidNative) return;
+            if (markOnly && typeof window.AndroidNative.markVersionNotified === 'function') {
+              window.AndroidNative.markVersionNotified(String(version));
+            } else if (!markOnly && typeof window.AndroidNative.syncVersion === 'function') {
+              window.AndroidNative.syncVersion(String(version));
+            }
+          } catch (_) {}
+        }
+
         function handleDetectedNewVersion(remoteVersion, message) {
           const savedVersion = localStorage.getItem(APP_VERSION_KEY);
           if (!savedVersion) {
             localStorage.setItem(APP_VERSION_KEY, remoteVersion);
+            localStorage.setItem(NOTIFIED_VERSION_KEY, remoteVersion);
+            syncVersionToNative(remoteVersion, false);
             syncOtaStateToSw(false);
             return;
           }
-          if (savedVersion === remoteVersion) return;
+          if (savedVersion === remoteVersion) {
+            syncVersionToNative(remoteVersion, false);
+            return;
+          }
 
           pendingNewVersion = remoteVersion;
           const lastNotified = localStorage.getItem(NOTIFIED_VERSION_KEY);
           if (lastNotified === remoteVersion) {
+            syncVersionToNative(remoteVersion, true);
             return;
           }
 
           try {
             localStorage.setItem(NOTIFIED_VERSION_KEY, remoteVersion);
           } catch (_) {}
+          syncVersionToNative(remoteVersion, true);
           syncOtaStateToSw(false);
 
           // Gerçek cihaz bildirimi (izin varsa ve ayarlardan açıksa)
@@ -5384,12 +5405,14 @@
             if (pendingNewVersion) {
               localStorage.setItem(APP_VERSION_KEY, String(pendingNewVersion));
               localStorage.setItem(NOTIFIED_VERSION_KEY, String(pendingNewVersion));
+              syncVersionToNative(pendingNewVersion, false);
             }
           } catch (_) {
             if (pendingNewVersion) {
               try {
                 localStorage.setItem(APP_VERSION_KEY, String(pendingNewVersion));
                 localStorage.setItem(NOTIFIED_VERSION_KEY, String(pendingNewVersion));
+                syncVersionToNative(pendingNewVersion, false);
               } catch (__) {}
             }
           }
@@ -5429,6 +5452,8 @@
             // İlk açılışta mevcut sürümü kaydet ve uyarı gösterme
             if (!savedVersion) {
               localStorage.setItem(APP_VERSION_KEY, remoteVersion);
+              localStorage.setItem(NOTIFIED_VERSION_KEY, remoteVersion);
+              syncVersionToNative(remoteVersion, false);
               syncOtaStateToSw(false);
               return;
             }
@@ -5436,6 +5461,7 @@
             if (savedVersion !== remoteVersion) {
               handleDetectedNewVersion(remoteVersion, data.message);
             } else {
+              syncVersionToNative(remoteVersion, false);
               syncOtaStateToSw(false);
             }
           } catch (_) {

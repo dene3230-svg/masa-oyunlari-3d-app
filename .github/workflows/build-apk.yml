@@ -16,7 +16,7 @@ jobs:
       - name: Web Dosyalarini Hazirla
         run: |
           mkdir -p dist_web
-          cp *.html *.css *.js *.json dist_web/ 2>/dev/null || true
+          cp *.html *.css *.js *.json *.svg dist_web/ 2>/dev/null || true
           rm -f dist_web/package.json dist_web/package-lock.json dist_web/tsconfig.json
       - name: Capacitor Kurulumu ve APK Hazirligi
         run: |
@@ -35,6 +35,321 @@ jobs:
             fs.writeFileSync("capacitor.config.json", JSON.stringify(cfg, null, 2));
           '
           npx cap add android
+      - name: Yerel Android WorkManager Bildirim Servisi ve Cikis Koprusu Ekle
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+
+            // 1. android/app/build.gradle -> WorkManager bagimliligini ekle
+            const gradlePath = "android/app/build.gradle";
+            let gradle = fs.readFileSync(gradlePath, "utf8");
+            if (!gradle.includes("androidx.work:work-runtime")) {
+              gradle = gradle.replace(
+                /dependencies\s*\{/,
+                "dependencies {\n    implementation \"androidx.work:work-runtime:2.9.0\""
+              );
+              fs.writeFileSync(gradlePath, gradle, "utf8");
+            }
+
+            // 2. AndroidManifest.xml -> INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED izinleri
+            const manifestPath = "android/app/src/main/AndroidManifest.xml";
+            let manifest = fs.readFileSync(manifestPath, "utf8");
+            const perms = [
+              "android.permission.INTERNET",
+              "android.permission.POST_NOTIFICATIONS",
+              "android.permission.RECEIVE_BOOT_COMPLETED"
+            ];
+            const missingPerms = perms
+              .filter((p) => !manifest.includes(p))
+              .map((p) => `    <uses-permission android:name="${p}" />`)
+              .join("\n");
+            if (missingPerms) {
+              manifest = manifest.replace(
+                /<application/,
+                `${missingPerms}\n\n    <application`
+              );
+              fs.writeFileSync(manifestPath, manifest, "utf8");
+            }
+
+            // 3. Java paket dizinini hazirla
+            const javaDir = "android/app/src/main/java/com/masaoyunlari/app";
+            fs.mkdirSync(javaDir, { recursive: true });
+
+            // 4. UpdateCheckWorker.java olustur
+            const workerCode = `package com.masaoyunlari.app;
+
+          import android.Manifest;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.PendingIntent;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
+          import androidx.annotation.NonNull;
+          import androidx.core.app.NotificationCompat;
+          import androidx.core.content.ContextCompat;
+          import androidx.work.Worker;
+          import androidx.work.WorkerParameters;
+          import org.json.JSONObject;
+          import java.io.BufferedReader;
+          import java.io.InputStreamReader;
+          import java.net.HttpURLConnection;
+          import java.net.URL;
+          import java.nio.charset.StandardCharsets;
+
+          public class UpdateCheckWorker extends Worker {
+              public static final String PREFS_NAME = "MasaOyunlariOtaPrefs";
+              public static final String KEY_LAST_VERSION = "last_seen_version";
+              public static final String KEY_NOTIFIED_VERSION = "last_notified_version";
+              public static final String CHANNEL_ID = "masa_oyunlari_ota_updates";
+              private static final int NOTIFICATION_ID = 3801;
+              private static final String VERSION_URL = "https://dene3230-svg.github.io/masa-oyunlari-3d-app/version.json";
+
+              public UpdateCheckWorker(@NonNull Context context, @NonNull WorkerParameters params) {
+                  super(context, params);
+              }
+
+              @NonNull
+              @Override
+              public Result doWork() {
+                  HttpURLConnection conn = null;
+                  try {
+                      URL url = new URL(VERSION_URL + "?t=" + System.currentTimeMillis());
+                      conn = (HttpURLConnection) url.openConnection();
+                      conn.setRequestMethod("GET");
+                      conn.setConnectTimeout(10000);
+                      conn.setReadTimeout(10000);
+                      conn.setUseCaches(false);
+                      conn.setRequestProperty("Cache-Control", "no-cache");
+
+                      int statusCode = conn.getResponseCode();
+                      if (statusCode != HttpURLConnection.HTTP_OK) {
+                          return Result.success();
+                      }
+
+                      StringBuilder sb = new StringBuilder();
+                      try (BufferedReader reader = new BufferedReader(
+                              new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                          String line;
+                          while ((line = reader.readLine()) != null) {
+                              sb.append(line);
+                          }
+                      }
+
+                      JSONObject json = new JSONObject(sb.toString());
+                      String remoteVersion = json.optString("version", "").trim();
+                      String message = json.optString("message", "Yeni surum hazir, dokunarak guncelleyin.").trim();
+                      if (remoteVersion.isEmpty()) {
+                          return Result.success();
+                      }
+
+                      Context context = getApplicationContext();
+                      SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                      String savedVersion = prefs.getString(KEY_LAST_VERSION, null);
+                      String notifiedVersion = prefs.getString(KEY_NOTIFIED_VERSION, null);
+
+                      if (savedVersion == null || savedVersion.isEmpty()) {
+                          prefs.edit()
+                                  .putString(KEY_LAST_VERSION, remoteVersion)
+                                  .putString(KEY_NOTIFIED_VERSION, remoteVersion)
+                                  .apply();
+                          return Result.success();
+                      }
+
+                      if (!savedVersion.equals(remoteVersion) && !remoteVersion.equals(notifiedVersion)) {
+                          prefs.edit()
+                                  .putString(KEY_NOTIFIED_VERSION, remoteVersion)
+                                  .apply();
+                          sendUpdateNotification(context, remoteVersion, message);
+                      }
+                  } catch (Exception ignored) {
+                      // Cevrimdisi veya gecici ag hatasinda sessizce devam et
+                  } finally {
+                      if (conn != null) {
+                          conn.disconnect();
+                      }
+                  }
+                  return Result.success();
+              }
+
+              private void sendUpdateNotification(Context context, String version, String message) {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                              != PackageManager.PERMISSION_GRANTED) {
+                          return;
+                      }
+                  }
+
+                  NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                  if (nm == null) return;
+
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      NotificationChannel channel = new NotificationChannel(
+                              CHANNEL_ID,
+                              "Oyun Guncellemeleri",
+                              NotificationManager.IMPORTANCE_HIGH
+                      );
+                      channel.setDescription("Masa Oyunlari 3D yeni surum bildirimleri");
+                      channel.enableVibration(true);
+                      channel.setVibrationPattern(new long[]{0, 200, 100, 200});
+                      nm.createNotificationChannel(channel);
+                  }
+
+                  Intent launchIntent = new Intent(context, MainActivity.class);
+                  launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                  launchIntent.putExtra("ota_update", true);
+                  launchIntent.putExtra("ota_version", version);
+
+                  int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                      pendingFlags |= PendingIntent.FLAG_IMMUTABLE;
+                  }
+                  PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, launchIntent, pendingFlags);
+
+                  String bodyText = (message == null || message.isEmpty())
+                          ? "Yeni surum hazir (v" + version + "), dokunarak guncelleyin."
+                          : message;
+
+                  NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                          .setSmallIcon(R.mipmap.ic_launcher)
+                          .setContentTitle("Masa Oyunları 3D Güncellendi!")
+                          .setContentText(bodyText)
+                          .setStyle(new NotificationCompat.BigTextStyle().bigText(bodyText))
+                          .setPriority(NotificationCompat.PRIORITY_HIGH)
+                          .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
+                          .setDefaults(NotificationCompat.DEFAULT_ALL)
+                          .setAutoCancel(true)
+                          .setContentIntent(pendingIntent);
+
+                  nm.notify(NOTIFICATION_ID, builder.build());
+              }
+          }
+          `.replace(/^          /gm, "");
+            fs.writeFileSync(path.join(javaDir, "UpdateCheckWorker.java"), workerCode, "utf8");
+
+            // 5. MainActivity.java olustur (Android 13+ bildirim izni, WorkManager 15 dk, AndroidNative.exitApp koprusu)
+            const mainActivityCode = `package com.masaoyunlari.app;
+
+          import android.Manifest;
+          import android.app.Activity;
+          import android.content.Context;
+          import android.content.SharedPreferences;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import androidx.core.app.ActivityCompat;
+          import androidx.core.content.ContextCompat;
+          import androidx.work.Constraints;
+          import androidx.work.ExistingPeriodicWorkPolicy;
+          import androidx.work.NetworkType;
+          import androidx.work.PeriodicWorkRequest;
+          import androidx.work.WorkManager;
+          import com.getcapacitor.BridgeActivity;
+          import java.util.concurrent.TimeUnit;
+
+          public class MainActivity extends BridgeActivity {
+              private static final int REQ_POST_NOTIFICATIONS = 1001;
+              private static final String UPDATE_WORK_NAME = "masa_oyunlari_ota_update_check";
+
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  requestNotificationPermissionIfNeeded();
+                  schedulePeriodicUpdateCheck();
+                  attachNativeJavascriptBridge();
+              }
+
+              private void requestNotificationPermissionIfNeeded() {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                              != PackageManager.PERMISSION_GRANTED) {
+                          ActivityCompat.requestPermissions(
+                                  this,
+                                  new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                                  REQ_POST_NOTIFICATIONS
+                          );
+                      }
+                  }
+              }
+
+              private void schedulePeriodicUpdateCheck() {
+                  Constraints constraints = new Constraints.Builder()
+                          .setRequiredNetworkType(NetworkType.CONNECTED)
+                          .build();
+
+                  PeriodicWorkRequest updateWorkRequest = new PeriodicWorkRequest.Builder(
+                          UpdateCheckWorker.class,
+                          15,
+                          TimeUnit.MINUTES
+                  )
+                          .setConstraints(constraints)
+                          .build();
+
+                  WorkManager.getInstance(getApplicationContext()).enqueueUniquePeriodicWork(
+                          UPDATE_WORK_NAME,
+                          ExistingPeriodicWorkPolicy.KEEP,
+                          updateWorkRequest
+                  );
+              }
+
+              private void attachNativeJavascriptBridge() {
+                  if (this.bridge != null && this.bridge.getWebView() != null) {
+                      WebView webView = this.bridge.getWebView();
+                      WebSettings webSettings = webView.getSettings();
+                      webSettings.setJavaScriptEnabled(true);
+                      webView.addJavascriptInterface(new WebAppInterface(this), "AndroidNative");
+                  }
+              }
+
+              public static class WebAppInterface {
+                  private final Activity activity;
+
+                  public WebAppInterface(Activity activity) {
+                      this.activity = activity;
+                  }
+
+                  @JavascriptInterface
+                  public void exitApp() {
+                      activity.runOnUiThread(() -> {
+                          activity.finishAffinity();
+                          System.exit(0);
+                      });
+                  }
+
+                  @JavascriptInterface
+                  public void syncVersion(String version) {
+                      if (version == null || version.trim().isEmpty()) return;
+                      String cleaned = version.trim();
+                      SharedPreferences prefs = activity.getApplicationContext()
+                              .getSharedPreferences(UpdateCheckWorker.PREFS_NAME, Context.MODE_PRIVATE);
+                      prefs.edit()
+                              .putString(UpdateCheckWorker.KEY_LAST_VERSION, cleaned)
+                              .putString(UpdateCheckWorker.KEY_NOTIFIED_VERSION, cleaned)
+                              .apply();
+                  }
+
+                  @JavascriptInterface
+                  public void markVersionNotified(String version) {
+                      if (version == null || version.trim().isEmpty()) return;
+                      SharedPreferences prefs = activity.getApplicationContext()
+                              .getSharedPreferences(UpdateCheckWorker.PREFS_NAME, Context.MODE_PRIVATE);
+                      prefs.edit()
+                              .putString(UpdateCheckWorker.KEY_NOTIFIED_VERSION, version.trim())
+                              .apply();
+                  }
+              }
+          }
+          `.replace(/^          /gm, "");
+            fs.writeFileSync(path.join(javaDir, "MainActivity.java"), mainActivityCode, "utf8");
+            console.log("Android WorkManager + MainActivity AndroidNative koprusu basariyla olusturuldu.");
+          '
       - name: Logo ve Splash Olustur
         run: |
           mkdir -p assets
