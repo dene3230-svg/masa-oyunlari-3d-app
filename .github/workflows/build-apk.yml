@@ -23,7 +23,7 @@ jobs:
           rm -f package.json package-lock.json
           npm init -y
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-          npm install -D @capacitor/assets
+          npm install -D @capacitor/assets sharp
           npx cap init "Masa Oyunları 3D" "com.masaoyunlari.app" --web-dir=dist_web
           node -e '
             const fs = require("fs");
@@ -38,7 +38,11 @@ jobs:
       - name: Logo ve Splash Olustur
         run: |
           mkdir -p assets
-          if [ -f icon.png ]; then cp icon.png assets/icon.png; fi
+          if [ -f icon.png ]; then
+            cp icon.png assets/icon.png
+          elif [ -f icon.svg ]; then
+            node -e 'const sharp = require("sharp"); sharp("icon.svg").resize(1024, 1024).png().toFile("assets/icon.png");'
+          fi
           npx capacitor-assets generate --android || true
       - name: APK Derle
         run: |
