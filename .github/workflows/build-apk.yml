@@ -1,0 +1,51 @@
+name: Build Offline OTA APK
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Web Dosyalarini Hazirla
+        run: |
+          mkdir -p dist_web
+          cp *.html *.css *.js *.json dist_web/ 2>/dev/null || true
+      - name: Capacitor Kurulumu ve OTA Ayari
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npm install -D @capacitor/assets
+          npx cap init "Masa Oyunları 3D" "com.masaoyunlari.app" --web-dir=dist_web
+          node -e '
+            const fs = require("fs");
+            const cfg = JSON.parse(fs.readFileSync("capacitor.config.json"));
+            cfg.server = {
+              url: "https://dene3230-svg.github.io/masa-oyunlari-3d-app/",
+              cleartext: true
+            };
+            fs.writeFileSync("capacitor.config.json", JSON.stringify(cfg, null, 2));
+          '
+          npx cap add android
+      - name: Logo ve Splash Olustur
+        run: |
+          mkdir -p assets
+          if [ -f icon.png ]; then cp icon.png assets/icon.png; fi
+          npx capacitor-assets generate --android || true
+      - name: APK Derle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk ../MasaOyunlari3D.apk
+      - name: APK Dosyasini Yayinla
+        uses: actions/upload-artifact@v4
+        with:
+          name: MasaOyunlari3D
+          path: MasaOyunlari3D.apk
