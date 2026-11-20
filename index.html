@@ -2621,6 +2621,107 @@
         color: var(--text-secondary);
       }
 
+      .changelog-title {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 2px 0 6px;
+        line-height: 1.3;
+      }
+
+      .changelog-date {
+        margin-left: auto;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.68rem;
+        color: var(--text-muted);
+      }
+
+      .changelog-list {
+        margin: 0;
+        padding-left: 17px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .changelog-list li {
+        font-size: 0.8rem;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+
+      .lan-p2p-banner {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: linear-gradient(150deg, rgba(6, 78, 59, 0.34), rgba(14, 116, 144, 0.24));
+        border: 1px solid rgba(52, 211, 153, 0.45);
+        color: #d1fae5;
+        font-size: 0.82rem;
+        line-height: 1.48;
+        text-align: left;
+      }
+
+      .lan-p2p-banner strong {
+        color: #6ee7b7;
+      }
+
+      .lan-mode-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .lan-mode-btn {
+        appearance: none;
+        padding: 10px 10px;
+        border-radius: 11px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(8, 18, 40, 0.72);
+        color: var(--text-secondary);
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+      }
+
+      .lan-mode-btn.is-selected {
+        border-color: rgba(243, 208, 107, 0.72);
+        background: linear-gradient(135deg, rgba(243, 208, 107, 0.24), rgba(212, 175, 55, 0.12));
+        color: var(--gold-bright);
+      }
+
+      body.theme-light .changelog-title {
+        color: #1c1917;
+      }
+
+      body.theme-light .changelog-list li {
+        color: #44403c;
+      }
+
+      body.theme-light .lan-p2p-banner {
+        background: linear-gradient(150deg, rgba(209, 250, 229, 0.92), rgba(224, 242, 254, 0.9));
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #064e3b;
+      }
+
+      body.theme-light .lan-p2p-banner strong {
+        color: #047857;
+      }
+
+      body.theme-light .lan-mode-btn {
+        background: rgba(248, 250, 252, 0.92);
+        border-color: rgba(148, 163, 184, 0.45);
+        color: #44403c;
+      }
+
+      body.theme-light .lan-mode-btn.is-selected {
+        background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(253, 230, 138, 0.8));
+        border-color: rgba(180, 83, 9, 0.6);
+        color: #92400e;
+      }
+
       .roadmap-card {
         padding: 13px 14px;
         border-radius: 14px;
@@ -2784,7 +2885,7 @@
         <div class="ota-top-copy">
           <div class="ota-top-head">
             <strong class="ota-top-title" id="ota-top-title">Masa Oyunları 3D Güncellendi!</strong>
-            <span class="ota-top-ver" id="ota-top-ver">v4.1</span>
+            <span class="ota-top-ver" id="ota-top-ver">v4.3</span>
           </div>
           <p class="ota-top-msg" id="ota-top-msg">Yeni sürüm hazır, dokunarak güncelleyin.</p>
         </div>
@@ -2972,16 +3073,18 @@
 
           <button type="button" class="menu-btn" id="btn-menu-online">
             <span class="menu-btn-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+                <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                <line x1="12" y1="20" x2="12.01" y2="20" />
               </svg>
             </span>
             <span class="menu-btn-text">
-              <strong>Online Oyna</strong>
-              <small>Oda Kur, Oda Koduyla Katıl &amp; Hızlı Eşleşme</small>
+              <strong>Yerel Ağ / Çok Oyunculu</strong>
+              <small>Wi-Fi &amp; Hotspot Üzerinden Sunucusuz 101 Okey</small>
             </span>
-            <span class="online-badge">ONLINE</span>
+            <span class="online-badge">WI-FI P2P</span>
           </button>
 
           <button type="button" class="menu-btn" id="btn-menu-updates">
@@ -2994,7 +3097,7 @@
               <strong>Güncellemeler</strong>
               <small>Yama Notları &amp; Yakında Eklenecek Özellikler</small>
             </span>
-            <span class="updates-ver-badge">v4.1</span>
+            <span class="updates-ver-badge" id="menu-updates-badge">v4.3</span>
           </button>
 
           <button type="button" class="menu-btn" id="btn-menu-settings">
@@ -3047,17 +3150,47 @@
           <div class="updates-panel is-active" id="tab-panel-changelog" role="tabpanel">
             <article class="changelog-item is-latest">
               <div class="changelog-ver-row">
-                <span class="changelog-ver">v4.1 (Güncel)</span>
+                <span class="changelog-ver">v4.3 (Güncel)</span>
                 <span class="tag-new-pill">YENİ</span>
+                <span class="changelog-date">2026-11-20</span>
               </div>
-              <p class="changelog-desc">
-                Google ve Misafir giriş ekranı, profil senkronizasyonu ve Güncellemeler/Yol Haritası ekranı eklendi.
-              </p>
+              <div class="changelog-title">Sunucusuz Yerel Ağ (Wi-Fi / Hotspot) Çok Oyunculu Modu</div>
+              <ul class="changelog-list">
+                <li>Aynı Wi-Fi veya telefon internet paylaşımı (Hotspot) üzerindeki cihazlar için sunucusuz Oda Kurma ve Odaya Katılma lobisi eklendi.</li>
+                <li>Oda Kodu ve QR Kod ile doğrudan cihazlar arası (Peer-to-Peer) hızlı bağlantı desteği getirildi.</li>
+                <li>Çok oyunculu masalarda gerçek zamanlı taş çekme, atma, per açma ve canlı puan senkronizasyonu aktif edildi.</li>
+                <li>Eksik koltukların otomatik botlarla tamamlanması ve oyun sonu altın/rütbe ödüllerinin hesaplara işlenmesi sağlandı.</li>
+              </ul>
+            </article>
+
+            <article class="changelog-item">
+              <div class="changelog-ver-row">
+                <span class="changelog-ver">v4.2</span>
+                <span class="changelog-date">2026-11-20</span>
+              </div>
+              <div class="changelog-title">Arka Plan Bildirim Kanalı &amp; Hızlı Güncelleme Tetikleyicisi</div>
+              <ul class="changelog-list">
+                <li>Android için yüksek öncelikli updates_channel bildirim kanalı ve WAKE_LOCK izinleri eklendi.</li>
+                <li>Uygulama arka plana alındığında veya kapatıldığında 1 dakika sonra çalışan hızlı güncelleme kontrolü devreye alındı.</li>
+              </ul>
+            </article>
+
+            <article class="changelog-item">
+              <div class="changelog-ver-row">
+                <span class="changelog-ver">v4.1</span>
+                <span class="changelog-date">2026-11-19</span>
+              </div>
+              <div class="changelog-title">Kullanıcı Giriş Ekranı &amp; Güncellemeler Merkezi</div>
+              <ul class="changelog-list">
+                <li>Google ve Misafir giriş ekranı, ana menü profil kartı ve 101 Okey profil senkronizasyonu eklendi.</li>
+                <li>Güncelleme geçmişi ve yol haritası sekmelerinden oluşan Güncellemeler penceresi eklendi.</li>
+              </ul>
             </article>
 
             <article class="changelog-item">
               <div class="changelog-ver-row">
                 <span class="changelog-ver">v4.0</span>
+                <span class="changelog-date">2026-11-18</span>
               </div>
               <p class="changelog-desc">
                 Ücretsiz masa girişi, 1.ye +10.000 / 2.ye +5.000 altın ödül sistemi ve lig/rütbe atlama eklendi.
@@ -3067,6 +3200,7 @@
             <article class="changelog-item">
               <div class="changelog-ver-row">
                 <span class="changelog-ver">v3.8</span>
+                <span class="changelog-date">2026-11-17</span>
               </div>
               <p class="changelog-desc">
                 Uygulama kapalıyken çalışan arka plan bildirim servisi ve kesin Android çıkış özelliği eklendi.
@@ -3076,6 +3210,7 @@
             <article class="changelog-item">
               <div class="changelog-ver-row">
                 <span class="changelog-ver">v3.5</span>
+                <span class="changelog-date">2026-11-16</span>
               </div>
               <p class="changelog-desc">
                 101 Okey tasarımı yüksek performanslı 2.5D Plus arayüzüne ve seçilebilir Siyah/Beyaz temaya geçirildi.
@@ -3087,10 +3222,10 @@
           <div class="updates-panel" id="tab-panel-roadmap" role="tabpanel">
             <article class="roadmap-card">
               <div class="roadmap-head">
-                <strong>Gerçek Zamanlı Online Çok Oyunculu Masalar</strong>
+                <strong>Küresel İnternet Üzeri Online Ligler</strong>
                 <span class="roadmap-status is-dev">GELİŞTİRİLİYOR</span>
               </div>
-              <p>Arkadaşlarınla oda kurma ve canlı rakiplerle 101 Okey kapışması.</p>
+              <p>Yerel Ağ (Wi-Fi / Hotspot) P2P modu v4.3 ile aktif edildi; sıradaki adımda şehirler arası genel sunucu eşleşmesi geliyor.</p>
             </article>
 
             <article class="roadmap-card">
@@ -3125,29 +3260,38 @@
       </div>
     </div>
 
-    <!-- ONLINE LOBBY PREP MODAL -->
+    <!-- SERVERLESS LAN (WI-FI / HOTSPOT) MULTIPLAYER LOBBY MODAL -->
     <div class="app-modal-backdrop" id="online-modal" role="dialog" aria-modal="true" aria-labelledby="online-modal-title">
       <div class="app-modal-card">
-        <div class="modal-kicker">ÇOK OYUNCULU LOBİ HAZIRLIĞI</div>
-        <h2 class="modal-title" id="online-modal-title">Online Masa Oyunları</h2>
-        <div class="online-status-banner">
-          Online sunucu altyapısı hazırlanıyor, çok yakında aktif! Oda oluşturma, oda koduna katılma ve gerçek zamanlı eşleşme bağlandığında burada aktif olacak.
+        <div class="modal-kicker">SUNUCUSUZ YEREL AĞ · WI-FI / HOTSPOT P2P</div>
+        <h2 class="modal-title" id="online-modal-title">101 Okey Yerel Ağ Lobisi</h2>
+        <div class="lan-p2p-banner">
+          <strong>v4.3 Aktif:</strong> Aynı Wi-Fi veya telefon internet paylaşımı (Hotspot) üzerindeki cihazlarla sunucusuz, doğrudan <strong>Oda Kodu &amp; QR Kod</strong> kullanarak canlı 101 Okey oynayın. Eksik koltuklar otomatik botlarla tamamlanır!
         </div>
 
         <div class="online-draft-box">
-          <span class="settings-label" style="margin-bottom:0">Oda Koduyla Katıl (Önizleme)</span>
+          <span class="settings-label" style="margin-bottom:0">Masa Kuralları (Ücretsiz Giriş)</span>
+          <div class="lan-mode-row">
+            <button type="button" class="lan-mode-btn is-selected" id="btn-lan-mode-kat">Katlamalı 101</button>
+            <button type="button" class="lan-mode-btn" id="btn-lan-mode-cls">Katlamasız 101</button>
+          </div>
+
+          <button type="button" class="modal-cta" id="btn-online-create" style="width:100%">
+            Oda Kur (Oda Kodu &amp; QR Üret)
+          </button>
+
+          <span class="settings-label" style="margin:6px 0 0">Oda Kodu veya QR ile Katıl</span>
           <div class="room-input-row">
-            <input type="text" class="room-code-input" id="online-room-input" maxlength="6" placeholder="Örn: MASA3D" />
-            <button type="button" class="modal-cta secondary" id="btn-online-join">Katıl</button>
+            <input type="text" class="room-code-input" id="online-room-input" maxlength="8" placeholder="Örn: A7K4" />
+            <button type="button" class="modal-cta secondary" id="btn-online-join">Odaya Katıl</button>
           </div>
-          <div class="modal-actions" style="margin-top:4px; justify-content:stretch;">
-            <button type="button" class="modal-cta secondary" id="btn-online-create" style="flex:1">Oda Oluştur</button>
-            <button type="button" class="modal-cta secondary" id="btn-online-quick" style="flex:1">Hızlı Eşleşme</button>
-          </div>
+          <button type="button" class="modal-cta secondary" id="btn-online-quick" style="width:100%">
+            QR / P2P Bağlantı Koduyla Katıl
+          </button>
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="modal-cta" id="btn-online-go-games">Tek Oyunculu Masalara Git</button>
+          <button type="button" class="modal-cta secondary" id="btn-online-go-games">Tek Oyunculu Masalar</button>
           <button type="button" class="modal-cta secondary" id="btn-online-close">Kapat</button>
         </div>
       </div>
@@ -4205,13 +4349,55 @@
         onlineModal.classList.add('open');
       });
 
-      const onlineComingSoon = () => {
-        sound.playChipSelect();
-        showToast('Online sunucu altyapısı hazırlanıyor, çok yakında aktif!');
-      };
-      document.getElementById('btn-online-join').addEventListener('click', onlineComingSoon);
-      document.getElementById('btn-online-create').addEventListener('click', onlineComingSoon);
-      document.getElementById('btn-online-quick').addEventListener('click', onlineComingSoon);
+      let selectedLanMode = 'katlamali';
+      const btnLanModeKat = document.getElementById('btn-lan-mode-kat');
+      const btnLanModeCls = document.getElementById('btn-lan-mode-cls');
+      const onlineRoomInput = document.getElementById('online-room-input');
+
+      if (btnLanModeKat && btnLanModeCls) {
+        btnLanModeKat.addEventListener('click', () => {
+          selectedLanMode = 'katlamali';
+          btnLanModeKat.classList.add('is-selected');
+          btnLanModeCls.classList.remove('is-selected');
+          sound.playClick();
+        });
+        btnLanModeCls.addEventListener('click', () => {
+          selectedLanMode = 'classic';
+          btnLanModeCls.classList.add('is-selected');
+          btnLanModeKat.classList.remove('is-selected');
+          sound.playClick();
+        });
+      }
+
+      function generateLanRoomCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+        return code;
+      }
+
+      document.getElementById('btn-online-create').addEventListener('click', () => {
+        sound.playLaunch();
+        const code = generateLanRoomCode();
+        window.location.href = `./okey-101.html?lan=host&mode=${encodeURIComponent(selectedLanMode)}&room=${encodeURIComponent(code)}`;
+      });
+
+      document.getElementById('btn-online-join').addEventListener('click', () => {
+        const raw = (onlineRoomInput ? onlineRoomInput.value : '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (!raw || raw.length < 3) {
+          sound.playError();
+          showToast('Lütfen geçerli bir Oda Kodu gir (ör: A7K4) veya QR/P2P butonunu kullan.', 'error');
+          return;
+        }
+        sound.playLaunch();
+        window.location.href = `./okey-101.html?lan=join&room=${encodeURIComponent(raw)}`;
+      });
+
+      document.getElementById('btn-online-quick').addEventListener('click', () => {
+        sound.playLaunch();
+        window.location.href = './okey-101.html?lan=join';
+      });
+
       document.getElementById('btn-online-go-games').addEventListener('click', () => {
         sound.playClick();
         showGameSelectionView();
@@ -4505,11 +4691,83 @@
         tabPanelRoadmap.classList.toggle('is-active', !isChangelog);
       }
 
+      async function syncChangelogFromVersionJson() {
+        try {
+          const res = await fetch('./version.json?t=' + Date.now(), { cache: 'no-store' });
+          if (!res || !res.ok) return;
+          const data = await res.json();
+          if (!data) return;
+          const badgeEl = document.getElementById('menu-updates-badge');
+          if (badgeEl && data.version) {
+            badgeEl.textContent = data.version.startsWith('v') ? data.version : `v${data.version}`;
+          }
+          if (Array.isArray(data.history) && data.history.length > 0 && tabPanelChangelog) {
+            tabPanelChangelog.textContent = '';
+            data.history.forEach((entry, idx) => {
+              const art = document.createElement('article');
+              art.className = 'changelog-item' + (idx === 0 ? ' is-latest' : '');
+
+              const verRow = document.createElement('div');
+              verRow.className = 'changelog-ver-row';
+
+              const verSpan = document.createElement('span');
+              verSpan.className = 'changelog-ver';
+              const vStr = String(entry.version || '');
+              verSpan.textContent = idx === 0 ? `${vStr} (Güncel)` : vStr;
+              verRow.appendChild(verSpan);
+
+              if (idx === 0 || entry.isNew) {
+                const pill = document.createElement('span');
+                pill.className = 'tag-new-pill';
+                pill.textContent = 'YENİ';
+                verRow.appendChild(pill);
+              }
+
+              if (entry.date) {
+                const dt = document.createElement('span');
+                dt.className = 'changelog-date';
+                dt.textContent = String(entry.date);
+                verRow.appendChild(dt);
+              }
+              art.appendChild(verRow);
+
+              if (entry.title) {
+                const titleEl = document.createElement('div');
+                titleEl.className = 'changelog-title';
+                titleEl.textContent = String(entry.title);
+                art.appendChild(titleEl);
+              }
+
+              if (Array.isArray(entry.items) && entry.items.length > 0) {
+                const ul = document.createElement('ul');
+                ul.className = 'changelog-list';
+                entry.items.forEach((itemText) => {
+                  const li = document.createElement('li');
+                  li.textContent = String(itemText);
+                  ul.appendChild(li);
+                });
+                art.appendChild(ul);
+              } else if (entry.description) {
+                const p = document.createElement('p');
+                p.className = 'changelog-desc';
+                p.textContent = String(entry.description);
+                art.appendChild(p);
+              }
+
+              tabPanelChangelog.appendChild(art);
+            });
+          }
+        } catch (_) {}
+      }
+
       document.getElementById('btn-menu-updates').addEventListener('click', () => {
         sound.playClick();
         switchUpdatesTab('changelog');
+        syncChangelogFromVersionJson();
         if (updatesModal) updatesModal.classList.add('open');
       });
+
+      syncChangelogFromVersionJson();
 
       document.getElementById('btn-updates-close').addEventListener('click', () => {
         sound.playClick();

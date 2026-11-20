@@ -1,4 +1,65 @@
 {
-  "version": "4.2",
-  "message": "Arka plan güncelleme bildirim kanalı iyileştirildi!"
+  "version": "4.3",
+  "message": "Sunucusuz Yerel Ağ (Wi-Fi / Hotspot) çok oyunculu 101 Okey modu eklendi!",
+  "history": [
+    {
+      "version": "v4.3",
+      "date": "2026-11-20",
+      "isNew": true,
+      "title": "Sunucusuz Yerel Ağ (Wi-Fi / Hotspot) Çok Oyunculu Modu",
+      "items": [
+        "Aynı Wi-Fi veya telefon internet paylaşımı (Hotspot) üzerindeki cihazlar için sunucusuz Oda Kurma ve Odaya Katılma lobisi eklendi.",
+        "Oda Kodu ve QR Kod ile doğrudan cihazlar arası (Peer-to-Peer) hızlı bağlantı desteği getirildi.",
+        "Çok oyunculu masalarda gerçek zamanlı taş çekme, atma, per açma ve canlı puan senkronizasyonu aktif edildi.",
+        "Eksik koltukların otomatik botlarla tamamlanması ve oyun sonu altın/rütbe ödüllerinin hesaplara işlenmesi sağlandı."
+      ]
+    },
+    {
+      "version": "v4.2",
+      "date": "2026-11-20",
+      "isNew": false,
+      "title": "Arka Plan Bildirim Kanalı & Hızlı Güncelleme Tetikleyicisi",
+      "items": [
+        "Android için yüksek öncelikli updates_channel bildirim kanalı ve WAKE_LOCK izinleri eklendi.",
+        "Uygulama arka plana alındığında veya kapatıldığında 1 dakika sonra çalışan hızlı güncelleme kontrolü devreye alındı."
+      ]
+    },
+    {
+      "version": "v4.1",
+      "date": "2026-11-19",
+      "isNew": false,
+      "title": "Kullanıcı Giriş Ekranı & Güncellemeler Merkezi",
+      "items": [
+        "Google ve Misafir giriş ekranı, ana menü profil kartı ve 101 Okey profil senkronizasyonu eklendi.",
+        "Güncelleme geçmişi ve yol haritası sekmelerinden oluşan Güncellemeler penceresi eklendi."
+      ]
+    },
+    {
+      "version": "v4.0",
+      "date": "2026-11-18",
+      "isNew": false,
+      "title": "Ücretsiz Lig Ekonomisi ve Rütbe Sistemi",
+      "items": [
+        "Ücretsiz masa girişi, 1.ye +10.000 / 2.ye +5.000 altın ödül sistemi ve lig/rütbe atlama eklendi."
+      ]
+    },
+    {
+      "version": "v3.8",
+      "date": "2026-11-17",
+      "isNew": false,
+      "title": "Arka Plan OTA Servisi & Kesin Android Çıkışı",
+      "items": [
+        "Uygulama kapalıyken çalışan arka plan bildirim servisi ve kesin Android çıkış özelliği eklendi."
+      ]
+    },
+    {
+      "version": "v3.5",
+      "date": "2026-11-16",
+      "isNew": false,
+      "title": "2.5D Plus 101 Okey Arayüzü & Çift Tema",
+      "items": [
+        "101 Okey tasarımı yüksek performanslı 2.5D Plus arayüzüne ve seçilebilir Siyah/Beyaz temaya geçirildi."
+      ]
+    }
+  ]
 }

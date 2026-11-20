@@ -1661,6 +1661,360 @@
         color: var(--hud-btn-text);
       }
 
+      /* ================= SERVERLESS LAN (WI-FI / HOTSPOT) P2P LOBBY ================= */
+      .lan-hud-badge {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        height: 30px;
+        padding: 0 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(52, 211, 153, 0.55);
+        background: linear-gradient(135deg, rgba(6, 78, 59, 0.88), rgba(15, 118, 110, 0.82));
+        color: #d1fae5;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.72rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+      }
+
+      .lan-hud-badge.visible {
+        display: inline-flex;
+      }
+
+      .lan-hud-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #34d399;
+        box-shadow: 0 0 8px #34d399;
+      }
+
+      .mode-lan-cta {
+        margin-top: 10px;
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 13px;
+        border: 1px solid rgba(52, 211, 153, 0.62);
+        background: linear-gradient(155deg, rgba(6, 95, 70, 0.34), rgba(14, 116, 144, 0.24));
+        color: var(--modal-text);
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        transition: transform 120ms ease, border-color 140ms ease;
+      }
+
+      .mode-lan-cta:hover {
+        border-color: #34d399;
+      }
+
+      .mode-lan-cta:active {
+        transform: scale(0.98);
+      }
+
+      .mode-lan-cta strong {
+        display: block;
+        font-size: 0.94rem;
+        color: #6ee7b7;
+      }
+
+      .mode-lan-cta small {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--modal-sub);
+        margin-top: 2px;
+      }
+
+      .lan-pill-tag {
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 0.64rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        color: #022c22;
+        background: linear-gradient(135deg, #34d399, #10b981);
+        white-space: nowrap;
+      }
+
+      .lan-modal-card {
+        width: min(560px, 100%);
+        max-height: min(90dvh, 720px);
+        overflow-y: auto;
+        text-align: left;
+      }
+
+      .lan-tabs {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 4px;
+        border-radius: 12px;
+        background: rgba(2, 6, 23, 0.55);
+        border: 1px solid var(--hud-border);
+      }
+
+      .lan-tab-btn {
+        appearance: none;
+        padding: 8px 10px;
+        border-radius: 9px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--modal-sub);
+        font-size: 0.82rem;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .lan-tab-btn.is-active {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(6, 182, 212, 0.18));
+        border-color: rgba(52, 211, 153, 0.65);
+        color: #a7f3d0;
+      }
+
+      .lan-panel {
+        display: none;
+        margin-top: 12px;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .lan-panel.is-active {
+        display: flex;
+      }
+
+      .lan-code-qr-row {
+        display: grid;
+        grid-template-columns: 136px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 12px;
+        border-radius: 14px;
+        background: rgba(2, 6, 23, 0.45);
+        border: 1px solid var(--hud-border);
+      }
+
+      .lan-qr-box {
+        width: 132px;
+        height: 132px;
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 6px;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+      }
+
+      .lan-qr-box canvas {
+        width: 120px;
+        height: 120px;
+        image-rendering: pixelated;
+      }
+
+      .lan-room-code-big {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 1.7rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        color: #facc15;
+        margin: 2px 0 6px;
+      }
+
+      .lan-mini-btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+      }
+
+      .lan-mini-btn {
+        appearance: none;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--hud-border);
+        background: var(--hud-btn-bg);
+        color: var(--hud-btn-text);
+        font-size: 0.72rem;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .lan-mini-btn.is-accent {
+        border-color: rgba(52, 211, 153, 0.6);
+        background: rgba(16, 185, 129, 0.22);
+        color: #a7f3d0;
+      }
+
+      .lan-seats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .lan-seat-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 11px;
+        background: rgba(2, 6, 23, 0.42);
+        border: 1px solid var(--hud-border);
+      }
+
+      .lan-seat-card.is-human {
+        border-color: rgba(52, 211, 153, 0.55);
+      }
+
+      .lan-seat-av {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.76rem;
+        font-weight: 900;
+        color: #ffffff;
+        flex-shrink: 0;
+      }
+
+      .lan-seat-meta {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .lan-seat-meta strong {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--modal-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .lan-seat-meta span {
+        display: block;
+        font-size: 0.66rem;
+        color: var(--modal-sub);
+      }
+
+      .lan-seat-meta span.is-live {
+        color: #34d399;
+        font-weight: 800;
+      }
+
+      .lan-input-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(2, 6, 23, 0.4);
+        border: 1px solid var(--hud-border);
+      }
+
+      .lan-input-label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--modal-sub);
+      }
+
+      .lan-input-row {
+        display: flex;
+        gap: 6px;
+      }
+
+      .lan-text-input {
+        flex: 1;
+        min-width: 0;
+        height: 36px;
+        padding: 0 10px;
+        border-radius: 9px;
+        border: 1px solid var(--hud-border);
+        background: rgba(15, 23, 42, 0.82);
+        color: #f8fafc;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.76rem;
+      }
+
+      .lan-status-box {
+        padding: 9px 12px;
+        border-radius: 10px;
+        background: rgba(14, 116, 144, 0.22);
+        border: 1px solid rgba(56, 189, 248, 0.42);
+        color: #bae6fd;
+        font-size: 0.76rem;
+        line-height: 1.42;
+      }
+
+      .lan-status-box.is-ok {
+        background: rgba(6, 95, 70, 0.32);
+        border-color: rgba(52, 211, 153, 0.55);
+        color: #a7f3d0;
+      }
+
+      body.theme-light .mode-lan-cta {
+        background: linear-gradient(155deg, rgba(209, 250, 229, 0.92), rgba(224, 242, 254, 0.9));
+        border-color: rgba(16, 185, 129, 0.55);
+      }
+
+      body.theme-light .mode-lan-cta strong {
+        color: #047857;
+      }
+
+      body.theme-light .lan-tabs,
+      body.theme-light .lan-code-qr-row,
+      body.theme-light .lan-seat-card,
+      body.theme-light .lan-input-box {
+        background: rgba(241, 245, 249, 0.9);
+        border-color: rgba(148, 163, 184, 0.45);
+      }
+
+      body.theme-light .lan-tab-btn.is-active {
+        background: rgba(209, 250, 229, 0.95);
+        color: #065f46;
+      }
+
+      body.theme-light .lan-room-code-big {
+        color: #b45309;
+      }
+
+      body.theme-light .lan-text-input {
+        background: #ffffff;
+        color: #0f172a;
+      }
+
+      body.theme-light .lan-status-box {
+        background: rgba(224, 242, 254, 0.92);
+        color: #0369a1;
+      }
+
+      body.theme-light .lan-status-box.is-ok {
+        background: rgba(209, 250, 229, 0.95);
+        color: #065f46;
+      }
+
+      body.theme-light .lan-mini-btn.is-accent {
+        background: rgba(209, 250, 229, 0.95);
+        color: #065f46;
+      }
+
+      @media (max-width: 540px) {
+        .lan-code-qr-row {
+          grid-template-columns: 1fr;
+          justify-items: center;
+          text-align: center;
+        }
+        .lan-seats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
       /* ================= RESPONSIVE TABLET & LANDSCAPE / PORTRAIT MOBILE ================= */
       @media (max-width: 900px) {
         .arena-main {
@@ -1766,12 +2120,16 @@
             </svg>
             <span id="chest-timer">00:00:00</span>
           </button>
+          <button type="button" class="lan-hud-badge" id="lan-hud-badge" title="Yerel Ağ (Wi-Fi / Hotspot) Odası">
+            <span class="lan-hud-dot"></span>
+            <span id="lan-hud-text">WI-FI · ----</span>
+          </button>
         </div>
 
         <!-- TOP OPPONENT PLAYER BAR (Seat 2) -->
         <div class="player-top-bar" id="pbar-2">
           <div class="turn-fill" id="ptimer-2"></div>
-          <div class="player-avatar" style="background:linear-gradient(135deg,#0284c7,#0369a1)">S</div>
+          <div class="player-avatar" id="pavatar-2" style="background:linear-gradient(135deg,#0284c7,#0369a1)">S</div>
           <span class="player-name" id="pname-2">Selin K.</span>
           <span class="player-tile-ct" id="pcount-2">21</span>
         </div>
@@ -1823,7 +2181,7 @@
 
           <div class="player-side-bar" id="pbar-3">
             <div class="turn-fill" id="ptimer-3"></div>
-            <div class="player-avatar" style="background:linear-gradient(135deg,#d97706,#92400e)">C</div>
+            <div class="player-avatar" id="pavatar-3" style="background:linear-gradient(135deg,#d97706,#92400e)">C</div>
             <span class="side-name-vert" id="pname-3">Cüneyt C.</span>
             <span class="side-tile-count" id="pcount-3">21</span>
           </div>
@@ -1907,7 +2265,7 @@
 
           <div class="player-side-bar" id="pbar-1">
             <div class="turn-fill" id="ptimer-1"></div>
-            <div class="player-avatar" style="background:linear-gradient(135deg,#be123c,#881337)">M</div>
+            <div class="player-avatar" id="pavatar-1" style="background:linear-gradient(135deg,#be123c,#881337)">M</div>
             <span class="side-name-vert" id="pname-1">Mert A.</span>
             <span class="side-tile-count" id="pcount-1">21</span>
           </div>
@@ -1977,8 +2335,119 @@
           </button>
         </div>
 
+        <button type="button" class="mode-lan-cta" id="btn-mode-lan">
+          <span>
+            <strong>Yerel Ağda Çok Oyunculu (Wi-Fi / Hotspot)</strong>
+            <small>Sunucusuz Oda Kodu &amp; QR Kod ile arkadaşlarınla canlı 101 Okey oyna</small>
+          </span>
+          <span class="lan-pill-tag">P2P YENİ</span>
+        </button>
+
         <div class="modal-actions">
           <a href="./index.html" class="cta-btn secondary" id="btn-mode-back">Ana Menüye Dön</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVERLESS LAN (WI-FI / HOTSPOT) P2P LOBBY MODAL -->
+    <div class="modal-backdrop" id="lan-modal" role="dialog" aria-modal="true" aria-labelledby="lan-modal-title">
+      <div class="modal-card lan-modal-card">
+        <div class="modal-kicker">SUNUCUSUZ YEREL AĞ · WI-FI / HOTSPOT P2P</div>
+        <h2 class="modal-title" id="lan-modal-title">101 Okey Yerel Ağ Lobisi</h2>
+
+        <div class="lan-tabs" role="tablist">
+          <button type="button" class="lan-tab-btn is-active" id="lan-tab-host" role="tab" aria-selected="true">
+            Oda Kur (Kurucu)
+          </button>
+          <button type="button" class="lan-tab-btn" id="lan-tab-join" role="tab" aria-selected="false">
+            Odaya Katıl (Misafir)
+          </button>
+        </div>
+
+        <!-- HOST PANEL -->
+        <div class="lan-panel is-active" id="lan-host-panel">
+          <div class="lan-code-qr-row">
+            <div class="lan-qr-box" title="Oda Davet QR Kodu">
+              <canvas id="lan-host-qr" width="120" height="120"></canvas>
+            </div>
+            <div>
+              <div class="lan-input-label">Oda Kodu (Aynı Wi-Fi / Hotspot)</div>
+              <div class="lan-room-code-big" id="lan-room-code">----</div>
+              <div style="font-size:0.74rem;color:var(--modal-sub)">
+                Arkadaşın aynı Wi-Fi/Hotspot'ta oda kodunu girerek veya QR/P2P davet kodunu okutarak doğrudan bağlanabilir.
+              </div>
+              <div class="lan-mini-btn-row">
+                <button type="button" class="lan-mini-btn is-accent" id="btn-lan-copy-room">Oda Kodunu Kopyala</button>
+                <button type="button" class="lan-mini-btn" id="btn-lan-copy-offer">P2P Davet Kodu</button>
+                <button type="button" class="lan-mini-btn" id="btn-lan-toggle-mode">Mod: Katlamalı</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="lan-input-label">Masa Koltukları (Eksik Koltuklar Otomatik Botla Dolar)</div>
+          <div class="lan-seats-grid" id="lan-host-seats"></div>
+
+          <div class="lan-input-box">
+            <span class="lan-input-label">Farklı Cihaz P2P Yanıt Kodu (WebRTC El Sıkışma)</span>
+            <div class="lan-input-row">
+              <input type="text" class="lan-text-input" id="lan-host-answer-input" placeholder="Misafir ANS1-... yanıt kodunu yapıştır" />
+              <button type="button" class="lan-mini-btn is-accent" id="btn-lan-accept-answer">Bağla</button>
+            </div>
+          </div>
+
+          <div class="lan-status-box" id="lan-host-status">
+            Oda hazır! Misafirler bağlandığında koltuklarda görünecek. Dilediğin an masayı başlatabilirsin.
+          </div>
+
+          <div class="modal-actions" style="justify-content:stretch">
+            <button type="button" class="cta-btn" id="btn-lan-start-match" style="flex:1">
+              Masayı Başlat (Botlarla Tamamla)
+            </button>
+            <button type="button" class="cta-btn secondary" id="btn-lan-close-host">Geri</button>
+          </div>
+        </div>
+
+        <!-- GUEST PANEL -->
+        <div class="lan-panel" id="lan-join-panel">
+          <div class="lan-input-box">
+            <span class="lan-input-label">1. Hızlı Oda Koduyla Bağlan (Aynı Ağ / Tarayıcı)</span>
+            <div class="lan-input-row">
+              <input type="text" class="lan-text-input" id="lan-join-room-input" maxlength="8" placeholder="Oda Kodu (Örn: A7K4)" />
+              <button type="button" class="lan-mini-btn is-accent" id="btn-lan-join-code">Odaya Bağlan</button>
+            </div>
+          </div>
+
+          <div class="lan-input-box">
+            <span class="lan-input-label">2. Cihazlar Arası P2P / QR Davet Koduyla Bağlan</span>
+            <div class="lan-input-row">
+              <input type="text" class="lan-text-input" id="lan-join-offer-input" placeholder="Kurucunun OKEY1-... davet kodunu yapıştır" />
+              <button type="button" class="lan-mini-btn" id="btn-lan-scan-qr">QR Tara</button>
+              <button type="button" class="lan-mini-btn is-accent" id="btn-lan-process-offer">Yanıt Üret</button>
+            </div>
+          </div>
+
+          <div class="lan-code-qr-row" id="lan-guest-answer-area" style="display:none">
+            <div class="lan-qr-box" title="Misafir Yanıt QR Kodu">
+              <canvas id="lan-guest-qr" width="120" height="120"></canvas>
+            </div>
+            <div>
+              <div class="lan-input-label">Kurucuya İletilecek Yanıt Kodu</div>
+              <div style="font-size:0.74rem;color:var(--modal-sub);margin:4px 0 8px">
+                Bu yanıt kodunu kurucu cihaza gönderdiğinde doğrudan Wi-Fi / Hotspot P2P bağlantısı açılır.
+              </div>
+              <button type="button" class="lan-mini-btn is-accent" id="btn-lan-copy-answer">Yanıt Kodunu Kopyala</button>
+            </div>
+          </div>
+
+          <div class="lan-status-box" id="lan-guest-status">
+            Kurucunun Oda Kodunu veya P2P/QR Davet Kodunu girerek masaya katıl.
+          </div>
+
+          <div class="lan-seats-grid" id="lan-guest-seats"></div>
+
+          <div class="modal-actions">
+            <button type="button" class="cta-btn secondary" id="btn-lan-close-join">Geri</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2418,12 +2887,32 @@
           sideTakenFromSlot: null,
           botTimer: null,
           players: [
-            { id: 0, name: profile.name, isBot: false, gold: profile.chips, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, rack: new Array(RACK_SLOTS).fill(null) },
-            { id: 1, name: 'Mert A.', isBot: true, gold: 25000, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
-            { id: 2, name: 'Selin K.', isBot: true, gold: 28500, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
-            { id: 3, name: 'Cüneyt C.', isBot: true, gold: 22000, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
+            { id: 0, name: profile.name, avatarText: profile.avatarText, avatarBg: profile.avatarBg, isBot: false, gold: profile.chips, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, rack: new Array(RACK_SLOTS).fill(null) },
+            { id: 1, name: 'Mert A.', avatarText: 'M', avatarBg: 'linear-gradient(135deg,#be123c,#881337)', isBot: true, gold: 25000, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
+            { id: 2, name: 'Selin K.', avatarText: 'S', avatarBg: 'linear-gradient(135deg,#0284c7,#0369a1)', isBot: true, gold: 28500, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
+            { id: 3, name: 'Cüneyt C.', avatarText: 'C', avatarBg: 'linear-gradient(135deg,#d97706,#92400e)', isBot: true, gold: 22000, hasOpened: false, openedMode: null, openedScore: 0, totalPenalty: 0, hand: [] },
           ],
         };
+
+        const DEFAULT_BOT_ROSTER = [
+          null,
+          { name: 'Mert A.', avatarText: 'M', avatarBg: 'linear-gradient(135deg,#be123c,#881337)', gold: 25000 },
+          { name: 'Selin K.', avatarText: 'S', avatarBg: 'linear-gradient(135deg,#0284c7,#0369a1)', gold: 28500 },
+          { name: 'Cüneyt C.', avatarText: 'C', avatarBg: 'linear-gradient(135deg,#d97706,#92400e)', gold: 22000 },
+        ];
+
+        function syncSeatHeadersUI() {
+          for (let i = 0; i < 4; i++) {
+            const p = game.players[i];
+            const nameEl = document.getElementById(`pname-${i}`);
+            const avEl = document.getElementById(`pavatar-${i}`);
+            if (nameEl && p) nameEl.textContent = p.name;
+            if (avEl && p) {
+              avEl.textContent = p.avatarText || (p.name ? p.name.charAt(0).toUpperCase() : 'O');
+              if (p.avatarBg) avEl.style.background = p.avatarBg;
+            }
+          }
+        }
 
         let nextTileId = 1;
         let nextMeldId = 1;
@@ -3366,6 +3855,10 @@
 
         function humanDrawFromDeck() {
           if (!game.modeChosen || game.turn !== 0 || game.phase !== 'draw') return;
+          if (lanState.active && lanState.role === 'guest') {
+            sendLanToHost({ type: 'ACT_DRAW_DECK' });
+            return;
+          }
           if (game.deck.length === 0) {
             finishRound(-1, 'Deste tükendi!');
             return;
@@ -3389,10 +3882,16 @@
 
           const slotEl = rackRowsEl.querySelector(`[data-slot="${emptySlot}"]`);
           animateFlyingTile(document.getElementById('btn-draw-deck'), slotEl, tile, false, 240);
+          broadcastLanState(null, 'clack');
         }
 
         function humanTakeLeftDiscard() {
           if (!game.modeChosen || game.turn !== 0 || game.phase !== 'draw') return;
+          if (lanState.active && lanState.role === 'guest') {
+            if (game.discards[3].length === 0) return;
+            sendLanToHost({ type: 'ACT_TAKE_SIDE' });
+            return;
+          }
           const pile = game.discards[3];
           if (pile.length === 0) return;
           const emptySlot = findFirstEmptyRackSlot();
@@ -3415,10 +3914,15 @@
           const slotEl = rackRowsEl.querySelector(`[data-slot="${emptySlot}"]`);
           animateFlyingTile(document.getElementById('discard-slot-3'), slotEl, tile, false, 250);
           showToast('Yandan taş alındı. El açmazsan iade edip desteden çekebilirsin.');
+          broadcastLanState(`${game.players[0].name} yandan taş aldı.`, 'clack');
         }
 
         function humanReturnSideTile() {
           if (!game.sideTakenTileId || game.turn !== 0 || game.phase !== 'play') return;
+          if (lanState.active && lanState.role === 'guest') {
+            sendLanToHost({ type: 'ACT_RETURN_SIDE' });
+            return;
+          }
           const rack = game.players[0].rack;
           const idx = rack.findIndex((t) => t && t.id === game.sideTakenTileId);
           if (idx === -1) return;
@@ -3436,12 +3940,33 @@
           renderRack();
           updateLiveScoreAndButtons();
           showToast('Yan taş iade edildi, ortadaki desteden taş çek.');
+          broadcastLanState(null, 'clack');
         }
 
         function humanOpenHand() {
           if (!game.modeChosen || game.turn !== 0 || game.phase !== 'play') return;
           const analysis = analyzeHumanRack();
           const human = game.players[0];
+
+          if (lanState.active && lanState.role === 'guest') {
+            if (analysis.canOpenSeries) {
+              sendLanToHost({
+                type: 'ACT_OPEN',
+                mode: 'series',
+                groups: analysis.seriesMelds.map((m) => m.tiles.map((t) => t.id)),
+              });
+            } else if (analysis.canOpenPairs) {
+              sendLanToHost({
+                type: 'ACT_OPEN',
+                mode: 'pairs',
+                groups: analysis.pairMelds.map((p) => p.tiles.map((t) => t.id)),
+              });
+            } else {
+              sound.playError();
+              showToast(`El açmak için en az ${analysis.reqSeries} puan veya ${analysis.reqPairs} çift gerekli!`, 'error');
+            }
+            return;
+          }
 
           if (analysis.canOpenSeries) {
             for (const m of analysis.seriesMelds) {
@@ -3467,6 +3992,7 @@
             game.selectedSlot = null;
             sound.playOpenFanfare();
             showToast(`Harika! ${analysis.totalSeriesScore} puanla el açtın!`, 'success');
+            broadcastLanState(`${human.name} ${analysis.totalSeriesScore} puanla el açtı!`, 'open');
           } else if (analysis.canOpenPairs) {
             for (const p of analysis.pairMelds) {
               const firstSlotEl = rackRowsEl.querySelector(`[data-slot="${p.slots[0]}"]`);
@@ -3490,6 +4016,7 @@
             game.selectedSlot = null;
             sound.playOpenFanfare();
             showToast(`Süper! ${analysis.totalPairs} çiftle el açtın!`, 'success');
+            broadcastLanState(`${human.name} ${analysis.totalPairs} çiftle el açtı!`, 'open');
           } else {
             sound.playError();
             showToast(`El açmak için en az ${analysis.reqSeries} puan veya ${analysis.reqPairs} çift gerekli!`, 'error');
@@ -3523,6 +4050,12 @@
             return;
           }
 
+          if (lanState.active && lanState.role === 'guest') {
+            game.selectedSlot = null;
+            sendLanToHost({ type: 'ACT_LAYOFF', tileId: tile.id, meldId });
+            return;
+          }
+
           const fromEl = rackRowsEl.querySelector(`[data-slot="${slotIdx}"]`);
           if (res.position === 'start') meld.tiles.unshift(tile);
           else meld.tiles.push(tile);
@@ -3535,6 +4068,7 @@
           renderOpenBoards();
           updateLiveScoreAndButtons();
           showToast('Taş masadaki pere işlendi!', 'success');
+          broadcastLanState(`${game.players[0].name} masaya taş işledi!`, 'clack');
         }
 
         function humanDiscardFromSlot(slotIdx) {
@@ -3547,6 +4081,12 @@
           if (game.sideTakenTileId && !game.players[0].hasOpened) {
             sound.playError();
             showToast('Yandan taş aldın! El aç veya "Yandan İade Et" butonuna bas.', 'error');
+            return;
+          }
+
+          if (lanState.active && lanState.role === 'guest') {
+            game.selectedSlot = null;
+            sendLanToHost({ type: 'ACT_DISCARD', tileId: tile.id });
             return;
           }
 
@@ -3576,20 +4116,29 @@
          * ========================================================================= */
         function advanceTurn() {
           if (game.phase === 'ended') return;
+          if (lanState.active && lanState.role === 'guest') return;
           if (game.deck.length === 0) {
             finishRound(-1, 'Ortadaki taş destesi bitti!');
             return;
           }
           game.turn = (game.turn + 1) % 4;
           game.turnTimeLeft = TURN_SEC;
-          game.phase = game.turn === 0 ? 'draw' : 'bot';
+          const nextPlayer = game.players[game.turn];
+          if (game.turn === 0) {
+            game.phase = 'draw';
+          } else if (lanState.active && !nextPlayer.isBot) {
+            game.phase = 'remote_draw';
+          } else {
+            game.phase = 'bot';
+          }
 
           renderIndicatorAndDeck();
           renderDiscards();
           renderOpenBoards();
           updateLiveScoreAndButtons();
+          broadcastLanState(null, 'clack');
 
-          if (game.turn !== 0) {
+          if (game.turn !== 0 && nextPlayer.isBot) {
             scheduleBotTurn();
           }
         }
@@ -3872,6 +4421,26 @@
 
           if (humanPlace === 1 || didRankUp) sound.playOpenFanfare();
           document.getElementById('round-modal').classList.add('open');
+
+          // Broadcast authoritative ranking & rewards to all connected LAN guests
+          if (lanState.active && lanState.role === 'host') {
+            const rankings = entries.map((e) => ({
+              globalSeat: e.seat,
+              place: e.place,
+              name: e.player.name,
+              roundPen: e.roundPen,
+              totalPen: e.totalPen,
+              goldDelta: e.goldDelta,
+              xpDelta: e.xpDelta,
+              newGold: e.player.gold,
+            }));
+            broadcastLanRoundEnd({
+              round: game.round,
+              winnerSeat,
+              subtitle,
+              rankings,
+            });
+          }
         }
 
         function startNewRound() {
@@ -3915,16 +4484,28 @@
           });
 
           game.turn = starter;
-          game.phase = starter === 0 ? 'play' : 'bot';
+          const starterPlayer = game.players[starter];
+          if (starter === 0) {
+            game.phase = 'play';
+          } else if (lanState.active && !starterPlayer.isBot) {
+            game.phase = 'remote_play';
+          } else {
+            game.phase = 'bot';
+          }
 
           document.getElementById('round-modal').classList.remove('open');
+          syncSeatHeadersUI();
           renderIndicatorAndDeck();
           renderDiscards();
           renderOpenBoards();
           renderRack(true);
           updateLiveScoreAndButtons();
 
-          if (game.modeChosen && game.turn !== 0) {
+          if (lanState.active && lanState.role === 'host' && game.modeChosen) {
+            broadcastLanState(`Yeni el başladı (${game.round}/${MAX_ROUNDS})!`, 'open');
+          }
+
+          if (game.modeChosen && game.turn !== 0 && starterPlayer.isBot) {
             scheduleBotTurn();
           }
         }
@@ -3960,6 +4541,22 @@
                 const anyIdx = firstIdx !== -1 ? firstIdx : game.players[0].rack.findIndex(Boolean);
                 if (anyIdx !== -1) humanDiscardFromSlot(anyIdx);
               }
+            } else if (
+              lanState.active &&
+              lanState.role === 'host' &&
+              game.turn !== 0 &&
+              !game.players[game.turn].isBot &&
+              game.turnTimeLeft <= 0
+            ) {
+              // Auto-play timed-out remote guest turn so the LAN match never stalls
+              if (game.phase === 'remote_draw') {
+                executeBotTurn();
+              } else if (game.phase === 'remote_play') {
+                const p = game.players[game.turn];
+                if (p && p.hand.length > 0) {
+                  handleRemoteGuestAction(game.turn, { type: 'ACT_DISCARD', tileId: p.hand[0].id });
+                }
+              }
             }
           }
 
@@ -3967,7 +4564,1316 @@
         }
 
         /* =========================================================================
-         * 12. EVENT LISTENERS
+         * 12. SERVERLESS LAN (WI-FI / HOTSPOT) P2P ENGINE & PURE-JS QR ENCODER
+         * ========================================================================= */
+        const QR_EC_L = [
+          null,
+          [26, 7, 1, 19, 0, 0],
+          [44, 10, 1, 34, 0, 0],
+          [70, 15, 1, 55, 0, 0],
+          [100, 20, 1, 80, 0, 0],
+          [134, 26, 1, 108, 0, 0],
+          [172, 18, 2, 68, 0, 0],
+          [196, 20, 2, 78, 0, 0],
+          [242, 24, 2, 97, 0, 0],
+          [292, 30, 2, 116, 0, 0],
+          [346, 18, 2, 68, 2, 69],
+          [404, 20, 4, 81, 0, 0],
+          [466, 24, 2, 92, 2, 93],
+          [532, 26, 4, 107, 0, 0],
+          [581, 30, 3, 115, 1, 116],
+        ];
+        const QR_ALIGN = [
+          [],
+          [],
+          [6, 18],
+          [6, 22],
+          [6, 26],
+          [6, 30],
+          [6, 34],
+          [6, 22, 38],
+          [6, 24, 42],
+          [6, 26, 46],
+          [6, 28, 50],
+          [6, 30, 54],
+          [6, 32, 58],
+          [6, 34, 62],
+          [6, 26, 46, 66],
+        ];
+
+        function gfMul(a, b) {
+          let r = 0;
+          for (let i = 0; i < 8; i++) {
+            if (b & 1) r ^= a;
+            const hi = a & 0x80;
+            a = (a << 1) & 0xff;
+            if (hi) a ^= 0x1d;
+            b >>= 1;
+          }
+          return r;
+        }
+
+        function rsRemainder(data, ecLen) {
+          let gen = [1];
+          let root = 1;
+          for (let i = 0; i < ecLen; i++) {
+            const next = new Array(gen.length + 1).fill(0);
+            for (let j = 0; j < gen.length; j++) {
+              next[j] ^= gen[j];
+              next[j + 1] ^= gfMul(gen[j], root);
+            }
+            gen = next;
+            root = gfMul(root, 2);
+          }
+          const rem = new Array(ecLen).fill(0);
+          for (let i = 0; i < data.length; i++) {
+            const factor = data[i] ^ rem.shift();
+            rem.push(0);
+            for (let j = 0; j < ecLen; j++) {
+              rem[j] ^= gfMul(gen[j + 1], factor);
+            }
+          }
+          return rem;
+        }
+
+        function generateQrMatrix(text) {
+          const bytes = Array.from(new TextEncoder().encode(String(text || 'OKEY101')));
+          let ver = 1;
+          for (let v = 1; v < QR_EC_L.length; v++) {
+            const info = QR_EC_L[v];
+            const cap = info[2] * info[3] + info[4] * info[5];
+            const overhead = v >= 10 ? 3 : 2;
+            if (bytes.length + overhead <= cap) {
+              ver = v;
+              break;
+            }
+            ver = v;
+          }
+          const info = QR_EC_L[ver];
+          const ecLen = info[1];
+          const dataCap = info[2] * info[3] + info[4] * info[5];
+          const trimmed = bytes.slice(0, Math.max(1, dataCap - (ver >= 10 ? 3 : 2)));
+
+          const bits = [];
+          const pushBits = (val, len) => {
+            for (let i = len - 1; i >= 0; i--) bits.push((val >> i) & 1);
+          };
+          pushBits(0b0100, 4); // Byte mode
+          pushBits(trimmed.length, ver >= 10 ? 16 : 8);
+          trimmed.forEach((b) => pushBits(b, 8));
+          const maxBits = dataCap * 8;
+          for (let i = 0; i < 4 && bits.length < maxBits; i++) bits.push(0);
+          while (bits.length % 8 !== 0) bits.push(0);
+          const dataBytes = [];
+          for (let i = 0; i < bits.length; i += 8) {
+            let b = 0;
+            for (let j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+            dataBytes.push(b);
+          }
+          const padBytes = [0xec, 0x11];
+          let padIdx = 0;
+          while (dataBytes.length < dataCap) {
+            dataBytes.push(padBytes[padIdx % 2]);
+            padIdx++;
+          }
+
+          const blocks = [];
+          const ecs = [];
+          let offset = 0;
+          for (let b = 0; b < info[2]; b++) {
+            const slice = dataBytes.slice(offset, offset + info[3]);
+            offset += info[3];
+            blocks.push(slice);
+            ecs.push(rsRemainder(slice, ecLen));
+          }
+          for (let b = 0; b < info[4]; b++) {
+            const slice = dataBytes.slice(offset, offset + info[5]);
+            offset += info[5];
+            blocks.push(slice);
+            ecs.push(rsRemainder(slice, ecLen));
+          }
+
+          const codewords = [];
+          const maxBlockLen = Math.max(...blocks.map((b) => b.length));
+          for (let i = 0; i < maxBlockLen; i++) {
+            blocks.forEach((blk) => {
+              if (i < blk.length) codewords.push(blk[i]);
+            });
+          }
+          for (let i = 0; i < ecLen; i++) {
+            ecs.forEach((ec) => codewords.push(ec[i]));
+          }
+
+          const size = ver * 4 + 17;
+          const mat = Array.from({ length: size }, () => new Array(size).fill(0));
+          const fn = Array.from({ length: size }, () => new Array(size).fill(false));
+          const setFn = (r, c, v) => {
+            if (r >= 0 && r < size && c >= 0 && c < size) {
+              mat[r][c] = v ? 1 : 0;
+              fn[r][c] = true;
+            }
+          };
+
+          const drawFinder = (r0, c0) => {
+            for (let dr = -1; dr <= 7; dr++) {
+              for (let dc = -1; dc <= 7; dc++) {
+                const r = r0 + dr;
+                const c = c0 + dc;
+                if (r < 0 || r >= size || c < 0 || c >= size) continue;
+                const inside = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6;
+                const dark =
+                  inside &&
+                  (dr === 0 || dr === 6 || dc === 0 || dc === 6 || (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4));
+                setFn(r, c, dark);
+              }
+            }
+          };
+          drawFinder(0, 0);
+          drawFinder(0, size - 7);
+          drawFinder(size - 7, 0);
+
+          const aligns = QR_ALIGN[ver] || [];
+          for (const ar of aligns) {
+            for (const ac of aligns) {
+              if (fn[ar][ac]) continue;
+              for (let dr = -2; dr <= 2; dr++) {
+                for (let dc = -2; dc <= 2; dc++) {
+                  const dark = Math.max(Math.abs(dr), Math.abs(dc)) !== 1;
+                  setFn(ar + dr, ac + dc, dark);
+                }
+              }
+            }
+          }
+
+          for (let i = 8; i < size - 8; i++) {
+            if (!fn[6][i]) setFn(6, i, i % 2 === 0);
+            if (!fn[i][6]) setFn(i, 6, i % 2 === 0);
+          }
+          setFn(size - 8, 8, true);
+
+          // Reserve format info areas (EC-L = 01, Mask 0 = 000 -> format bits 0x77c4)
+          const fmtBits = 0x77c4;
+          for (let i = 0; i <= 5; i++) setFn(8, i, (fmtBits >> (14 - i)) & 1);
+          setFn(8, 7, (fmtBits >> 8) & 1);
+          setFn(8, 8, (fmtBits >> 7) & 1);
+          setFn(7, 8, (fmtBits >> 6) & 1);
+          for (let i = 0; i < 6; i++) setFn(5 - i, 8, (fmtBits >> (5 - i)) & 1);
+          for (let i = 0; i < 7; i++) setFn(size - 1 - i, 8, (fmtBits >> (14 - i)) & 1);
+          for (let i = 0; i < 8; i++) setFn(8, size - 8 + i, (fmtBits >> (7 - i)) & 1);
+
+          // Reserve version info for ver >= 7
+          if (ver >= 7) {
+            let vData = ver;
+            let rem = vData << 12;
+            for (let i = 5; i >= 0; i--) {
+              if ((rem >> (i + 12)) & 1) rem ^= 0x1f25 << i;
+            }
+            const vBits = (vData << 12) | rem;
+            for (let i = 0; i < 18; i++) {
+              const bit = (vBits >> i) & 1;
+              const r = Math.floor(i / 3);
+              const c = size - 11 + (i % 3);
+              setFn(r, c, bit);
+              setFn(c, r, bit);
+            }
+          }
+
+          // Place data bits with Mask 0 ((r + c) % 2 === 0)
+          const allBits = [];
+          codewords.forEach((cw) => {
+            for (let i = 7; i >= 0; i--) allBits.push((cw >> i) & 1);
+          });
+          let bitIdx = 0;
+          let up = true;
+          for (let col = size - 1; col >= 1; col -= 2) {
+            if (col === 6) col--;
+            for (let step = 0; step < size; step++) {
+              const r = up ? size - 1 - step : step;
+              for (let dc = 0; dc < 2; dc++) {
+                const c = col - dc;
+                if (fn[r][c]) continue;
+                const bit = bitIdx < allBits.length ? allBits[bitIdx++] : 0;
+                const masked = (r + c) % 2 === 0 ? bit ^ 1 : bit;
+                mat[r][c] = masked;
+              }
+            }
+            up = !up;
+          }
+          return mat;
+        }
+
+        function drawQrCodeToCanvas(canvasEl, text) {
+          if (!canvasEl) return;
+          const ctx = canvasEl.getContext('2d');
+          if (!ctx) return;
+          const mat = generateQrMatrix(text);
+          const n = mat.length;
+          const quiet = 2;
+          const total = n + quiet * 2;
+          const w = canvasEl.width;
+          const h = canvasEl.height;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          const cell = w / total;
+          ctx.fillStyle = '#0f172a';
+          for (let r = 0; r < n; r++) {
+            for (let c = 0; c < n; c++) {
+              if (mat[r][c]) {
+                ctx.fillRect(Math.floor((c + quiet) * cell), Math.floor((r + quiet) * cell), Math.ceil(cell), Math.ceil(cell));
+              }
+            }
+          }
+        }
+
+        function toBase64Url(str) {
+          const bytes = new TextEncoder().encode(str);
+          let bin = '';
+          bytes.forEach((b) => (bin += String.fromCharCode(b)));
+          return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function fromBase64Url(b64) {
+          const norm = b64.replace(/-/g, '+').replace(/_/g, '/');
+          const pad = norm.length % 4 === 0 ? '' : '='.repeat(4 - (norm.length % 4));
+          const bin = atob(norm + pad);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          return new TextDecoder().decode(bytes);
+        }
+
+        function compactSdp(sdp) {
+          const ufrag = (sdp.match(/a=ice-ufrag:([^\r\n]+)/) || [])[1] || '';
+          const pwd = (sdp.match(/a=ice-pwd:([^\r\n]+)/) || [])[1] || '';
+          const fp = (sdp.match(/a=fingerprint:sha-256 ([^\r\n]+)/) || [])[1] || '';
+          const cands = [];
+          const candRe = /a=candidate:\S+ 1 udp \d+ ([0-9a-zA-Z.:-]+) (\d+) typ host/g;
+          let m;
+          while ((m = candRe.exec(sdp)) !== null && cands.length < 3) {
+            cands.push(`${m[1]}:${m[2]}`);
+          }
+          return { u: ufrag, p: pwd, f: fp, c: cands };
+        }
+
+        function expandSdp(data, isOffer) {
+          const setup = isOffer ? 'actpass' : 'active';
+          const candLines = (data.c || [])
+            .map((hp, i) => {
+              const lastColon = hp.lastIndexOf(':');
+              const ip = hp.slice(0, lastColon);
+              const port = hp.slice(lastColon + 1);
+              return `a=candidate:${i + 1} 1 udp ${2122260223 - i * 10} ${ip} ${port} typ host`;
+            })
+            .join('\r\n');
+          return [
+            'v=0',
+            'o=- 101 2 IN IP4 127.0.0.1',
+            's=-',
+            't=0 0',
+            'a=group:BUNDLE 0',
+            'm=application 9 UDP/DTLS/SCTP webrtc-datachannel',
+            'c=IN IP4 0.0.0.0',
+            `a=ice-ufrag:${data.u}`,
+            `a=ice-pwd:${data.p}`,
+            `a=fingerprint:sha-256 ${data.f}`,
+            `a=setup:${setup}`,
+            'a=mid:0',
+            'a=sctp-port:5000',
+            candLines,
+            '',
+          ]
+            .filter(Boolean)
+            .join('\r\n') + '\r\n';
+        }
+
+        const lanState = {
+          active: false,
+          role: null, // 'host' | 'guest'
+          roomCode: '',
+          mySeat: 0,
+          peerId: 'p_' + Math.random().toString(36).slice(2, 9),
+          bc: null,
+          hostPeers: new Map(), // peerId -> { seat, name, avatarText, avatarBg, gold, via: 'bc'|'rtc', pc?, dc? }
+          pendingOfferPc: null,
+          pendingOfferDc: null,
+          currentOfferToken: '',
+          guestPc: null,
+          guestDc: null,
+          guestAnswerToken: '',
+          connectedToHost: false,
+          lobbySeats: [null, null, null, null],
+        };
+
+        function generateRoomCode() {
+          const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+          let c = '';
+          for (let i = 0; i < 4; i++) c += chars[Math.floor(Math.random() * chars.length)];
+          return c;
+        }
+
+        function updateLanHudBadge() {
+          const badge = document.getElementById('lan-hud-badge');
+          const txt = document.getElementById('lan-hud-text');
+          if (!badge || !txt) return;
+          if (lanState.active && lanState.roomCode) {
+            badge.classList.add('visible');
+            const humans = game.players.filter((p) => !p.isBot).length;
+            txt.textContent = `WI-FI · ${lanState.roomCode} (${humans}/4)`;
+          } else {
+            badge.classList.remove('visible');
+          }
+        }
+
+        function renderLanSeatsUI(containerId, seatsArr) {
+          const el = document.getElementById(containerId);
+          if (!el) return;
+          el.textContent = '';
+          for (let i = 0; i < 4; i++) {
+            const s = seatsArr[i];
+            const botDef = DEFAULT_BOT_ROSTER[i];
+            const card = document.createElement('div');
+            card.className = 'lan-seat-card' + (s ? ' is-human' : '');
+
+            const av = document.createElement('div');
+            av.className = 'lan-seat-av';
+            av.textContent = s ? s.avatarText || 'O' : botDef ? botDef.avatarText : 'B';
+            av.style.background = s ? s.avatarBg || 'linear-gradient(135deg,#0f766e,#115e59)' : botDef ? botDef.avatarBg : '#475569';
+            card.appendChild(av);
+
+            const meta = document.createElement('div');
+            meta.className = 'lan-seat-meta';
+            const strong = document.createElement('strong');
+            strong.textContent = s ? s.name : `${botDef ? botDef.name : 'Bot ' + i} (Bot)`;
+            const sub = document.createElement('span');
+            if (s) {
+              sub.className = 'is-live';
+              sub.textContent = i === 0 ? 'KURUCU · HAZIR' : `BAĞLI · P2P (${s.via === 'rtc' ? 'WebRTC' : 'Wi-Fi'})`;
+            } else {
+              sub.textContent = 'Boş Koltuk → Otomatik Bot';
+            }
+            meta.appendChild(strong);
+            meta.appendChild(sub);
+            card.appendChild(meta);
+            el.appendChild(card);
+          }
+        }
+
+        function cleanupLanConnections() {
+          if (lanState.bc) {
+            try {
+              lanState.bc.close();
+            } catch (_) {}
+            lanState.bc = null;
+          }
+          lanState.hostPeers.forEach((p) => {
+            try {
+              if (p.dc) p.dc.close();
+              if (p.pc) p.pc.close();
+            } catch (_) {}
+          });
+          lanState.hostPeers.clear();
+          if (lanState.pendingOfferPc) {
+            try {
+              lanState.pendingOfferPc.close();
+            } catch (_) {}
+            lanState.pendingOfferPc = null;
+            lanState.pendingOfferDc = null;
+          }
+          if (lanState.guestPc) {
+            try {
+              lanState.guestPc.close();
+            } catch (_) {}
+            lanState.guestPc = null;
+            lanState.guestDc = null;
+          }
+          lanState.connectedToHost = false;
+          lanState.currentOfferToken = '';
+          lanState.guestAnswerToken = '';
+        }
+
+        function buildHostRosterSnapshot() {
+          const arr = [
+            {
+              seat: 0,
+              name: profile.name,
+              avatarText: profile.avatarText,
+              avatarBg: profile.avatarBg,
+              gold: profile.chips,
+              via: 'host',
+            },
+            null,
+            null,
+            null,
+          ];
+          lanState.hostPeers.forEach((p) => {
+            if (p.seat >= 1 && p.seat <= 3) {
+              arr[p.seat] = {
+                seat: p.seat,
+                name: p.name,
+                avatarText: p.avatarText,
+                avatarBg: p.avatarBg,
+                gold: p.gold,
+                via: p.via,
+              };
+            }
+          });
+          lanState.lobbySeats = arr;
+          return arr;
+        }
+
+        function sendToSpecificPeer(peer, payload) {
+          const packet = { ...payload, roomCode: lanState.roomCode, targetPeerId: peer.peerId, fromHost: true };
+          if (peer.via === 'rtc' && peer.dc && peer.dc.readyState === 'open') {
+            try {
+              peer.dc.send(JSON.stringify(packet));
+            } catch (_) {}
+          } else if (lanState.bc) {
+            try {
+              lanState.bc.postMessage(packet);
+            } catch (_) {}
+          }
+        }
+
+        function broadcastHostRoster() {
+          const roster = buildHostRosterSnapshot();
+          renderLanSeatsUI('lan-host-seats', roster);
+          lanState.hostPeers.forEach((peer) => {
+            sendToSpecificPeer(peer, {
+              type: 'LOBBY_ROSTER',
+              assignedSeat: peer.seat,
+              katlamali: game.katlamali,
+              roster,
+            });
+          });
+          updateLanHudBadge();
+        }
+
+        function assignSeatForGuest(peerId, info, via, pc, dc) {
+          if (lanState.hostPeers.has(peerId)) {
+            const existing = lanState.hostPeers.get(peerId);
+            existing.name = info.name || existing.name;
+            broadcastHostRoster();
+            return existing.seat;
+          }
+          const used = new Set([0]);
+          lanState.hostPeers.forEach((p) => used.add(p.seat));
+          let freeSeat = -1;
+          for (let s = 1; s <= 3; s++) {
+            if (!used.has(s)) {
+              freeSeat = s;
+              break;
+            }
+          }
+          if (freeSeat === -1) return -1;
+          const peerObj = {
+            peerId,
+            seat: freeSeat,
+            name: String(info.name || `Oyuncu ${freeSeat + 1}`).slice(0, 18),
+            avatarText: info.avatarText || String(info.name || 'O').charAt(0).toUpperCase(),
+            avatarBg: info.avatarBg || 'linear-gradient(135deg,#0284c7,#0369a1)',
+            gold: Number(info.gold) || DEFAULT_GOLD,
+            via,
+            pc: pc || null,
+            dc: dc || null,
+          };
+          lanState.hostPeers.set(peerId, peerObj);
+          const statusEl = document.getElementById('lan-host-status');
+          if (statusEl) {
+            statusEl.classList.add('is-ok');
+            statusEl.textContent = `${peerObj.name} odaya katıldı (Koltuk ${freeSeat + 1})! Toplam ${lanState.hostPeers.size + 1}/4 gerçek oyuncu.`;
+          }
+          sound.playOpenFanfare();
+          broadcastHostRoster();
+
+          // If match already running, hot-seat this player right into that seat!
+          if (game.modeChosen && game.phase !== 'ended') {
+            const pl = game.players[freeSeat];
+            pl.name = peerObj.name;
+            pl.avatarText = peerObj.avatarText;
+            pl.avatarBg = peerObj.avatarBg;
+            pl.gold = peerObj.gold;
+            pl.isBot = false;
+            syncSeatHeadersUI();
+            broadcastLanState(`${peerObj.name} masaya bağlandı!`, 'open');
+          }
+          return freeSeat;
+        }
+
+        async function prepareNextHostRtcOffer() {
+          if (typeof RTCPeerConnection === 'undefined') {
+            const fallbackPayload = `OKEY1-${toBase64Url(JSON.stringify({ r: lanState.roomCode, m: game.katlamali ? 1 : 0, n: profile.name }))}`;
+            lanState.currentOfferToken = fallbackPayload;
+            drawQrCodeToCanvas(document.getElementById('lan-host-qr'), fallbackPayload);
+            return;
+          }
+          try {
+            if (lanState.pendingOfferPc) {
+              try {
+                lanState.pendingOfferPc.close();
+              } catch (_) {}
+            }
+            const pc = new RTCPeerConnection({ iceServers: [] });
+            const dc = pc.createDataChannel('okey101', { ordered: true });
+            lanState.pendingOfferPc = pc;
+            lanState.pendingOfferDc = dc;
+
+            dc.onopen = () => {
+              showToast('Wi-Fi / Hotspot P2P veri kanalı açıldı!', 'success');
+            };
+            dc.onmessage = (ev) => {
+              try {
+                const msg = JSON.parse(ev.data);
+                handleHostIncomingMessage(msg, 'rtc', pc, dc);
+              } catch (_) {}
+            };
+
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            await new Promise((resolve) => {
+              if (pc.iceGatheringState === 'complete') return resolve();
+              const t = setTimeout(resolve, 1100);
+              pc.onicegatheringstatechange = () => {
+                if (pc.iceGatheringState === 'complete') {
+                  clearTimeout(t);
+                  resolve();
+                }
+              };
+            });
+
+            const compact = compactSdp(pc.localDescription ? pc.localDescription.sdp : '');
+            const token = `OKEY1-${toBase64Url(
+              JSON.stringify({ r: lanState.roomCode, m: game.katlamali ? 1 : 0, n: profile.name, ...compact })
+            )}`;
+            lanState.currentOfferToken = token;
+            drawQrCodeToCanvas(document.getElementById('lan-host-qr'), token);
+          } catch (_) {
+            const fallbackPayload = `OKEY1-${toBase64Url(JSON.stringify({ r: lanState.roomCode, m: game.katlamali ? 1 : 0, n: profile.name }))}`;
+            lanState.currentOfferToken = fallbackPayload;
+            drawQrCodeToCanvas(document.getElementById('lan-host-qr'), fallbackPayload);
+          }
+        }
+
+        async function hostAcceptGuestAnswer(rawToken) {
+          const cleaned = String(rawToken || '').trim();
+          if (!cleaned.startsWith('ANS1-') || !lanState.pendingOfferPc) {
+            sound.playError();
+            showToast('Geçersiz misafir yanıt kodu! ANS1-... ile başlamalı.', 'error');
+            return;
+          }
+          try {
+            const parsed = JSON.parse(fromBase64Url(cleaned.slice(5)));
+            const answerSdp = expandSdp(parsed, false);
+            const activePc = lanState.pendingOfferPc;
+            const activeDc = lanState.pendingOfferDc;
+            await activePc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+            const guestPeerId = parsed.pid || 'rtc_' + Math.random().toString(36).slice(2, 8);
+            assignSeatForGuest(
+              guestPeerId,
+              {
+                name: parsed.n || 'Wi-Fi Oyuncu',
+                avatarText: (parsed.n || 'W').charAt(0).toUpperCase(),
+                avatarBg: 'linear-gradient(135deg,#059669,#047857)',
+                gold: DEFAULT_GOLD,
+              },
+              'rtc',
+              activePc,
+              activeDc
+            );
+            lanState.pendingOfferPc = null;
+            lanState.pendingOfferDc = null;
+            const ansInput = document.getElementById('lan-host-answer-input');
+            if (ansInput) ansInput.value = '';
+            showToast('Cihazlar arası WebRTC P2P bağlantısı kuruldu!', 'success');
+            if (lanState.hostPeers.size < 3) {
+              prepareNextHostRtcOffer();
+            }
+          } catch (_) {
+            sound.playError();
+            showToast('Yanıt kodu işlenemedi. Kodun eksiksiz kopyalandığından emin ol.', 'error');
+          }
+        }
+
+        function handleHostIncomingMessage(msg, via, pc, dc) {
+          if (!msg || typeof msg !== 'object') return;
+          if (msg.type === 'JOIN_REQ') {
+            const seat = assignSeatForGuest(msg.peerId, msg.player || {}, via, pc, dc);
+            if (seat === -1 && lanState.bc) {
+              lanState.bc.postMessage({ type: 'ROOM_FULL', targetPeerId: msg.peerId, fromHost: true });
+            }
+            return;
+          }
+          const peer = lanState.hostPeers.get(msg.peerId);
+          if (!peer) return;
+          if (msg.type && msg.type.startsWith('ACT_')) {
+            handleRemoteGuestAction(peer.seat, msg);
+          }
+        }
+
+        function startHostLanLobby(roomCode, isKatlamali) {
+          cleanupLanConnections();
+          lanState.active = true;
+          lanState.role = 'host';
+          lanState.mySeat = 0;
+          lanState.roomCode = (roomCode || generateRoomCode()).toUpperCase();
+          game.katlamali = Boolean(isKatlamali);
+
+          const codeEl = document.getElementById('lan-room-code');
+          if (codeEl) codeEl.textContent = lanState.roomCode;
+          const modeBtn = document.getElementById('btn-lan-toggle-mode');
+          if (modeBtn) modeBtn.textContent = `Mod: ${game.katlamali ? 'Katlamalı' : 'Katlamasız'}`;
+
+          const statusEl = document.getElementById('lan-host-status');
+          if (statusEl) {
+            statusEl.classList.remove('is-ok');
+            statusEl.textContent = `Oda ${lanState.roomCode} oluşturuldu! Aynı Wi-Fi/Hotspot cihazları Oda Kodu veya QR ile katılabilir.`;
+          }
+
+          if (typeof BroadcastChannel !== 'undefined') {
+            lanState.bc = new BroadcastChannel(`okey101_lan_${lanState.roomCode}`);
+            lanState.bc.onmessage = (ev) => {
+              const msg = ev.data;
+              if (!msg || msg.fromHost) return;
+              handleHostIncomingMessage(msg, 'bc', null, null);
+            };
+          }
+
+          broadcastHostRoster();
+          prepareNextHostRtcOffer();
+          updateLanHudBadge();
+        }
+
+        function sendLanToHost(payload) {
+          const packet = { ...payload, peerId: lanState.peerId, roomCode: lanState.roomCode, fromHost: false };
+          if (lanState.guestDc && lanState.guestDc.readyState === 'open') {
+            try {
+              lanState.guestDc.send(JSON.stringify(packet));
+              return;
+            } catch (_) {}
+          }
+          if (lanState.bc) {
+            try {
+              lanState.bc.postMessage(packet);
+            } catch (_) {}
+          }
+        }
+
+        function connectGuestByRoomCode(roomCode) {
+          const clean = String(roomCode || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+          if (clean.length < 3) {
+            sound.playError();
+            showToast('Lütfen geçerli bir Oda Kodu gir (Örn: A7K4).', 'error');
+            return;
+          }
+          cleanupLanConnections();
+          lanState.active = true;
+          lanState.role = 'guest';
+          lanState.roomCode = clean;
+
+          const statusEl = document.getElementById('lan-guest-status');
+          if (statusEl) {
+            statusEl.classList.remove('is-ok');
+            statusEl.textContent = `${clean} odası aranıyor... Kurucu oda açıksa anında bağlanılacak.`;
+          }
+
+          if (typeof BroadcastChannel !== 'undefined') {
+            lanState.bc = new BroadcastChannel(`okey101_lan_${clean}`);
+            lanState.bc.onmessage = (ev) => {
+              const msg = ev.data;
+              if (!msg || !msg.fromHost) return;
+              if (msg.targetPeerId && msg.targetPeerId !== lanState.peerId) return;
+              handleGuestIncomingMessage(msg);
+            };
+            sendLanToHost({
+              type: 'JOIN_REQ',
+              player: {
+                name: profile.name,
+                avatarText: profile.avatarText,
+                avatarBg: profile.avatarBg,
+                gold: profile.chips,
+              },
+            });
+          } else if (statusEl) {
+            statusEl.textContent = 'Bu cihazda farklı telefon bağlantısı için P2P/QR Davet Kodu alanını kullan.';
+          }
+        }
+
+        async function guestProcessOfferToken(rawToken) {
+          const cleaned = String(rawToken || '').trim();
+          if (!cleaned.startsWith('OKEY1-')) {
+            sound.playError();
+            showToast('Geçersiz davet kodu! Kurucunun OKEY1-... kodunu yapıştır.', 'error');
+            return;
+          }
+          try {
+            const parsed = JSON.parse(fromBase64Url(cleaned.slice(6)));
+            lanState.active = true;
+            lanState.role = 'guest';
+            lanState.roomCode = parsed.r || 'WIFI';
+
+            // Also attempt instant BroadcastChannel join in case on same origin/device
+            if (parsed.r && typeof BroadcastChannel !== 'undefined') {
+              connectGuestByRoomCode(parsed.r);
+            }
+
+            if (parsed.u && parsed.p && parsed.f && typeof RTCPeerConnection !== 'undefined') {
+              const pc = new RTCPeerConnection({ iceServers: [] });
+              lanState.guestPc = pc;
+              pc.ondatachannel = (ev) => {
+                lanState.guestDc = ev.channel;
+                ev.channel.onopen = () => {
+                  lanState.connectedToHost = true;
+                  const statusEl = document.getElementById('lan-guest-status');
+                  if (statusEl) {
+                    statusEl.classList.add('is-ok');
+                    statusEl.textContent = `Oda ${lanState.roomCode} bağlantısı kuruldu! Kurucunun masayı başlatması bekleniyor...`;
+                  }
+                  sendLanToHost({
+                    type: 'JOIN_REQ',
+                    player: {
+                      name: profile.name,
+                      avatarText: profile.avatarText,
+                      avatarBg: profile.avatarBg,
+                      gold: profile.chips,
+                    },
+                  });
+                };
+                ev.channel.onmessage = (mEv) => {
+                  try {
+                    handleGuestIncomingMessage(JSON.parse(mEv.data));
+                  } catch (_) {}
+                };
+              };
+
+              await pc.setRemoteDescription({ type: 'offer', sdp: expandSdp(parsed, true) });
+              const answer = await pc.createAnswer();
+              await pc.setLocalDescription(answer);
+              await new Promise((resolve) => {
+                if (pc.iceGatheringState === 'complete') return resolve();
+                const t = setTimeout(resolve, 1100);
+                pc.onicegatheringstatechange = () => {
+                  if (pc.iceGatheringState === 'complete') {
+                    clearTimeout(t);
+                    resolve();
+                  }
+                };
+              });
+
+              const compactAns = compactSdp(pc.localDescription ? pc.localDescription.sdp : '');
+              const ansToken = `ANS1-${toBase64Url(
+                JSON.stringify({ r: lanState.roomCode, pid: lanState.peerId, n: profile.name, ...compactAns })
+              )}`;
+              lanState.guestAnswerToken = ansToken;
+              const ansArea = document.getElementById('lan-guest-answer-area');
+              if (ansArea) ansArea.style.display = 'grid';
+              drawQrCodeToCanvas(document.getElementById('lan-guest-qr'), ansToken);
+              const statusEl = document.getElementById('lan-guest-status');
+              if (statusEl) {
+                statusEl.classList.add('is-ok');
+                statusEl.textContent = 'Yanıt kodu üretildi! Kodu kopyalayıp kurucuya gönderdiğinde bağlantı anında açılır.';
+              }
+              sound.playOpenFanfare();
+            }
+          } catch (_) {
+            sound.playError();
+            showToast('Davet kodu çözülemedi. Kurucudan yeni davet kodu iste.', 'error');
+          }
+        }
+
+        function buildSnapshotForSeat(targetSeat, eventToast, eventSound) {
+          const rotPlayers = [];
+          const rotDiscards = [];
+          for (let l = 0; l < 4; l++) {
+            const g = (l + targetSeat) % 4;
+            const p = game.players[g];
+            rotPlayers.push({
+              name: p.name,
+              avatarText: p.avatarText,
+              avatarBg: p.avatarBg,
+              isBot: p.isBot,
+              hasOpened: p.hasOpened,
+              openedMode: p.openedMode,
+              openedScore: p.openedScore,
+              totalPenalty: p.totalPenalty,
+              tileCount: g === 0 ? p.rack.filter(Boolean).length : p.hand.length,
+              gold: p.gold,
+            });
+            rotDiscards.push(game.discards[g]);
+          }
+          const targetPlayer = game.players[targetSeat];
+          let localPhase = 'remote_wait';
+          if (game.phase === 'ended') localPhase = 'ended';
+          else if (game.turn === targetSeat) {
+            localPhase = game.phase === 'remote_play' ? 'play' : 'draw';
+          }
+          return {
+            type: 'STATE_SYNC',
+            roomCode: lanState.roomCode,
+            round: game.round,
+            katlamali: game.katlamali,
+            assisted: game.assisted,
+            deckCount: game.deck.length,
+            indicator: game.indicator,
+            okeyColor: game.okeyColor,
+            okeyNumber: game.okeyNumber,
+            highestSeriesScore: game.highestSeriesScore,
+            highestPairsCount: game.highestPairsCount,
+            turn: (game.turn - targetSeat + 4) % 4,
+            phase: localPhase,
+            turnTimeLeft: game.turnTimeLeft,
+            sideTakenTileId: game.turn === targetSeat ? game.sideTakenTileId : null,
+            myHand: targetPlayer ? targetPlayer.hand : [],
+            players: rotPlayers,
+            discards: rotDiscards,
+            openSeries: game.openSeries.map((m) => ({ ...m, owner: (m.owner - targetSeat + 4) % 4 })),
+            openPairs: game.openPairs.map((m) => ({ ...m, owner: (m.owner - targetSeat + 4) % 4 })),
+            eventToast: eventToast || null,
+            eventSound: eventSound || null,
+          };
+        }
+
+        function broadcastLanState(eventToast, eventSound) {
+          if (!lanState.active || lanState.role !== 'host') return;
+          lanState.hostPeers.forEach((peer) => {
+            const snap = buildSnapshotForSeat(peer.seat, eventToast, eventSound);
+            sendToSpecificPeer(peer, snap);
+          });
+        }
+
+        function broadcastLanRoundEnd(payload) {
+          if (!lanState.active || lanState.role !== 'host') return;
+          lanState.hostPeers.forEach((peer) => {
+            sendToSpecificPeer(peer, { type: 'ROUND_END', ...payload });
+          });
+        }
+
+        function handleRemoteGuestAction(seat, msg) {
+          if (!game.modeChosen || game.phase === 'ended' || game.turn !== seat) return;
+          const player = game.players[seat];
+          if (!player || player.isBot) return;
+          const leftSeat = (seat + 3) % 4;
+
+          if (msg.type === 'ACT_DRAW_DECK' && game.phase === 'remote_draw') {
+            if (game.deck.length === 0) {
+              finishRound(-1, 'Deste tükendi!');
+              return;
+            }
+            const tile = game.deck.pop();
+            player.hand.push(tile);
+            game.phase = 'remote_play';
+            game.sideTakenTileId = null;
+            sound.playTileClack(1.06);
+            animateFlyingTile(document.getElementById('btn-draw-deck'), document.getElementById(`pbar-${seat}`), tile, true, 220);
+            renderIndicatorAndDeck();
+            updateLiveScoreAndButtons();
+            broadcastLanState(null, 'clack');
+            return;
+          }
+
+          if (msg.type === 'ACT_TAKE_SIDE' && game.phase === 'remote_draw') {
+            const pile = game.discards[leftSeat];
+            if (!pile || pile.length === 0) return;
+            const tile = pile.pop();
+            player.hand.push(tile);
+            game.phase = 'remote_play';
+            game.sideTakenTileId = tile.id;
+            sound.playTileClack(0.98);
+            renderDiscards();
+            updateLiveScoreAndButtons();
+            broadcastLanState(`${player.name} yandan taş aldı.`, 'clack');
+            return;
+          }
+
+          if (msg.type === 'ACT_RETURN_SIDE' && game.phase === 'remote_play' && game.sideTakenTileId) {
+            const idx = player.hand.findIndex((t) => t.id === game.sideTakenTileId);
+            if (idx === -1) return;
+            const [tile] = player.hand.splice(idx, 1);
+            game.discards[leftSeat].push(tile);
+            game.sideTakenTileId = null;
+            game.phase = 'remote_draw';
+            sound.playTileClack(0.88);
+            renderDiscards();
+            updateLiveScoreAndButtons();
+            broadcastLanState(null, 'clack');
+            return;
+          }
+
+          if (msg.type === 'ACT_OPEN' && game.phase === 'remote_play' && Array.isArray(msg.groups)) {
+            const tileMap = new Map(player.hand.map((t) => [t.id, t]));
+            const usedIds = new Set();
+            if (msg.mode === 'series') {
+              const validGroups = [];
+              let scoreSum = 0;
+              for (const ids of msg.groups) {
+                const tiles = ids.map((id) => tileMap.get(id)).filter(Boolean);
+                if (tiles.length !== ids.length) return;
+                const ev = evaluateMeldGroup(tiles);
+                if (!ev) return;
+                validGroups.push(ev);
+                scoreSum += ev.score;
+                tiles.forEach((t) => usedIds.add(t.id));
+              }
+              if (!player.hasOpened && scoreSum < getRequiredSeriesScore()) return;
+              if (player.hand.length - usedIds.size < 1) return;
+              validGroups.forEach((ev) => {
+                game.openSeries.push({ id: nextMeldId++, owner: seat, type: ev.type, tiles: [...ev.tiles] });
+              });
+              player.hand = player.hand.filter((t) => !usedIds.has(t.id));
+              if (!player.hasOpened) {
+                player.hasOpened = true;
+                player.openedMode = 'series';
+                player.openedScore = scoreSum;
+                game.highestSeriesScore = Math.max(game.highestSeriesScore, scoreSum);
+              } else {
+                player.openedScore += scoreSum;
+              }
+              game.sideTakenTileId = null;
+              sound.playOpenFanfare();
+              renderOpenBoards();
+              updateLiveScoreAndButtons();
+              showToast(`${player.name} ${scoreSum} puanla el açtı!`, 'success');
+              broadcastLanState(`${player.name} ${scoreSum} puanla el açtı!`, 'open');
+            } else if (msg.mode === 'pairs') {
+              const validPairs = [];
+              for (const ids of msg.groups) {
+                const tiles = ids.map((id) => tileMap.get(id)).filter(Boolean);
+                if (tiles.length !== 2) return;
+                validPairs.push(tiles);
+                tiles.forEach((t) => usedIds.add(t.id));
+              }
+              if (!player.hasOpened && validPairs.length < getRequiredPairsCount()) return;
+              if (player.hand.length - usedIds.size < 1) return;
+              validPairs.forEach((pr) => {
+                game.openPairs.push({ id: nextMeldId++, owner: seat, tiles: [...pr] });
+              });
+              player.hand = player.hand.filter((t) => !usedIds.has(t.id));
+              if (!player.hasOpened) {
+                player.hasOpened = true;
+                player.openedMode = 'pairs';
+                player.openedScore = validPairs.length;
+                game.highestPairsCount = Math.max(game.highestPairsCount, validPairs.length);
+              } else {
+                player.openedScore += validPairs.length;
+              }
+              game.sideTakenTileId = null;
+              sound.playOpenFanfare();
+              renderOpenBoards();
+              updateLiveScoreAndButtons();
+              showToast(`${player.name} ${validPairs.length} çiftle el açtı!`, 'success');
+              broadcastLanState(`${player.name} ${validPairs.length} çiftle el açtı!`, 'open');
+            }
+            return;
+          }
+
+          if (msg.type === 'ACT_LAYOFF' && game.phase === 'remote_play' && player.hasOpened && player.hand.length > 1) {
+            const idx = player.hand.findIndex((t) => t.id === msg.tileId);
+            const meld = game.openSeries.find((m) => m.id === msg.meldId);
+            if (idx === -1 || !meld) return;
+            const tile = player.hand[idx];
+            const res = canLayoffTileOnSeriesMeld(tile, meld);
+            if (!res) return;
+            if (res.position === 'start') meld.tiles.unshift(tile);
+            else meld.tiles.push(tile);
+            player.hand.splice(idx, 1);
+            sound.playTileClack(1.2);
+            renderOpenBoards();
+            updateLiveScoreAndButtons();
+            broadcastLanState(`${player.name} masaya taş işledi!`, 'clack');
+            return;
+          }
+
+          if (msg.type === 'ACT_DISCARD' && game.phase === 'remote_play') {
+            if (game.sideTakenTileId && !player.hasOpened) return;
+            const idx = player.hand.findIndex((t) => t.id === msg.tileId);
+            if (idx === -1) return;
+            const [tile] = player.hand.splice(idx, 1);
+            game.discards[seat].push(tile);
+            game.sideTakenTileId = null;
+            sound.playTileClack(0.86);
+            animateFlyingTile(document.getElementById(`pbar-${seat}`), document.getElementById(`discard-slot-${seat}`), tile, false, 240);
+            renderDiscards();
+            renderOpenBoards();
+            if (player.hand.length === 0) {
+              finishRound(seat, `${player.name} elindeki taşları bitirdi!`);
+              return;
+            }
+            advanceTurn();
+          }
+        }
+
+        function preserveGuestRackLayout(myHand) {
+          const rack = game.players[0].rack;
+          const incomingById = new Map(myHand.map((t) => [t.id, t]));
+          const placed = new Set();
+          for (let i = 0; i < RACK_SLOTS; i++) {
+            const cur = rack[i];
+            if (cur && incomingById.has(cur.id)) {
+              rack[i] = incomingById.get(cur.id);
+              placed.add(cur.id);
+            } else {
+              rack[i] = null;
+            }
+          }
+          for (const t of myHand) {
+            if (placed.has(t.id)) continue;
+            const empty = rack.findIndex((s) => !s);
+            if (empty !== -1) rack[empty] = t;
+          }
+        }
+
+        function handleGuestIncomingMessage(msg) {
+          if (!msg || typeof msg !== 'object') return;
+          if (msg.type === 'ROOM_FULL') {
+            sound.playError();
+            showToast('Oda dolu (4/4 oyuncu).', 'error');
+            return;
+          }
+          if (msg.type === 'LOBBY_ROSTER') {
+            lanState.connectedToHost = true;
+            lanState.mySeat = msg.assignedSeat || 1;
+            const statusEl = document.getElementById('lan-guest-status');
+            if (statusEl) {
+              statusEl.classList.add('is-ok');
+              statusEl.textContent = `Oda ${lanState.roomCode} bağlantısı aktif (Koltuk ${lanState.mySeat + 1})! Kurucu masayı başlattığında oyun anında açılacak.`;
+            }
+            if (Array.isArray(msg.roster)) {
+              renderLanSeatsUI('lan-guest-seats', msg.roster);
+            }
+            updateLanHudBadge();
+            return;
+          }
+          if (msg.type === 'STATE_SYNC') {
+            clearBotTimer();
+            document.getElementById('mode-modal').classList.remove('open');
+            document.getElementById('lan-modal').classList.remove('open');
+            document.getElementById('round-modal').classList.remove('open');
+            const isFreshRound = !game.modeChosen || game.round !== msg.round || game.players[0].rack.filter(Boolean).length === 0;
+            game.modeChosen = true;
+            game.round = msg.round;
+            game.katlamali = msg.katlamali;
+            game.indicator = msg.indicator;
+            game.okeyColor = msg.okeyColor;
+            game.okeyNumber = msg.okeyNumber;
+            game.highestSeriesScore = msg.highestSeriesScore;
+            game.highestPairsCount = msg.highestPairsCount;
+            game.turn = msg.turn;
+            game.phase = msg.phase;
+            game.turnTimeLeft = msg.turnTimeLeft || TURN_SEC;
+            game.sideTakenTileId = msg.sideTakenTileId || null;
+            game.discards = msg.discards || [[], [], [], []];
+            game.openSeries = msg.openSeries || [];
+            game.openPairs = msg.openPairs || [];
+            game.deck = new Array(msg.deckCount || 0).fill(null);
+
+            if (Array.isArray(msg.players) && msg.players.length === 4) {
+              for (let i = 0; i < 4; i++) {
+                const rp = msg.players[i];
+                const lp = game.players[i];
+                lp.name = rp.name;
+                lp.avatarText = rp.avatarText;
+                lp.avatarBg = rp.avatarBg;
+                lp.isBot = rp.isBot;
+                lp.hasOpened = rp.hasOpened;
+                lp.openedMode = rp.openedMode;
+                lp.openedScore = rp.openedScore;
+                lp.totalPenalty = rp.totalPenalty;
+                lp.gold = rp.gold;
+                if (i !== 0) lp.hand = new Array(rp.tileCount || 0).fill(null);
+              }
+            }
+
+            if (isFreshRound) {
+              game.players[0].rack = new Array(RACK_SLOTS).fill(null);
+            }
+            preserveGuestRackLayout(msg.myHand || []);
+
+            syncSeatHeadersUI();
+            updateLanHudBadge();
+            renderIndicatorAndDeck();
+            renderDiscards();
+            renderOpenBoards();
+            renderRack(isFreshRound);
+            updateLiveScoreAndButtons();
+
+            if (msg.eventSound === 'open') sound.playOpenFanfare();
+            else if (msg.eventSound === 'clack') sound.playTileClack(1.0);
+            if (msg.eventToast) showToast(msg.eventToast, 'success');
+            return;
+          }
+          if (msg.type === 'ROUND_END') {
+            game.phase = 'ended';
+            const prevRank = getRankInfo(profile.rankXp);
+            const rankings = msg.rankings || [];
+            const myEntry = rankings.find((r) => r.globalSeat === lanState.mySeat) || { place: 4, goldDelta: -5000, xpDelta: 0 };
+            saveChipsAndStats(myEntry.goldDelta, myEntry.place === 1, false, myEntry.xpDelta);
+            const newRank = getRankInfo(profile.rankXp);
+            const didRankUp = newRank.index > prevRank.index;
+
+            const tbody = document.getElementById('round-tbody');
+            tbody.innerHTML = '';
+            rankings.forEach((entry) => {
+              const tr = document.createElement('tr');
+              if (entry.place === 1) tr.classList.add('winner-row');
+              const isMe = entry.globalSeat === lanState.mySeat;
+              if (isMe) tr.classList.add('human-row');
+              const goldStr = `${entry.goldDelta >= 0 ? '+' : ''}${fmt(entry.goldDelta)}`;
+              const goldCls = entry.goldDelta >= 0 ? 'delta-pos' : 'delta-neg';
+              const penStr = entry.roundPen > 0 ? `+${entry.roundPen}` : String(entry.roundPen);
+              const displayGold = isMe ? profile.chips : entry.newGold;
+              tr.innerHTML = `
+                <td><span class="place-badge p${entry.place}">${entry.place}.</span></td>
+                <td>${isMe ? entry.name + ' (Sen)' : entry.name}</td>
+                <td class="num">${penStr} <small style="opacity:0.65">(${entry.totalPen})</small></td>
+                <td class="num ${goldCls}">${goldStr}</td>
+                <td class="num"><strong>${fmt(displayGold)}</strong></td>
+              `;
+              tbody.appendChild(tr);
+            });
+
+            document.getElementById('round-kicker').textContent = `${msg.round}/${MAX_ROUNDS} EL SONUCU · WI-FI P2P`;
+            document.getElementById('round-title').textContent =
+              myEntry.place === 1
+                ? '1. Oldun · Eli Kazandın!'
+                : myEntry.place === 2
+                  ? '2. Oldun · Ödül Kazandın!'
+                  : `${myEntry.place}. Sırada Tamamladın`;
+            document.getElementById('round-sub').textContent = msg.subtitle || 'Yerel ağ eli tamamlandı.';
+
+            const rewEl = document.getElementById('round-reward');
+            rewEl.textContent = `${myEntry.goldDelta >= 0 ? '+' : ''}${fmt(myEntry.goldDelta)} Altın${myEntry.xpDelta > 0 ? ' · +' + myEntry.xpDelta + ' XP' : ''}`;
+            rewEl.style.color = myEntry.goldDelta >= 0 ? '#22c55e' : '#f87171';
+
+            const rankUpEl = document.getElementById('rankup-banner');
+            if (rankUpEl) {
+              rankUpEl.classList.toggle('show', didRankUp);
+              const subEl = document.getElementById('rankup-sub');
+              if (didRankUp && subEl) subEl.textContent = `${prevRank.name} → ${newRank.name}`;
+            }
+            const roundRankName = document.getElementById('round-rank-name');
+            if (roundRankName) {
+              roundRankName.textContent = `Rütbe: ${newRank.name}`;
+              roundRankName.style.color = newRank.color;
+            }
+            const roundXpGain = document.getElementById('round-xp-gain');
+            if (roundXpGain) roundXpGain.textContent = myEntry.xpDelta > 0 ? `+${myEntry.xpDelta} XP Kazandın` : '+0 XP';
+            const roundXpFill = document.getElementById('round-xp-fill');
+            if (roundXpFill) roundXpFill.style.width = `${newRank.pct.toFixed(1)}%`;
+            const roundXpTotal = document.getElementById('round-xp-total');
+            if (roundXpTotal) roundXpTotal.textContent = `Toplam: ${fmt(newRank.xp)} XP`;
+            const roundXpRem = document.getElementById('round-xp-remaining');
+            if (roundXpRem) {
+              roundXpRem.textContent = newRank.nextTier
+                ? `${newRank.nextTier.name} için ${fmt(newRank.remaining)} XP kaldı`
+                : 'En Yüksek Lig: 101 Efsanesi!';
+            }
+            const nextBtn = document.getElementById('btn-next-round');
+            nextBtn.textContent = 'Kurucu Yeni Eli Başlatınca Devam Et';
+
+            if (myEntry.place === 1 || didRankUp) sound.playOpenFanfare();
+            document.getElementById('round-modal').classList.add('open');
+          }
+        }
+
+        function startLanMatchAsHost() {
+          // Seat 0 = Host, Seats 1..3 = connected peers or auto-filled bots
+          game.players[0].name = profile.name;
+          game.players[0].avatarText = profile.avatarText;
+          game.players[0].avatarBg = profile.avatarBg;
+          game.players[0].isBot = false;
+          game.players[0].gold = profile.chips;
+          game.players[0].totalPenalty = 0;
+
+          for (let s = 1; s <= 3; s++) {
+            let matchedPeer = null;
+            lanState.hostPeers.forEach((p) => {
+              if (p.seat === s) matchedPeer = p;
+            });
+            const p = game.players[s];
+            p.totalPenalty = 0;
+            if (matchedPeer) {
+              p.name = matchedPeer.name;
+              p.avatarText = matchedPeer.avatarText;
+              p.avatarBg = matchedPeer.avatarBg;
+              p.gold = matchedPeer.gold;
+              p.isBot = false;
+            } else {
+              const b = DEFAULT_BOT_ROSTER[s];
+              p.name = b.name;
+              p.avatarText = b.avatarText;
+              p.avatarBg = b.avatarBg;
+              p.gold = b.gold;
+              p.isBot = true;
+            }
+          }
+
+          game.modeChosen = true;
+          game.round = 1;
+          game.dealer = 0;
+          document.getElementById('mode-modal').classList.remove('open');
+          document.getElementById('lan-modal').classList.remove('open');
+          updateLanHudBadge();
+          sound.playOpenFanfare();
+          startNewRound();
+          sortRackBySeries();
+        }
+
+        function switchLanTab(tab) {
+          const isHost = tab === 'host';
+          document.getElementById('lan-tab-host').classList.toggle('is-active', isHost);
+          document.getElementById('lan-tab-join').classList.toggle('is-active', !isHost);
+          document.getElementById('lan-host-panel').classList.toggle('is-active', isHost);
+          document.getElementById('lan-join-panel').classList.toggle('is-active', !isHost);
+          if (isHost && lanState.role !== 'host') {
+            startHostLanLobby(null, game.katlamali);
+          }
+        }
+
+        function copyTextSafe(text, okMsg) {
+          if (!text) return;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(
+              () => showToast(okMsg, 'success'),
+              () => showToast(okMsg, 'success')
+            );
+          } else {
+            showToast(okMsg, 'success');
+          }
+        }
+
+        async function scanQrFromCamera() {
+          if (typeof BarcodeDetector === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showToast('Kamera QR tarama bu tarayıcıda desteklenmiyor; davet kodunu yapıştırabilirsin.');
+            return;
+          }
+          let stream = null;
+          try {
+            const detector = new BarcodeDetector({ formats: ['qr_code'] });
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.setAttribute('playsinline', 'true');
+            await video.play();
+            showToast('QR kod taranıyor (5 sn)...');
+            const started = Date.now();
+            while (Date.now() - started < 5000) {
+              const codes = await detector.detect(video);
+              if (codes && codes.length > 0 && codes[0].rawValue) {
+                const val = codes[0].rawValue.trim();
+                const inputEl = document.getElementById('lan-join-offer-input');
+                if (inputEl) inputEl.value = val;
+                await guestProcessOfferToken(val);
+                return;
+              }
+              await new Promise((r) => setTimeout(r, 200));
+            }
+            showToast('QR kod algılanamadı; kodu yapıştırarak da bağlanabilirsin.');
+          } catch (_) {
+            showToast('Kamera izni alınamadı; davet kodunu yapıştırarak bağlanabilirsin.');
+          } finally {
+            if (stream) stream.getTracks().forEach((t) => t.stop());
+          }
+        }
+
+        /* =========================================================================
+         * 13. EVENT LISTENERS
          * ========================================================================= */
         document.getElementById('btn-theme-toggle').addEventListener('click', () => {
           applyTheme(appTheme === 'light' ? 'dark' : 'light');
@@ -4013,12 +5919,103 @@
           document.getElementById('mode-modal').classList.add('open');
         });
 
+        document.getElementById('lan-hud-badge').addEventListener('click', () => {
+          sound.playPick();
+          document.getElementById('lan-modal').classList.add('open');
+        });
+
+        document.getElementById('btn-mode-lan').addEventListener('click', () => {
+          sound.playPick();
+          document.getElementById('mode-modal').classList.remove('open');
+          document.getElementById('lan-modal').classList.add('open');
+          switchLanTab('host');
+        });
+
+        document.getElementById('lan-tab-host').addEventListener('click', () => {
+          sound.playPick();
+          switchLanTab('host');
+        });
+
+        document.getElementById('lan-tab-join').addEventListener('click', () => {
+          sound.playPick();
+          switchLanTab('join');
+        });
+
+        document.getElementById('btn-lan-copy-room').addEventListener('click', () => {
+          sound.playPick();
+          copyTextSafe(lanState.roomCode, `Oda kodu (${lanState.roomCode}) kopyalandı!`);
+        });
+
+        document.getElementById('btn-lan-copy-offer').addEventListener('click', () => {
+          sound.playPick();
+          copyTextSafe(lanState.currentOfferToken, 'P2P davet kodu kopyalandı! Arkadaşına gönder.');
+        });
+
+        document.getElementById('btn-lan-toggle-mode').addEventListener('click', () => {
+          sound.playPick();
+          game.katlamali = !game.katlamali;
+          document.getElementById('btn-lan-toggle-mode').textContent = `Mod: ${game.katlamali ? 'Katlamalı' : 'Katlamasız'}`;
+          broadcastHostRoster();
+        });
+
+        document.getElementById('btn-lan-accept-answer').addEventListener('click', () => {
+          const val = document.getElementById('lan-host-answer-input').value;
+          hostAcceptGuestAnswer(val);
+        });
+
+        document.getElementById('btn-lan-start-match').addEventListener('click', startLanMatchAsHost);
+
+        document.getElementById('btn-lan-close-host').addEventListener('click', () => {
+          sound.playPick();
+          document.getElementById('lan-modal').classList.remove('open');
+          if (!game.modeChosen) document.getElementById('mode-modal').classList.add('open');
+        });
+
+        document.getElementById('btn-lan-close-join').addEventListener('click', () => {
+          sound.playPick();
+          document.getElementById('lan-modal').classList.remove('open');
+          if (!game.modeChosen) document.getElementById('mode-modal').classList.add('open');
+        });
+
+        document.getElementById('btn-lan-join-code').addEventListener('click', () => {
+          sound.playPick();
+          connectGuestByRoomCode(document.getElementById('lan-join-room-input').value);
+        });
+
+        document.getElementById('btn-lan-process-offer').addEventListener('click', () => {
+          sound.playPick();
+          guestProcessOfferToken(document.getElementById('lan-join-offer-input').value);
+        });
+
+        document.getElementById('btn-lan-scan-qr').addEventListener('click', () => {
+          sound.playPick();
+          scanQrFromCamera();
+        });
+
+        document.getElementById('btn-lan-copy-answer').addEventListener('click', () => {
+          sound.playPick();
+          copyTextSafe(lanState.guestAnswerToken, 'Misafir yanıt kodu kopyalandı! Kurucuya gönder.');
+        });
+
         function launchWithMode(isKatlamali) {
+          cleanupLanConnections();
+          lanState.active = false;
+          lanState.role = null;
+          updateLanHudBadge();
           game.katlamali = isKatlamali;
           game.modeChosen = true;
           game.round = 1;
           game.dealer = 0;
-          game.players.forEach((p) => (p.totalPenalty = 0));
+          game.players.forEach((p, idx) => {
+            p.totalPenalty = 0;
+            if (idx > 0) {
+              const b = DEFAULT_BOT_ROSTER[idx];
+              p.name = b.name;
+              p.avatarText = b.avatarText;
+              p.avatarBg = b.avatarBg;
+              p.isBot = true;
+            }
+          });
           document.getElementById('mode-modal').classList.remove('open');
           sound.playOpenFanfare();
           startNewRound();
@@ -4029,6 +6026,10 @@
         document.getElementById('btn-mode-classic').addEventListener('click', () => launchWithMode(false));
 
         document.getElementById('btn-next-round').addEventListener('click', () => {
+          if (lanState.active && lanState.role === 'guest') {
+            showToast('Kurucu yeni eli başlattığında masa otomatik açılacak.');
+            return;
+          }
           if (game.round >= MAX_ROUNDS) {
             game.round = 1;
             game.dealer = 0;
@@ -4043,6 +6044,28 @@
 
         // Initial preview deal behind startup mode picker
         startNewRound();
+
+        // Check URL parameters for direct LAN launch from Main Menu (?lan=host or ?lan=join)
+        const urlParams = new URLSearchParams(window.location.search);
+        const lanParam = urlParams.get('lan');
+        const roomParam = urlParams.get('room');
+        const modeParam = urlParams.get('mode');
+        if (lanParam === 'host') {
+          document.getElementById('mode-modal').classList.remove('open');
+          document.getElementById('lan-modal').classList.add('open');
+          switchLanTab('host');
+          startHostLanLobby(roomParam, modeParam !== 'classic');
+        } else if (lanParam === 'join') {
+          document.getElementById('mode-modal').classList.remove('open');
+          document.getElementById('lan-modal').classList.add('open');
+          switchLanTab('join');
+          if (roomParam) {
+            const inp = document.getElementById('lan-join-room-input');
+            if (inp) inp.value = roomParam.toUpperCase();
+            connectGuestByRoomCode(roomParam);
+          }
+        }
+
         requestAnimationFrame(timerLoop);
       })();
     </script>
