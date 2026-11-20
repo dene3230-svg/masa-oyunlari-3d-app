@@ -956,6 +956,183 @@
         cursor: wait;
       }
 
+      /* Top Slide-In Update Notification Banner */
+      .ota-top-banner {
+        position: fixed;
+        top: 14px;
+        left: 50%;
+        z-index: 9998;
+        width: min(560px, calc(100vw - 24px));
+        transform: translate3d(-50%, -145%, 0);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 340ms var(--ease-out), opacity 260ms ease;
+        will-change: transform, opacity;
+      }
+
+      .ota-top-banner.open {
+        transform: translate3d(-50%, 0, 0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .ota-top-inner {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: linear-gradient(155deg, rgba(11, 23, 52, 0.96) 0%, rgba(5, 11, 27, 0.98) 100%);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1.5px solid rgba(243, 208, 107, 0.72);
+        box-shadow:
+          0 20px 48px rgba(0, 0, 0, 0.68),
+          0 0 28px rgba(212, 175, 55, 0.22),
+          inset 0 1px 0 rgba(255, 243, 199, 0.24);
+        color: var(--text-primary);
+      }
+
+      .ota-top-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(145deg, rgba(243, 208, 107, 0.22), rgba(16, 185, 129, 0.18));
+        border: 1px solid rgba(243, 208, 107, 0.56);
+        box-shadow: 0 0 18px rgba(16, 185, 129, 0.24);
+      }
+
+      .ota-top-copy {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+      }
+
+      .ota-top-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 3px;
+      }
+
+      .ota-top-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.96rem;
+        font-weight: 800;
+        color: #fef3c7;
+        line-height: 1.25;
+      }
+
+      .ota-top-ver {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.68rem;
+        font-weight: 800;
+        color: #ecfdf5;
+        background: rgba(16, 185, 129, 0.28);
+        border: 1px solid rgba(52, 211, 153, 0.65);
+      }
+
+      .ota-top-msg {
+        font-size: 0.81rem;
+        line-height: 1.42;
+        color: #cbd5e1;
+      }
+
+      .ota-top-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .ota-top-update-btn {
+        appearance: none;
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(110, 231, 183, 0.82);
+        background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #059669 100%);
+        color: #022c22;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        white-space: nowrap;
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        transition: transform 150ms var(--ease-out), filter 150ms ease;
+      }
+
+      .ota-top-update-btn:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+      }
+
+      .ota-top-update-btn:disabled {
+        opacity: 0.72;
+        cursor: wait;
+      }
+
+      .ota-top-dismiss {
+        appearance: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        line-height: 1;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: background 150ms ease, color 150ms ease;
+      }
+
+      .ota-top-dismiss:hover {
+        background: rgba(255, 255, 255, 0.14);
+        color: #fff;
+      }
+
+      /* Browser Preview App Closed Overlay */
+      .app-closed-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: radial-gradient(ellipse 80% 70% at 50% 45%, rgba(10, 20, 46, 0.96) 0%, rgba(3, 7, 18, 0.99) 100%);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      .app-closed-overlay.open {
+        display: flex;
+      }
+
+      @media (max-width: 580px) {
+        .ota-top-inner {
+          flex-wrap: wrap;
+        }
+        .ota-top-actions {
+          width: 100%;
+          justify-content: flex-end;
+        }
+        .ota-top-update-btn {
+          flex: 1;
+        }
+      }
+
       /* ================= GLOBAL MAIN MENU & VIEW SWITCHING ================= */
       body.menu-active .lobby-shell {
         opacity: 0;
@@ -1725,6 +1902,35 @@
         color: #334155;
       }
 
+      body.theme-light .ota-top-inner {
+        background: linear-gradient(155deg, rgba(255, 253, 249, 0.96) 0%, rgba(244, 239, 228, 0.98) 100%);
+        border-color: rgba(166, 120, 24, 0.62);
+        box-shadow: 0 20px 44px rgba(15, 23, 42, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+        color: #0f172a;
+      }
+
+      body.theme-light .ota-top-title {
+        color: #0f172a;
+      }
+
+      body.theme-light .ota-top-msg {
+        color: #334155;
+      }
+
+      body.theme-light .ota-top-ver {
+        color: #065f46;
+        background: rgba(16, 185, 129, 0.16);
+      }
+
+      body.theme-light .ota-top-dismiss {
+        background: rgba(15, 23, 42, 0.06);
+        color: #334155;
+      }
+
+      body.theme-light .app-closed-overlay {
+        background: radial-gradient(ellipse 80% 70% at 50% 45%, rgba(250, 247, 240, 0.96) 0%, rgba(232, 224, 208, 0.99) 100%);
+      }
+
       body.theme-light .toast {
         background: rgba(255, 253, 249, 0.96);
         border-color: rgba(166, 120, 24, 0.5);
@@ -1758,6 +1964,35 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+    <!-- OTA Top Slide-In Update Notification Banner -->
+    <aside
+      id="ota-top-banner"
+      class="ota-top-banner"
+      role="alertdialog"
+      aria-live="assertive"
+      aria-labelledby="ota-top-title"
+    >
+      <div class="ota-top-inner">
+        <div class="ota-top-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f3d06b" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+        </div>
+        <div class="ota-top-copy">
+          <div class="ota-top-head">
+            <strong class="ota-top-title" id="ota-top-title">Masa Oyunları 3D Güncellendi!</strong>
+            <span class="ota-top-ver" id="ota-top-ver">v3.6</span>
+          </div>
+          <p class="ota-top-msg" id="ota-top-msg">Yeni sürüm hazır, dokunarak güncelleyin.</p>
+        </div>
+        <div class="ota-top-actions">
+          <button type="button" class="ota-top-update-btn" id="ota-top-update-btn">Şimdi Güncelle</button>
+          <button type="button" class="ota-top-dismiss" id="ota-top-dismiss" aria-label="Bildirimi kapat">&times;</button>
+        </div>
+      </div>
+    </aside>
+
     <!-- OTA Live Update Modal -->
     <div
       id="ota-update-modal"
@@ -1790,7 +2025,7 @@
           </div>
           <div class="menu-title-row">
             <h1 class="menu-main-title">MASA OYUNLARI 3D</h1>
-            <span class="brand-version" aria-label="Sürüm 3.3">v3.3</span>
+            <span class="brand-version" aria-label="Sürüm 3.6">v3.6</span>
           </div>
           <div class="menu-meta-line">
             <span id="menu-username">Oyuncu</span>
@@ -1917,6 +2152,14 @@
           </div>
         </div>
 
+        <div class="settings-section">
+          <span class="settings-label">Otomatik Güncelleme Uyarıları</span>
+          <div class="toggle-row">
+            <span id="settings-notif-status">Güncelleme Bildirimleri: Açık</span>
+            <button type="button" class="switch-btn is-on" id="btn-settings-notif" aria-label="Güncelleme bildirimlerini aç veya kapat"></button>
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button type="button" class="modal-cta" id="btn-settings-close">Kaydet ve Kapat</button>
         </div>
@@ -1932,6 +2175,18 @@
         <div class="modal-actions">
           <button type="button" class="modal-cta danger" id="btn-exit-confirm">Evet, Çıkış Yap</button>
           <button type="button" class="modal-cta secondary" id="btn-exit-cancel">Vazgeç</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BROWSER PREVIEW FALLBACK: APP CLOSED SCREEN -->
+    <div class="app-closed-overlay" id="app-closed-overlay" role="status" aria-live="polite">
+      <div class="app-modal-card">
+        <div class="modal-kicker">GÜVENLİ ÇIKIŞ</div>
+        <h2 class="modal-title">Uygulama kapatıldı</h2>
+        <p class="modal-sub">Masa Oyunları 3D güvenli şekilde kapatıldı. Tarayıcı sekmesini kapatabilir veya uygulamayı yeniden açabilirsin.</p>
+        <div class="modal-actions">
+          <button type="button" class="modal-cta" id="btn-reopen-app">Uygulamayı Yeniden Aç</button>
         </div>
       </div>
     </div>
@@ -1968,7 +2223,7 @@
                 </svg>
               </span>
               <span class="brand-title">MASA OYUNLARI 3D</span>
-              <span class="brand-version" aria-label="Sürüm 3.3">v3.3</span>
+              <span class="brand-version" aria-label="Sürüm 3.6">v3.6</span>
             </a>
           </div>
 
@@ -2667,6 +2922,16 @@
         const st = document.getElementById('settings-sound-status');
         if (sw) sw.classList.toggle('is-on', sound.enabled);
         if (st) st.textContent = sound.enabled ? 'Ses Efektleri Açık' : 'Ses Efektleri Kapalı';
+
+        const notifEnabled = localStorage.getItem('app_update_notifications') !== 'off';
+        const notifSw = document.getElementById('btn-settings-notif');
+        const notifSt = document.getElementById('settings-notif-status');
+        if (notifSw) notifSw.classList.toggle('is-on', notifEnabled);
+        if (notifSt) {
+          notifSt.textContent = notifEnabled
+            ? 'Güncelleme Bildirimleri: Açık'
+            : 'Güncelleme Bildirimleri: Kapalı';
+        }
       }
 
       editNameBtn.addEventListener('click', () => {
@@ -2849,6 +3114,37 @@
         if (next) sound.playClick();
       });
 
+      document.getElementById('btn-settings-notif').addEventListener('click', async () => {
+        const currentOn = localStorage.getItem('app_update_notifications') !== 'off';
+        const nextOn = !currentOn;
+        try {
+          localStorage.setItem('app_update_notifications', nextOn ? 'on' : 'off');
+        } catch (_) {}
+
+        if (nextOn && 'Notification' in window) {
+          if (Notification.permission === 'default') {
+            try {
+              const perm = await Notification.requestPermission();
+              if (perm === 'denied') {
+                showToast('Cihaz bildirim izni kapalı; ekran içi güncelleme bildirimleri aktif.', 'default');
+              }
+            } catch (_) {}
+          } else if (Notification.permission === 'denied') {
+            showToast('Tarayıcı/cihaz bildirim izni engelli; ekran içi bildirimler aktif.', 'default');
+          }
+        }
+
+        if (typeof window.__syncOtaStateToSw === 'function') {
+          window.__syncOtaStateToSw();
+        }
+        renderProfileBar();
+        sound.playClick();
+        showToast(
+          nextOn ? 'Güncelleme bildirimleri açıldı.' : 'Güncelleme bildirimleri kapatıldı.',
+          nextOn ? 'success' : 'default'
+        );
+      });
+
       document.getElementById('btn-menu-exit').addEventListener('click', () => {
         sound.playClick();
         exitModal.classList.add('open');
@@ -2859,25 +3155,32 @@
         exitModal.classList.remove('open');
       });
 
+      const appClosedOverlay = document.getElementById('app-closed-overlay');
+      const btnReopenApp = document.getElementById('btn-reopen-app');
+      if (btnReopenApp && appClosedOverlay) {
+        btnReopenApp.addEventListener('click', () => {
+          sound.playClick();
+          appClosedOverlay.classList.remove('open');
+          showMainMenuView();
+        });
+      }
+
       document.getElementById('btn-exit-confirm').addEventListener('click', () => {
         sound.playClick();
-        try {
-          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App && typeof window.Capacitor.Plugins.App.exitApp === 'function') {
-            window.Capacitor.Plugins.App.exitApp();
-            return;
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+          window.Capacitor.Plugins.App.exitApp();
+        } else if (navigator.app && navigator.app.exitApp) {
+          navigator.app.exitApp();
+        } else {
+          try {
+            window.close();
+          } catch (_) {}
+          exitModal.classList.remove('open');
+          if (appClosedOverlay) {
+            appClosedOverlay.classList.add('open');
           }
-        } catch (_) {}
-        try {
-          if (navigator.app && typeof navigator.app.exitApp === 'function') {
-            navigator.app.exitApp();
-            return;
-          }
-        } catch (_) {}
-        try {
-          window.close();
-        } catch (_) {}
-        exitModal.classList.remove('open');
-        showToast('Güvenli çıkış tamamlandı. Sekmeyi kapatabilirsiniz.', 'success');
+          showToast('Uygulama kapatıldı', 'success');
+        }
       });
 
       // Allow deep-linking straight into game selection via ?view=games if needed
@@ -4854,8 +5157,97 @@
         'use strict';
 
         const APP_VERSION_KEY = 'app_version';
+        const NOTIFIED_VERSION_KEY = 'app_notified_version';
+        const NOTIF_PREF_KEY = 'app_update_notifications';
+        const NOTIF_PROMPTED_KEY = 'app_notif_prompted';
+        const POLL_INTERVAL_MS = 60 * 1000;
+
         let pendingNewVersion = null;
         let swRegistration = null;
+        let isUpdatingNow = false;
+
+        function isUpdateNotifEnabled() {
+          try {
+            return localStorage.getItem(NOTIF_PREF_KEY) !== 'off';
+          } catch (_) {
+            return true;
+          }
+        }
+
+        function playUpdateAlertChime() {
+          try {
+            if (localStorage.getItem('app_sound') === 'off') return;
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            if (ctx.state === 'suspended') {
+              ctx.resume().catch(() => {});
+            }
+            const now = ctx.currentTime;
+            [659.25, 880, 1174.66].forEach((freq, i) => {
+              const t = now + i * 0.09;
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, t);
+              gain.gain.setValueAtTime(0.0001, t);
+              gain.gain.linearRampToValueAtTime(0.09, t + 0.015);
+              gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(t);
+              osc.stop(t + 0.3);
+            });
+            setTimeout(() => {
+              try {
+                ctx.close();
+              } catch (_) {}
+            }, 900);
+          } catch (_) {}
+        }
+
+        function triggerUpdateHaptic() {
+          try {
+            if (typeof navigator.vibrate === 'function') {
+              navigator.vibrate([200, 100, 200]);
+            }
+          } catch (_) {}
+        }
+
+        function syncOtaStateToSw(triggerCheck = false) {
+          if (!('serviceWorker' in navigator)) return;
+          const payload = {
+            type: triggerCheck ? 'CHECK_VERSION' : 'SYNC_OTA_STATE',
+            currentVersion: localStorage.getItem(APP_VERSION_KEY) || null,
+            lastNotifiedVersion: localStorage.getItem(NOTIFIED_VERSION_KEY) || null,
+            notificationsEnabled: isUpdateNotifEnabled(),
+          };
+          const target =
+            navigator.serviceWorker.controller ||
+            (swRegistration && (swRegistration.active || swRegistration.waiting));
+          if (target) {
+            try {
+              target.postMessage(payload);
+            } catch (_) {}
+          }
+        }
+
+        window.__syncOtaStateToSw = () => syncOtaStateToSw(false);
+
+        // 0. İlk Açılışta Bildirim İzni İste
+        function requestNotificationPermissionOnLaunch() {
+          if (!('Notification' in window)) return;
+          if (!isUpdateNotifEnabled()) return;
+          if (Notification.permission !== 'default') return;
+          try {
+            if (localStorage.getItem(NOTIF_PROMPTED_KEY) === '1') return;
+            localStorage.setItem(NOTIF_PROMPTED_KEY, '1');
+            const req = Notification.requestPermission();
+            if (req && typeof req.then === 'function') {
+              req.then(() => syncOtaStateToSw(false)).catch(() => {});
+            }
+          } catch (_) {}
+        }
 
         // 1. Service Worker Kaydı (./sw.js)
         if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
@@ -4865,6 +5257,7 @@
               .then((registration) => {
                 swRegistration = registration;
                 registration.update().catch(() => {});
+                syncOtaStateToSw(false);
 
                 registration.addEventListener('updatefound', () => {
                   const newWorker = registration.installing;
@@ -4879,58 +5272,149 @@
                 document.addEventListener('visibilitychange', () => {
                   if (document.visibilityState === 'visible') {
                     registration.update().catch(() => {});
+                    checkLiveVersion();
                   }
                 });
-
-                setInterval(() => {
-                  registration.update().catch(() => {});
-                }, 30 * 60 * 1000);
               })
               .catch(() => {});
           });
+
+          navigator.serviceWorker.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object') return;
+            if (msg.type === 'NEW_VERSION_AVAILABLE' && msg.version) {
+              handleDetectedNewVersion(String(msg.version).trim(), msg.message);
+            } else if (msg.type === 'NOTIFICATION_UPDATE_CLICKED') {
+              if (msg.version) {
+                pendingNewVersion = String(msg.version).trim();
+              }
+              showTopUpdateBanner(
+                pendingNewVersion || 'Yeni',
+                'Güncelleme indirilmeye hazır. Aşağıdaki butona dokunarak yükleyebilirsiniz.'
+              );
+            }
+          });
         }
 
-        // 2. Canlı Sürüm Kontrolü (./version.json?t=...)
-        function showOtaModal(newVersion, message) {
-          const modal = document.getElementById('ota-update-modal');
-          const badge = document.getElementById('ota-version-badge');
-          const msgEl = document.getElementById('ota-update-message');
-          if (!modal || !msgEl) return;
+        // 2. Ekran İçi Üst Güncelleme Bildirimi + Sistem Bildirimi
+        function showTopUpdateBanner(newVersion, message) {
+          const banner = document.getElementById('ota-top-banner');
+          const verEl = document.getElementById('ota-top-ver');
+          const msgEl = document.getElementById('ota-top-msg');
+          if (!banner || !msgEl) return;
 
           pendingNewVersion = newVersion;
-          if (badge) badge.textContent = 'YENİ SÜRÜM v' + newVersion;
-          msgEl.textContent = message || 'Yeni performans iyileştirmeleri ve düzeltmeler hazır.';
-          modal.classList.add('open');
+          if (verEl) verEl.textContent = 'v' + newVersion;
+          msgEl.textContent = message || 'Yeni sürüm hazır, dokunarak güncelleyin.';
+          banner.classList.add('open');
+        }
+
+        function showSystemUpdateNotification(newVersion, message) {
+          if (!isUpdateNotifEnabled()) return;
+          if (!('Notification' in window) || Notification.permission !== 'granted') return;
+          if (!('serviceWorker' in navigator)) return;
+
+          navigator.serviceWorker.ready
+            .then((registration) => {
+              if (registration && typeof registration.showNotification === 'function') {
+                return registration.showNotification('Masa Oyunları 3D Güncellendi!', {
+                  body: message || 'Yeni sürüm hazır, dokunarak güncelleyin.',
+                  icon: './icon.svg',
+                  badge: './icon.svg',
+                  vibrate: [200, 100, 200],
+                  tag: 'masa-oyunlari-ota-' + newVersion,
+                  data: { version: newVersion, url: './index.html?ota_update=1' },
+                });
+              }
+              return null;
+            })
+            .catch(() => {});
+        }
+
+        function handleDetectedNewVersion(remoteVersion, message) {
+          const savedVersion = localStorage.getItem(APP_VERSION_KEY);
+          if (!savedVersion) {
+            localStorage.setItem(APP_VERSION_KEY, remoteVersion);
+            syncOtaStateToSw(false);
+            return;
+          }
+          if (savedVersion === remoteVersion) return;
+
+          pendingNewVersion = remoteVersion;
+          const lastNotified = localStorage.getItem(NOTIFIED_VERSION_KEY);
+          if (lastNotified === remoteVersion) {
+            return;
+          }
+
+          try {
+            localStorage.setItem(NOTIFIED_VERSION_KEY, remoteVersion);
+          } catch (_) {}
+          syncOtaStateToSw(false);
+
+          // Gerçek cihaz bildirimi (izin varsa ve ayarlardan açıksa)
+          showSystemUpdateNotification(remoteVersion, message);
+
+          // Aynı anda ekranın üstünden sesli/titreşimli güncelleme bildirim penceresi
+          playUpdateAlertChime();
+          triggerUpdateHaptic();
+          showTopUpdateBanner(remoteVersion, message);
+        }
+
+        async function performHardUpdate(triggerButton) {
+          if (isUpdatingNow) return;
+          isUpdatingNow = true;
+
+          const topBtn = document.getElementById('ota-top-update-btn');
+          const modalBtn = document.getElementById('ota-update-btn');
+          [topBtn, modalBtn, triggerButton].forEach((btn) => {
+            if (!btn) return;
+            btn.disabled = true;
+            btn.textContent = 'GÜNCELLENİYOR...';
+          });
+
+          try {
+            if ('serviceWorker' in navigator) {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(registrations.map((reg) => reg.unregister().catch(() => false)));
+            }
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map((key) => caches.delete(key)));
+            }
+            if (pendingNewVersion) {
+              localStorage.setItem(APP_VERSION_KEY, String(pendingNewVersion));
+              localStorage.setItem(NOTIFIED_VERSION_KEY, String(pendingNewVersion));
+            }
+          } catch (_) {
+            if (pendingNewVersion) {
+              try {
+                localStorage.setItem(APP_VERSION_KEY, String(pendingNewVersion));
+                localStorage.setItem(NOTIFIED_VERSION_KEY, String(pendingNewVersion));
+              } catch (__) {}
+            }
+          }
+          window.location.href = './index.html?v=' + Date.now();
         }
 
         const updateBtn = document.getElementById('ota-update-btn');
         if (updateBtn) {
-          updateBtn.addEventListener('click', async () => {
-            updateBtn.disabled = true;
-            updateBtn.textContent = 'GÜNCELLENİYOR...';
-            try {
-              if ('serviceWorker' in navigator) {
-                const registrations = await navigator.serviceWorker.getRegistrations();
-                await Promise.all(registrations.map((reg) => reg.unregister().catch(() => false)));
-              }
-              if ('caches' in window) {
-                const keys = await caches.keys();
-                await Promise.all(keys.map((key) => caches.delete(key)));
-              }
-              if (pendingNewVersion) {
-                localStorage.setItem(APP_VERSION_KEY, String(pendingNewVersion));
-              }
-            } catch (_) {
-              if (pendingNewVersion) {
-                try {
-                  localStorage.setItem(APP_VERSION_KEY, String(pendingNewVersion));
-                } catch (__) {}
-              }
-            }
-            window.location.href = './index.html?v=' + Date.now();
+          updateBtn.addEventListener('click', () => performHardUpdate(updateBtn));
+        }
+
+        const topUpdateBtn = document.getElementById('ota-top-update-btn');
+        if (topUpdateBtn) {
+          topUpdateBtn.addEventListener('click', () => performHardUpdate(topUpdateBtn));
+        }
+
+        const topDismissBtn = document.getElementById('ota-top-dismiss');
+        if (topDismissBtn) {
+          topDismissBtn.addEventListener('click', () => {
+            const banner = document.getElementById('ota-top-banner');
+            if (banner) banner.classList.remove('open');
           });
         }
 
+        // 3. Canlı Sürüm Kontrolü (Açılışta + Her 60 Saniyede Bir)
         async function checkLiveVersion() {
           if (location.protocol !== 'https:' && location.protocol !== 'http:') return;
           try {
@@ -4945,18 +5429,41 @@
             // İlk açılışta mevcut sürümü kaydet ve uyarı gösterme
             if (!savedVersion) {
               localStorage.setItem(APP_VERSION_KEY, remoteVersion);
+              syncOtaStateToSw(false);
               return;
             }
 
             if (savedVersion !== remoteVersion) {
-              showOtaModal(remoteVersion, data.message);
+              handleDetectedNewVersion(remoteVersion, data.message);
+            } else {
+              syncOtaStateToSw(false);
             }
           } catch (_) {
             // Çevrimdışı durumda sessizce geç
           }
         }
 
-        window.addEventListener('load', checkLiveVersion);
+        window.addEventListener('load', () => {
+          requestNotificationPermissionOnLaunch();
+          checkLiveVersion();
+
+          // Eğer sistem bildirimine tıklanarak açıldıysa üst bildirim çubuğunu hemen göster
+          if (new URLSearchParams(window.location.search).get('ota_update') === '1') {
+            fetch('./version.json?t=' + Date.now(), { cache: 'no-store' })
+              .then((r) => (r.ok ? r.json() : null))
+              .then((data) => {
+                if (data && data.version) {
+                  showTopUpdateBanner(String(data.version).trim(), data.message);
+                }
+              })
+              .catch(() => {});
+          }
+
+          setInterval(() => {
+            checkLiveVersion();
+            syncOtaStateToSw(true);
+          }, POLL_INTERVAL_MS);
+        });
       })();
     </script>
   </body>
