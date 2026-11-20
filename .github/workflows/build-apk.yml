@@ -17,8 +17,10 @@ jobs:
         run: |
           mkdir -p dist_web
           cp *.html *.css *.js *.json dist_web/ 2>/dev/null || true
-      - name: Capacitor Kurulumu ve OTA Ayari
+          rm -f dist_web/package.json dist_web/package-lock.json dist_web/tsconfig.json
+      - name: Capacitor Kurulumu ve APK Hazirligi
         run: |
+          rm -f package.json package-lock.json
           npm init -y
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
           npm install -D @capacitor/assets
