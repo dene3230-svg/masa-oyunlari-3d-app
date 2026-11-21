@@ -1,11 +1,23 @@
 {
-  "version": "4.3",
-  "message": "Sunucusuz Yerel Ağ (Wi-Fi / Hotspot) çok oyunculu 101 Okey modu eklendi!",
+  "version": "4.4",
+  "message": "WebRTC P2P el sıkışma, STUN/ICE desteği ve kesintisiz iframe köprüsü eklendi!",
   "history": [
+    {
+      "version": "v4.4",
+      "date": "2026-11-20",
+      "isNew": true,
+      "title": "Gelişmiş WebRTC P2P El Sıkışma & Kesintisiz Masa Köprüsü",
+      "items": [
+        "WebRTC bağlantısına yerel ağ adaylarına ek olarak STUN sunucu desteği (stun.l.google.com) ve 2.5 saniyelik tam ICE aday toplama beklemesi eklendi.",
+        "Ana Menü içine 2 adımlı Ev Sahibi / Misafir davet ve yanıt kodu el sıkışma arayüzü ile canlı teşhis durumu (ICE Toplanıyor / Bekleniyor / Bağlandı!) yerleştirildi.",
+        "Oyun başlarken bağlantının kopmasını tamamen önleyen tam ekran iframe masa katmanı ve window.postMessage canlı RTCDataChannel köprüsü devreye alındı.",
+        "Bağlanan tüm misafirler yeşil 'Bağlandı!' rozetiyle lobi listesinde görünür ve oyun sonu altın/rütbe puanları ana menüye anında senkronize edilir."
+      ]
+    },
     {
       "version": "v4.3",
       "date": "2026-11-20",
-      "isNew": true,
+      "isNew": false,
       "title": "Sunucusuz Yerel Ağ (Wi-Fi / Hotspot) Çok Oyunculu Modu",
       "items": [
         "Aynı Wi-Fi veya telefon internet paylaşımı (Hotspot) üzerindeki cihazlar için sunucusuz Oda Kurma ve Odaya Katılma lobisi eklendi.",

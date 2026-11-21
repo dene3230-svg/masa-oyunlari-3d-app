@@ -4885,14 +4885,46 @@
             .join('\r\n') + '\r\n';
         }
 
+        const OKEY_RTC_CONFIG = {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+          ],
+        };
+
+        function waitForOkeyIceGathering(pc, maxMs) {
+          return new Promise((resolve) => {
+            if (!pc || pc.iceGatheringState === 'complete') return resolve();
+            let done = false;
+            const fin = () => {
+              if (done) return;
+              done = true;
+              clearTimeout(tm);
+              pc.removeEventListener('icegatheringstatechange', onSt);
+              pc.removeEventListener('icecandidate', onIc);
+              resolve();
+            };
+            const onSt = () => {
+              if (pc.iceGatheringState === 'complete') fin();
+            };
+            const onIc = (ev) => {
+              if (!ev.candidate) fin();
+            };
+            const tm = setTimeout(fin, maxMs || 2500);
+            pc.addEventListener('icegatheringstatechange', onSt);
+            pc.addEventListener('icecandidate', onIc);
+          });
+        }
+
         const lanState = {
           active: false,
+          viaBridge: false,
           role: null, // 'host' | 'guest'
           roomCode: '',
           mySeat: 0,
           peerId: 'p_' + Math.random().toString(36).slice(2, 9),
           bc: null,
-          hostPeers: new Map(), // peerId -> { seat, name, avatarText, avatarBg, gold, via: 'bc'|'rtc', pc?, dc? }
+          hostPeers: new Map(), // peerId -> { seat, name, avatarText, avatarBg, gold, via: 'bc'|'rtc'|'bridge', pc?, dc? }
           pendingOfferPc: null,
           pendingOfferDc: null,
           currentOfferToken: '',
@@ -5022,6 +5054,15 @@
 
         function sendToSpecificPeer(peer, payload) {
           const packet = { ...payload, roomCode: lanState.roomCode, targetPeerId: peer.peerId, fromHost: true };
+          if (lanState.viaBridge && window.parent && window.parent !== window) {
+            try {
+              window.parent.postMessage(
+                { __okeyLanBridge: true, direction: 'to_peer', targetPeerId: peer.peerId, payload: packet },
+                '*'
+              );
+            } catch (_) {}
+            return;
+          }
           if (peer.via === 'rtc' && peer.dc && peer.dc.readyState === 'open') {
             try {
               peer.dc.send(JSON.stringify(packet));
@@ -5111,7 +5152,7 @@
                 lanState.pendingOfferPc.close();
               } catch (_) {}
             }
-            const pc = new RTCPeerConnection({ iceServers: [] });
+            const pc = new RTCPeerConnection(OKEY_RTC_CONFIG);
             const dc = pc.createDataChannel('okey101', { ordered: true });
             lanState.pendingOfferPc = pc;
             lanState.pendingOfferDc = dc;
@@ -5128,23 +5169,18 @@
 
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
-            await new Promise((resolve) => {
-              if (pc.iceGatheringState === 'complete') return resolve();
-              const t = setTimeout(resolve, 1100);
-              pc.onicegatheringstatechange = () => {
-                if (pc.iceGatheringState === 'complete') {
-                  clearTimeout(t);
-                  resolve();
-                }
-              };
-            });
+            await waitForOkeyIceGathering(pc, 2500);
 
-            const compact = compactSdp(pc.localDescription ? pc.localDescription.sdp : '');
-            const token = `OKEY1-${toBase64Url(
-              JSON.stringify({ r: lanState.roomCode, m: game.katlamali ? 1 : 0, n: profile.name, ...compact })
+            const token = `OKEY2-${toBase64Url(
+              JSON.stringify({
+                r: lanState.roomCode,
+                m: game.katlamali ? 'katlamali' : 'classic',
+                n: profile.name,
+                d: { type: pc.localDescription.type, sdp: pc.localDescription.sdp },
+              })
             )}`;
             lanState.currentOfferToken = token;
-            drawQrCodeToCanvas(document.getElementById('lan-host-qr'), token);
+            drawQrCodeToCanvas(document.getElementById('lan-host-qr'), lanState.roomCode);
           } catch (_) {
             const fallbackPayload = `OKEY1-${toBase64Url(JSON.stringify({ r: lanState.roomCode, m: game.katlamali ? 1 : 0, n: profile.name }))}`;
             lanState.currentOfferToken = fallbackPayload;
@@ -5154,25 +5190,27 @@
 
         async function hostAcceptGuestAnswer(rawToken) {
           const cleaned = String(rawToken || '').trim();
-          if (!cleaned.startsWith('ANS1-') || !lanState.pendingOfferPc) {
+          const isV2 = cleaned.startsWith('ANS2-');
+          const isV1 = cleaned.startsWith('ANS1-');
+          if ((!isV2 && !isV1) || !lanState.pendingOfferPc) {
             sound.playError();
-            showToast('Geçersiz misafir yanıt kodu! ANS1-... ile başlamalı.', 'error');
+            showToast('Geçersiz misafir yanıt kodu! ANS2-... ile başlamalı.', 'error');
             return;
           }
           try {
             const parsed = JSON.parse(fromBase64Url(cleaned.slice(5)));
-            const answerSdp = expandSdp(parsed, false);
+            const remoteDesc = isV2 && parsed.d ? new RTCSessionDescription(parsed.d) : { type: 'answer', sdp: expandSdp(parsed, false) };
             const activePc = lanState.pendingOfferPc;
             const activeDc = lanState.pendingOfferDc;
-            await activePc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+            await activePc.setRemoteDescription(remoteDesc);
             const guestPeerId = parsed.pid || 'rtc_' + Math.random().toString(36).slice(2, 8);
             assignSeatForGuest(
               guestPeerId,
               {
                 name: parsed.n || 'Wi-Fi Oyuncu',
-                avatarText: (parsed.n || 'W').charAt(0).toUpperCase(),
-                avatarBg: 'linear-gradient(135deg,#059669,#047857)',
-                gold: DEFAULT_GOLD,
+                avatarText: parsed.av || (parsed.n || 'W').charAt(0).toUpperCase(),
+                avatarBg: parsed.bg || 'linear-gradient(135deg,#059669,#047857)',
+                gold: Number(parsed.g) || DEFAULT_GOLD,
               },
               'rtc',
               activePc,
@@ -5243,6 +5281,12 @@
 
         function sendLanToHost(payload) {
           const packet = { ...payload, peerId: lanState.peerId, roomCode: lanState.roomCode, fromHost: false };
+          if (lanState.viaBridge && window.parent && window.parent !== window) {
+            try {
+              window.parent.postMessage({ __okeyLanBridge: true, direction: 'to_peer', payload: packet }, '*');
+            } catch (_) {}
+            return;
+          }
           if (lanState.guestDc && lanState.guestDc.readyState === 'open') {
             try {
               lanState.guestDc.send(JSON.stringify(packet));
@@ -5297,10 +5341,12 @@
         }
 
         async function guestProcessOfferToken(rawToken) {
-          const cleaned = String(rawToken || '').trim();
-          if (!cleaned.startsWith('OKEY1-')) {
+          const cleaned = String(rawToken || '').trim().replace(/\s+/g, '');
+          const isV2 = cleaned.startsWith('OKEY2-');
+          const isV1 = cleaned.startsWith('OKEY1-');
+          if (!isV2 && !isV1) {
             sound.playError();
-            showToast('Geçersiz davet kodu! Kurucunun OKEY1-... kodunu yapıştır.', 'error');
+            showToast('Geçersiz davet kodu! Kurucunun OKEY2-... kodunu yapıştır.', 'error');
             return;
           }
           try {
@@ -5314,17 +5360,26 @@
               connectGuestByRoomCode(parsed.r);
             }
 
-            if (parsed.u && parsed.p && parsed.f && typeof RTCPeerConnection !== 'undefined') {
-              const pc = new RTCPeerConnection({ iceServers: [] });
+            const remoteDesc = isV2 && parsed.d && parsed.d.sdp
+              ? { type: parsed.d.type || 'offer', sdp: parsed.d.sdp }
+              : (parsed.u && parsed.p && parsed.f ? { type: 'offer', sdp: expandSdp(parsed, true) } : null);
+
+            if (remoteDesc && typeof RTCPeerConnection !== 'undefined') {
+              const statusEl = document.getElementById('lan-guest-status');
+              if (statusEl) {
+                statusEl.classList.remove('is-ok');
+                statusEl.textContent = 'Durum: ICE Adayları Toplanıyor... (En fazla 2.5 sn)';
+              }
+              const pc = new RTCPeerConnection(OKEY_RTC_CONFIG);
               lanState.guestPc = pc;
               pc.ondatachannel = (ev) => {
                 lanState.guestDc = ev.channel;
                 ev.channel.onopen = () => {
                   lanState.connectedToHost = true;
-                  const statusEl = document.getElementById('lan-guest-status');
-                  if (statusEl) {
-                    statusEl.classList.add('is-ok');
-                    statusEl.textContent = `Oda ${lanState.roomCode} bağlantısı kuruldu! Kurucunun masayı başlatması bekleniyor...`;
+                  const st = document.getElementById('lan-guest-status');
+                  if (st) {
+                    st.classList.add('is-ok');
+                    st.textContent = `Durum: Bağlandı! Oda ${lanState.roomCode} bağlantısı kuruldu.`;
                   }
                   sendLanToHost({
                     type: 'JOIN_REQ',
@@ -5343,32 +5398,24 @@
                 };
               };
 
-              await pc.setRemoteDescription({ type: 'offer', sdp: expandSdp(parsed, true) });
+              await pc.setRemoteDescription(remoteDesc);
               const answer = await pc.createAnswer();
               await pc.setLocalDescription(answer);
-              await new Promise((resolve) => {
-                if (pc.iceGatheringState === 'complete') return resolve();
-                const t = setTimeout(resolve, 1100);
-                pc.onicegatheringstatechange = () => {
-                  if (pc.iceGatheringState === 'complete') {
-                    clearTimeout(t);
-                    resolve();
-                  }
-                };
-              });
+              await waitForOkeyIceGathering(pc, 2500);
 
-              const compactAns = compactSdp(pc.localDescription ? pc.localDescription.sdp : '');
-              const ansToken = `ANS1-${toBase64Url(
-                JSON.stringify({ r: lanState.roomCode, pid: lanState.peerId, n: profile.name, ...compactAns })
+              const fullDesc = pc.localDescription
+                ? { type: pc.localDescription.type, sdp: pc.localDescription.sdp }
+                : { type: 'answer', sdp: answer.sdp };
+              const ansToken = `ANS2-${toBase64Url(
+                JSON.stringify({ v: 2, r: lanState.roomCode, pid: lanState.peerId, n: profile.name, d: fullDesc })
               )}`;
               lanState.guestAnswerToken = ansToken;
               const ansArea = document.getElementById('lan-guest-answer-area');
               if (ansArea) ansArea.style.display = 'grid';
               drawQrCodeToCanvas(document.getElementById('lan-guest-qr'), ansToken);
-              const statusEl = document.getElementById('lan-guest-status');
               if (statusEl) {
                 statusEl.classList.add('is-ok');
-                statusEl.textContent = 'Yanıt kodu üretildi! Kodu kopyalayıp kurucuya gönderdiğinde bağlantı anında açılır.';
+                statusEl.textContent = 'Durum: Bağlantı Bekleniyor... Yanıt kodunu kopyalayıp ev sahibine gönder.';
               }
               sound.playOpenFanfare();
             }
@@ -6045,12 +6092,80 @@
         // Initial preview deal behind startup mode picker
         startNewRound();
 
-        // Check URL parameters for direct LAN launch from Main Menu (?lan=host or ?lan=join)
+        // Check URL parameters for live iframe bridge (?bridge=1) or direct LAN launch (?lan=host|join)
         const urlParams = new URLSearchParams(window.location.search);
+        const bridgeParam = urlParams.get('bridge');
         const lanParam = urlParams.get('lan');
         const roomParam = urlParams.get('room');
         const modeParam = urlParams.get('mode');
-        if (lanParam === 'host') {
+
+        // Intercept "Ana Menü" links when running inside index.html live iframe bridge so WebRTC closes cleanly
+        if (bridgeParam === '1' && window.parent && window.parent !== window) {
+          document.querySelectorAll('a[href="./index.html"]').forEach((linkEl) => {
+            linkEl.addEventListener('click', (e) => {
+              e.preventDefault();
+              try {
+                window.parent.postMessage({ __okeyLanBridge: true, direction: 'exit_to_lobby' }, '*');
+              } catch (_) {}
+            });
+          });
+
+          lanState.active = true;
+          lanState.viaBridge = true;
+          lanState.role = urlParams.get('role') === 'guest' ? 'guest' : 'host';
+          lanState.roomCode = (roomParam || 'WIFI').toUpperCase();
+          document.getElementById('mode-modal').classList.remove('open');
+          document.getElementById('lan-modal').classList.remove('open');
+          updateLanHudBadge();
+
+          window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (!data || !data.__okeyLanBridge) return;
+
+            if (data.direction === 'bridge_init') {
+              lanState.active = true;
+              lanState.viaBridge = true;
+              lanState.role = data.role === 'guest' ? 'guest' : 'host';
+              lanState.roomCode = (data.roomCode || lanState.roomCode || 'WIFI').toUpperCase();
+              lanState.mySeat = typeof data.mySeat === 'number' ? data.mySeat : 0;
+              if (data.peerId) lanState.peerId = data.peerId;
+              game.katlamali = Boolean(data.katlamali);
+
+              if (lanState.role === 'host') {
+                lanState.hostPeers.clear();
+                (data.peers || []).forEach((p) => {
+                  lanState.hostPeers.set(p.peerId, {
+                    peerId: p.peerId,
+                    seat: p.seat,
+                    name: p.name,
+                    avatarText: p.avatarText,
+                    avatarBg: p.avatarBg,
+                    gold: p.gold || DEFAULT_GOLD,
+                    via: 'bridge',
+                  });
+                });
+                startLanMatchAsHost();
+              } else {
+                const statusEl = document.getElementById('turn-status-text');
+                if (statusEl) statusEl.textContent = 'Canlı masa senkronize ediliyor...';
+                updateLanHudBadge();
+              }
+              return;
+            }
+
+            if (data.direction === 'from_peer' && data.payload) {
+              if (lanState.role === 'host') {
+                handleHostIncomingMessage({ ...data.payload, peerId: data.peerId || data.payload.peerId }, 'bridge', null, null);
+              } else {
+                handleGuestIncomingMessage(data.payload);
+              }
+            }
+          });
+
+          try {
+            window.parent.postMessage({ __okeyLanBridge: true, direction: 'bridge_ready' }, '*');
+          } catch (_) {}
+        } else if (lanParam === 'host') {
           document.getElementById('mode-modal').classList.remove('open');
           document.getElementById('lan-modal').classList.add('open');
           switchLanTab('host');

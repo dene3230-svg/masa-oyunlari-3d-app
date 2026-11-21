@@ -2722,6 +2722,273 @@
         color: #92400e;
       }
 
+      /* ================= V4.4 WEBRTC 2-STEP HANDSHAKE & IFRAME BRIDGE ================= */
+      .online-rtc-card {
+        width: min(570px, 100%);
+        max-height: min(90dvh, 740px);
+        overflow-y: auto;
+        text-align: left;
+      }
+
+      .rtc-tabs {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 4px;
+        border-radius: 12px;
+        background: rgba(5, 10, 24, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+      }
+
+      .rtc-tab-btn {
+        appearance: none;
+        min-height: 38px;
+        padding: 6px 10px;
+        border-radius: 9px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-secondary);
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .rtc-tab-btn.is-active {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(6, 182, 212, 0.16));
+        border-color: rgba(52, 211, 153, 0.65);
+        color: #a7f3d0;
+      }
+
+      .rtc-panel {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .rtc-panel.is-active {
+        display: flex;
+      }
+
+      .rtc-step-box {
+        padding: 11px 12px;
+        border-radius: 13px;
+        background: rgba(8, 18, 40, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .rtc-step-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .rtc-step-label {
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: var(--gold-bright);
+        text-transform: uppercase;
+      }
+
+      .rtc-code-area {
+        width: 100%;
+        min-height: 62px;
+        max-height: 88px;
+        resize: none;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(2, 6, 23, 0.84);
+        color: #e2e8f0;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.7rem;
+        line-height: 1.35;
+        word-break: break-all;
+      }
+
+      .rtc-btn-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .rtc-diag-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 11px;
+        background: rgba(14, 116, 144, 0.22);
+        border: 1px solid rgba(56, 189, 248, 0.45);
+        color: #bae6fd;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
+      .rtc-diag-bar.is-gathering {
+        background: rgba(180, 83, 9, 0.24);
+        border-color: rgba(251, 191, 36, 0.55);
+        color: #fef3c7;
+      }
+
+      .rtc-diag-bar.is-connected {
+        background: rgba(6, 95, 70, 0.34);
+        border-color: rgba(52, 211, 153, 0.65);
+        color: #a7f3d0;
+      }
+
+      .rtc-diag-bar.is-error {
+        background: rgba(153, 27, 27, 0.28);
+        border-color: rgba(248, 113, 113, 0.55);
+        color: #fecaca;
+      }
+
+      .rtc-diag-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        flex-shrink: 0;
+        box-shadow: 0 0 8px currentColor;
+      }
+
+      .rtc-roster-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .rtc-seat-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 11px;
+        background: rgba(8, 18, 40, 0.68);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+
+      .rtc-seat-card.is-live {
+        border-color: rgba(52, 211, 153, 0.62);
+      }
+
+      .rtc-seat-av {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 0.76rem;
+        font-weight: 900;
+        color: #ffffff;
+        flex-shrink: 0;
+      }
+
+      .rtc-seat-info {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .rtc-seat-info strong {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .rtc-seat-info span {
+        display: inline-block;
+        margin-top: 2px;
+        font-size: 0.65rem;
+        color: var(--text-muted);
+      }
+
+      .rtc-connected-pill {
+        padding: 1px 6px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #22c55e, #10b981);
+        color: #022c22 !important;
+        font-weight: 900;
+        letter-spacing: 0.03em;
+      }
+
+      .lan-iframe-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 950;
+        background: #020617;
+        display: none;
+      }
+
+      .lan-iframe-overlay.open {
+        display: block;
+      }
+
+      .lan-iframe-overlay iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+      }
+
+      body.theme-light .rtc-tabs,
+      body.theme-light .rtc-step-box,
+      body.theme-light .rtc-seat-card {
+        background: rgba(241, 245, 249, 0.92);
+        border-color: rgba(148, 163, 184, 0.45);
+      }
+
+      body.theme-light .rtc-tab-btn.is-active {
+        background: rgba(209, 250, 229, 0.95);
+        color: #065f46;
+      }
+
+      body.theme-light .rtc-step-label {
+        color: #92400e;
+      }
+
+      body.theme-light .rtc-code-area {
+        background: #ffffff;
+        color: #0f172a;
+        border-color: rgba(148, 163, 184, 0.55);
+      }
+
+      body.theme-light .rtc-diag-bar {
+        background: rgba(224, 242, 254, 0.94);
+        color: #0369a1;
+      }
+
+      body.theme-light .rtc-diag-bar.is-gathering {
+        background: rgba(254, 243, 199, 0.96);
+        color: #92400e;
+      }
+
+      body.theme-light .rtc-diag-bar.is-connected {
+        background: rgba(209, 250, 229, 0.96);
+        color: #065f46;
+      }
+
+      body.theme-light .rtc-diag-bar.is-error {
+        background: rgba(254, 226, 226, 0.95);
+        color: #991b1b;
+      }
+
+      @media (max-width: 520px) {
+        .rtc-roster-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
       .roadmap-card {
         padding: 13px 14px;
         border-radius: 14px;
@@ -2885,7 +3152,7 @@
         <div class="ota-top-copy">
           <div class="ota-top-head">
             <strong class="ota-top-title" id="ota-top-title">Masa Oyunları 3D Güncellendi!</strong>
-            <span class="ota-top-ver" id="ota-top-ver">v4.3</span>
+            <span class="ota-top-ver" id="ota-top-ver">v4.4</span>
           </div>
           <p class="ota-top-msg" id="ota-top-msg">Yeni sürüm hazır, dokunarak güncelleyin.</p>
         </div>
@@ -3097,7 +3364,7 @@
               <strong>Güncellemeler</strong>
               <small>Yama Notları &amp; Yakında Eklenecek Özellikler</small>
             </span>
-            <span class="updates-ver-badge" id="menu-updates-badge">v4.3</span>
+            <span class="updates-ver-badge" id="menu-updates-badge">v4.4</span>
           </button>
 
           <button type="button" class="menu-btn" id="btn-menu-settings">
@@ -3150,8 +3417,22 @@
           <div class="updates-panel is-active" id="tab-panel-changelog" role="tabpanel">
             <article class="changelog-item is-latest">
               <div class="changelog-ver-row">
-                <span class="changelog-ver">v4.3 (Güncel)</span>
+                <span class="changelog-ver">v4.4 (Güncel)</span>
                 <span class="tag-new-pill">YENİ</span>
+                <span class="changelog-date">2026-11-20</span>
+              </div>
+              <div class="changelog-title">Gelişmiş WebRTC P2P El Sıkışma &amp; Kesintisiz Masa Köprüsü</div>
+              <ul class="changelog-list">
+                <li>WebRTC bağlantısına yerel ağ adaylarına ek olarak STUN sunucu desteği (stun.l.google.com) ve 2.5 saniyelik tam ICE aday toplama beklemesi eklendi.</li>
+                <li>Ana Menü içine 2 adımlı Ev Sahibi / Misafir davet ve yanıt kodu el sıkışma arayüzü ile canlı teşhis durumu (ICE Toplanıyor / Bekleniyor / Bağlandı!) yerleştirildi.</li>
+                <li>Oyun başlarken bağlantının kopmasını tamamen önleyen tam ekran iframe masa katmanı ve window.postMessage canlı RTCDataChannel köprüsü devreye alındı.</li>
+                <li>Bağlanan tüm misafirler yeşil 'Bağlandı!' rozetiyle lobi listesinde görünür ve oyun sonu altın/rütbe puanları ana menüye anında senkronize edilir.</li>
+              </ul>
+            </article>
+
+            <article class="changelog-item">
+              <div class="changelog-ver-row">
+                <span class="changelog-ver">v4.3</span>
                 <span class="changelog-date">2026-11-20</span>
               </div>
               <div class="changelog-title">Sunucusuz Yerel Ağ (Wi-Fi / Hotspot) Çok Oyunculu Modu</div>
@@ -3260,41 +3541,108 @@
       </div>
     </div>
 
-    <!-- SERVERLESS LAN (WI-FI / HOTSPOT) MULTIPLAYER LOBBY MODAL -->
+    <!-- SERVERLESS LAN (WI-FI / HOTSPOT) 2-STEP WEBRTC MULTIPLAYER LOBBY MODAL -->
     <div class="app-modal-backdrop" id="online-modal" role="dialog" aria-modal="true" aria-labelledby="online-modal-title">
-      <div class="app-modal-card">
-        <div class="modal-kicker">SUNUCUSUZ YEREL AĞ · WI-FI / HOTSPOT P2P</div>
-        <h2 class="modal-title" id="online-modal-title">101 Okey Yerel Ağ Lobisi</h2>
-        <div class="lan-p2p-banner">
-          <strong>v4.3 Aktif:</strong> Aynı Wi-Fi veya telefon internet paylaşımı (Hotspot) üzerindeki cihazlarla sunucusuz, doğrudan <strong>Oda Kodu &amp; QR Kod</strong> kullanarak canlı 101 Okey oynayın. Eksik koltuklar otomatik botlarla tamamlanır!
+      <div class="app-modal-card online-rtc-card">
+        <div class="modal-kicker">WEBRTC P2P · STUN + YEREL AĞ (WI-FI / HOTSPOT)</div>
+        <h2 class="modal-title" id="online-modal-title">101 Okey Çok Oyunculu Lobisi</h2>
+
+        <div class="rtc-tabs" role="tablist">
+          <button type="button" class="rtc-tab-btn is-active" id="rtc-tab-host" role="tab" aria-selected="true">
+            Oda Kur (Ev Sahibi)
+          </button>
+          <button type="button" class="rtc-tab-btn" id="rtc-tab-guest" role="tab" aria-selected="false">
+            Odaya Katıl (Misafir)
+          </button>
         </div>
 
-        <div class="online-draft-box">
-          <span class="settings-label" style="margin-bottom:0">Masa Kuralları (Ücretsiz Giriş)</span>
+        <!-- HOST 2-STEP FLOW -->
+        <div class="rtc-panel is-active" id="rtc-panel-host">
           <div class="lan-mode-row">
             <button type="button" class="lan-mode-btn is-selected" id="btn-lan-mode-kat">Katlamalı 101</button>
             <button type="button" class="lan-mode-btn" id="btn-lan-mode-cls">Katlamasız 101</button>
           </div>
 
-          <button type="button" class="modal-cta" id="btn-online-create" style="width:100%">
-            Oda Kur (Oda Kodu &amp; QR Üret)
-          </button>
-
-          <span class="settings-label" style="margin:6px 0 0">Oda Kodu veya QR ile Katıl</span>
-          <div class="room-input-row">
-            <input type="text" class="room-code-input" id="online-room-input" maxlength="8" placeholder="Örn: A7K4" />
-            <button type="button" class="modal-cta secondary" id="btn-online-join">Odaya Katıl</button>
+          <div class="rtc-step-box">
+            <div class="rtc-step-head">
+              <span class="rtc-step-label">1. Adım: Oda Davet Kodu</span>
+              <button type="button" class="modal-cta secondary" id="btn-rtc-gen-offer" style="padding:5px 10px;font-size:0.72rem">
+                Yeni Davet Üret
+              </button>
+            </div>
+            <textarea readonly class="rtc-code-area" id="rtc-host-offer-text" placeholder="ICE adayları toplanıyor..."></textarea>
+            <div class="rtc-btn-row">
+              <button type="button" class="modal-cta secondary" id="btn-rtc-copy-offer" style="flex:1">Kodu Kopyala</button>
+            </div>
           </div>
-          <button type="button" class="modal-cta secondary" id="btn-online-quick" style="width:100%">
-            QR / P2P Bağlantı Koduyla Katıl
-          </button>
+
+          <div class="rtc-step-box">
+            <div class="rtc-step-head">
+              <span class="rtc-step-label">2. Adım: Misafirden Gelen Yanıt Kodunu Yapıştır</span>
+            </div>
+            <textarea class="rtc-code-area" id="rtc-host-answer-input" placeholder="Misafirin gönderdiği ANS2-... yanıt kodunu buraya yapıştır"></textarea>
+            <div class="rtc-btn-row">
+              <button type="button" class="modal-cta" id="btn-rtc-complete-conn" style="flex:1">Bağlantıyı Tamamla</button>
+            </div>
+          </div>
+
+          <div class="rtc-diag-bar is-gathering" id="rtc-host-diag" role="status" aria-live="polite">
+            <span class="rtc-diag-dot"></span>
+            <span id="rtc-host-diag-text">Durum: Oda hazırlanıyor...</span>
+          </div>
+
+          <div class="rtc-roster-grid" id="rtc-host-roster"></div>
+
+          <div class="modal-actions" style="justify-content:stretch">
+            <button type="button" class="modal-cta" id="btn-rtc-start-game" style="flex:1">
+              Masayı Başlat (Kesintisiz Canlı Masa)
+            </button>
+            <button type="button" class="modal-cta secondary" id="btn-online-close">Kapat</button>
+          </div>
         </div>
 
-        <div class="modal-actions">
-          <button type="button" class="modal-cta secondary" id="btn-online-go-games">Tek Oyunculu Masalar</button>
-          <button type="button" class="modal-cta secondary" id="btn-online-close">Kapat</button>
+        <!-- GUEST 2-STEP FLOW -->
+        <div class="rtc-panel" id="rtc-panel-guest">
+          <div class="rtc-step-box">
+            <div class="rtc-step-head">
+              <span class="rtc-step-label">1. Adım: Ev Sahibinin Oda Davet Kodunu Yapıştır</span>
+            </div>
+            <textarea class="rtc-code-area" id="rtc-guest-offer-input" placeholder="Ev sahibinden gelen OKEY2-... davet kodunu buraya yapıştır"></textarea>
+            <div class="rtc-btn-row">
+              <button type="button" class="modal-cta" id="btn-rtc-gen-answer" style="flex:1">Yanıt Kodu Üret</button>
+            </div>
+          </div>
+
+          <div class="rtc-step-box">
+            <div class="rtc-step-head">
+              <span class="rtc-step-label">2. Adım: Oluşan Yanıt Kodu</span>
+            </div>
+            <textarea readonly class="rtc-code-area" id="rtc-guest-answer-text" placeholder="Davet kodunu işlediğinde yanıt kodun burada oluşacak..."></textarea>
+            <div class="rtc-btn-row">
+              <button type="button" class="modal-cta secondary" id="btn-rtc-copy-answer" style="flex:1">
+                Yanıt Kodunu Kopyala (Ev Sahibine Gönder)
+              </button>
+            </div>
+          </div>
+
+          <div class="rtc-diag-bar" id="rtc-guest-diag" role="status" aria-live="polite">
+            <span class="rtc-diag-dot"></span>
+            <span id="rtc-guest-diag-text">Durum: Bağlantı Bekleniyor... (Ev sahibinin davet kodunu yapıştır)</span>
+          </div>
+
+          <div class="rtc-roster-grid" id="rtc-guest-roster"></div>
+
+          <div class="modal-actions">
+            <button type="button" class="modal-cta secondary" id="btn-online-go-games">Tek Oyunculu Masalar</button>
+            <button type="button" class="modal-cta secondary" id="btn-online-close-guest">Kapat</button>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- FULL-SCREEN LIVE IFRAME GAME LAYER (KEEPS WEBRTC RTCDATACHANNEL ALIVE!) -->
+    <div class="lan-iframe-overlay" id="lan-game-frame-overlay" aria-label="101 Okey Çok Oyunculu Masa">
+      <iframe id="lan-game-iframe" title="101 Okey Çok Oyunculu Masa" allow="autoplay"></iframe>
     </div>
 
     <!-- GLOBAL SETTINGS MODAL (BLACK / WHITE THEME & SOUND) -->
@@ -4347,26 +4695,113 @@
       document.getElementById('btn-menu-online').addEventListener('click', () => {
         sound.playClick();
         onlineModal.classList.add('open');
+        if (!rtcLobby.roomCode) {
+          switchRtcTab('host');
+          createHostRtcOffer();
+        } else {
+          renderRtcRoster();
+        }
       });
 
+      /* ================= V4.4 WEBRTC 2-STEP HANDSHAKE & LIVE IFRAME BRIDGE ================= */
+      const RTC_CONFIG = {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ],
+      };
+
+      const RTC_BOT_DEFAULTS = [
+        null,
+        { name: 'Mert A.', avatarText: 'M', avatarBg: 'linear-gradient(135deg,#be123c,#881337)' },
+        { name: 'Selin K.', avatarText: 'S', avatarBg: 'linear-gradient(135deg,#0284c7,#0369a1)' },
+        { name: 'Cüneyt C.', avatarText: 'C', avatarBg: 'linear-gradient(135deg,#d97706,#92400e)' },
+      ];
+
       let selectedLanMode = 'katlamali';
+      const rtcLobby = {
+        role: 'host',
+        roomCode: '',
+        myPeerId: 'peer_' + Math.random().toString(36).slice(2, 10),
+        mySeat: 0,
+        pendingPc: null,
+        pendingDc: null,
+        hostPeers: new Map(), // peerId -> { peerId, seat, name, avatarText, avatarBg, gold, pc, dc }
+        guestPc: null,
+        guestDc: null,
+        guestRoster: [null, null, null, null],
+        iframeOpen: false,
+        bridgeReady: false,
+        bridgeQueue: [],
+      };
+
+      const lanGameOverlay = document.getElementById('lan-game-frame-overlay');
+      const lanGameIframe = document.getElementById('lan-game-iframe');
       const btnLanModeKat = document.getElementById('btn-lan-mode-kat');
       const btnLanModeCls = document.getElementById('btn-lan-mode-cls');
-      const onlineRoomInput = document.getElementById('online-room-input');
 
-      if (btnLanModeKat && btnLanModeCls) {
-        btnLanModeKat.addEventListener('click', () => {
-          selectedLanMode = 'katlamali';
-          btnLanModeKat.classList.add('is-selected');
-          btnLanModeCls.classList.remove('is-selected');
-          sound.playClick();
+      function getActivePlayerIdentity() {
+        const sess = typeof loadUserSession === 'function' ? loadUserSession() : null;
+        const name = (sess && sess.name) || profile.username || 'Oyuncu';
+        return {
+          name,
+          avatarText: (sess && sess.avatarText) || name.charAt(0).toUpperCase() || 'O',
+          avatarBg: (sess && sess.avatarBg) || 'linear-gradient(135deg,#0f766e,#115e59)',
+          gold: profile.chips || 25000,
+        };
+      }
+
+      function rtcB64Encode(obj) {
+        const bytes = new TextEncoder().encode(JSON.stringify(obj));
+        let bin = '';
+        for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+
+      function rtcB64Decode(b64) {
+        const norm = b64.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = norm.length % 4 === 0 ? '' : '='.repeat(4 - (norm.length % 4));
+        const bin = atob(norm + pad);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return JSON.parse(new TextDecoder().decode(bytes));
+      }
+
+      function waitForIceGathering(pc, maxWaitMs) {
+        return new Promise((resolve) => {
+          if (!pc || pc.iceGatheringState === 'complete') {
+            resolve();
+            return;
+          }
+          let done = false;
+          const finish = () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            pc.removeEventListener('icegatheringstatechange', onState);
+            pc.removeEventListener('icecandidate', onCand);
+            resolve();
+          };
+          const onState = () => {
+            if (pc.iceGatheringState === 'complete') finish();
+          };
+          const onCand = (ev) => {
+            if (!ev.candidate) finish();
+          };
+          const timer = setTimeout(finish, maxWaitMs || 2500);
+          pc.addEventListener('icegatheringstatechange', onState);
+          pc.addEventListener('icecandidate', onCand);
         });
-        btnLanModeCls.addEventListener('click', () => {
-          selectedLanMode = 'classic';
-          btnLanModeCls.classList.add('is-selected');
-          btnLanModeKat.classList.remove('is-selected');
-          sound.playClick();
-        });
+      }
+
+      function setDiagStatus(role, stateClass, text) {
+        const bar = document.getElementById(role === 'host' ? 'rtc-host-diag' : 'rtc-guest-diag');
+        const span = document.getElementById(role === 'host' ? 'rtc-host-diag-text' : 'rtc-guest-diag-text');
+        if (bar) {
+          bar.classList.remove('is-gathering', 'is-connected', 'is-error');
+          if (stateClass) bar.classList.add(stateClass);
+        }
+        if (span) span.textContent = text;
       }
 
       function generateLanRoomCode() {
@@ -4376,26 +4811,549 @@
         return code;
       }
 
-      document.getElementById('btn-online-create').addEventListener('click', () => {
-        sound.playLaunch();
-        const code = generateLanRoomCode();
-        window.location.href = `./okey-101.html?lan=host&mode=${encodeURIComponent(selectedLanMode)}&room=${encodeURIComponent(code)}`;
-      });
+      function buildHostRosterArray() {
+        const me = getActivePlayerIdentity();
+        const arr = [
+          { seat: 0, peerId: rtcLobby.myPeerId, name: me.name, avatarText: me.avatarText, avatarBg: me.avatarBg, gold: me.gold, connected: true, isHost: true },
+          null,
+          null,
+          null,
+        ];
+        rtcLobby.hostPeers.forEach((p) => {
+          if (p.seat >= 1 && p.seat <= 3) {
+            arr[p.seat] = {
+              seat: p.seat,
+              peerId: p.peerId,
+              name: p.name,
+              avatarText: p.avatarText,
+              avatarBg: p.avatarBg,
+              gold: p.gold,
+              connected: Boolean(p.dc && p.dc.readyState === 'open'),
+              isHost: false,
+            };
+          }
+        });
+        return arr;
+      }
 
-      document.getElementById('btn-online-join').addEventListener('click', () => {
-        const raw = (onlineRoomInput ? onlineRoomInput.value : '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-        if (!raw || raw.length < 3) {
-          sound.playError();
-          showToast('Lütfen geçerli bir Oda Kodu gir (ör: A7K4) veya QR/P2P butonunu kullan.', 'error');
+      function renderSeatGridInto(containerId, seatsArr) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        el.textContent = '';
+        for (let i = 0; i < 4; i++) {
+          const s = seatsArr[i];
+          const bot = RTC_BOT_DEFAULTS[i];
+          const card = document.createElement('div');
+          card.className = 'rtc-seat-card' + (s && s.connected ? ' is-live' : '');
+
+          const av = document.createElement('div');
+          av.className = 'rtc-seat-av';
+          av.textContent = s ? s.avatarText || 'O' : bot ? bot.avatarText : 'B';
+          av.style.background = s ? s.avatarBg || 'linear-gradient(135deg,#0f766e,#115e59)' : bot ? bot.avatarBg : '#475569';
+          card.appendChild(av);
+
+          const info = document.createElement('div');
+          info.className = 'rtc-seat-info';
+          const nameEl = document.createElement('strong');
+          nameEl.textContent = s ? s.name : `${bot ? bot.name : 'Bot ' + i} (Bot)`;
+          const badge = document.createElement('span');
+          if (s && s.isHost) {
+            badge.className = 'rtc-connected-pill';
+            badge.textContent = 'Ev Sahibi · Hazır';
+          } else if (s && s.connected) {
+            badge.className = 'rtc-connected-pill';
+            badge.textContent = 'Bağlandı!';
+          } else if (s) {
+            badge.textContent = 'El sıkışıyor...';
+          } else {
+            badge.textContent = 'Boş → Otomatik Bot';
+          }
+          info.appendChild(nameEl);
+          info.appendChild(badge);
+          card.appendChild(info);
+          el.appendChild(card);
+        }
+      }
+
+      function renderRtcRoster() {
+        renderSeatGridInto('rtc-host-roster', buildHostRosterArray());
+        renderSeatGridInto('rtc-guest-roster', rtcLobby.guestRoster);
+      }
+
+      function broadcastHostLobbyRoster() {
+        const roster = buildHostRosterArray();
+        renderSeatGridInto('rtc-host-roster', roster);
+        rtcLobby.hostPeers.forEach((p) => {
+          if (p.dc && p.dc.readyState === 'open') {
+            try {
+              p.dc.send(
+                JSON.stringify({
+                  type: 'LOBBY_ROSTER',
+                  roomCode: rtcLobby.roomCode,
+                  assignedSeat: p.seat,
+                  katlamali: selectedLanMode === 'katlamali',
+                  roster,
+                })
+              );
+            } catch (_) {}
+          }
+        });
+      }
+
+      function forwardToGameIframe(packet) {
+        if (!rtcLobby.iframeOpen) return;
+        if (!rtcLobby.bridgeReady || !lanGameIframe || !lanGameIframe.contentWindow) {
+          rtcLobby.bridgeQueue.push(packet);
           return;
         }
-        sound.playLaunch();
-        window.location.href = `./okey-101.html?lan=join&room=${encodeURIComponent(raw)}`;
+        try {
+          lanGameIframe.contentWindow.postMessage(packet, '*');
+        } catch (_) {}
+      }
+
+      function openLiveGameIframe(role) {
+        rtcLobby.iframeOpen = true;
+        rtcLobby.bridgeReady = false;
+        rtcLobby.bridgeQueue = [];
+        if (onlineModal) onlineModal.classList.remove('open');
+        if (lanGameOverlay && lanGameIframe) {
+          lanGameIframe.src = `./okey-101.html?bridge=1&role=${encodeURIComponent(role)}&room=${encodeURIComponent(rtcLobby.roomCode || 'WIFI')}&mode=${encodeURIComponent(selectedLanMode)}`;
+          lanGameOverlay.classList.add('open');
+        }
+      }
+
+      function closeLiveGameIframeAndReset() {
+        rtcLobby.iframeOpen = false;
+        rtcLobby.bridgeReady = false;
+        rtcLobby.bridgeQueue = [];
+        if (lanGameOverlay) lanGameOverlay.classList.remove('open');
+        if (lanGameIframe) lanGameIframe.src = 'about:blank';
+        // Close open WebRTC peer connections cleanly when returning to lobby
+        rtcLobby.hostPeers.forEach((p) => {
+          try {
+            if (p.dc) p.dc.close();
+            if (p.pc) p.pc.close();
+          } catch (_) {}
+        });
+        rtcLobby.hostPeers.clear();
+        if (rtcLobby.pendingPc) {
+          try {
+            rtcLobby.pendingPc.close();
+          } catch (_) {}
+          rtcLobby.pendingPc = null;
+          rtcLobby.pendingDc = null;
+        }
+        if (rtcLobby.guestPc) {
+          try {
+            rtcLobby.guestPc.close();
+          } catch (_) {}
+          rtcLobby.guestPc = null;
+          rtcLobby.guestDc = null;
+        }
+        rtcLobby.roomCode = '';
+        rtcLobby.guestRoster = [null, null, null, null];
+        profile = loadProfile();
+        renderProfileBar();
+        showMainMenuView();
+      }
+
+      async function createHostRtcOffer() {
+        rtcLobby.role = 'host';
+        if (!rtcLobby.roomCode) rtcLobby.roomCode = generateLanRoomCode();
+        if (rtcLobby.pendingPc) {
+          try {
+            rtcLobby.pendingPc.close();
+          } catch (_) {}
+          rtcLobby.pendingPc = null;
+          rtcLobby.pendingDc = null;
+        }
+        const offerArea = document.getElementById('rtc-host-offer-text');
+        if (offerArea) offerArea.value = '';
+        setDiagStatus('host', 'is-gathering', 'Durum: ICE Adayları Toplanıyor...');
+        renderRtcRoster();
+
+        if (typeof RTCPeerConnection === 'undefined') {
+          setDiagStatus('host', 'is-error', 'Durum: Bu tarayıcı WebRTC desteklemiyor.');
+          return;
+        }
+
+        try {
+          const pc = new RTCPeerConnection(RTC_CONFIG);
+          const dc = pc.createDataChannel('okey101', { ordered: true });
+          rtcLobby.pendingPc = pc;
+          rtcLobby.pendingDc = dc;
+
+          pc.onconnectionstatechange = () => {
+            if (pc.connectionState === 'connected') {
+              setDiagStatus('host', 'is-connected', 'Durum: Bağlandı! (P2P Veri Kanalı Açık)');
+            } else if (pc.connectionState === 'failed') {
+              setDiagStatus('host', 'is-error', 'Durum: Bağlantı kurulamadı — yeni davet kodu üretip tekrar dene.');
+            }
+          };
+
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          await waitForIceGathering(pc, 2500);
+
+          const me = getActivePlayerIdentity();
+          const token =
+            'OKEY2-' +
+            rtcB64Encode({
+              r: rtcLobby.roomCode,
+              m: selectedLanMode,
+              n: me.name,
+              d: {
+                type: pc.localDescription.type,
+                sdp: pc.localDescription.sdp,
+              },
+            });
+
+          if (offerArea) offerArea.value = token;
+          setDiagStatus(
+            'host',
+            '',
+            `Durum: Bağlantı Bekleniyor... (Oda ${rtcLobby.roomCode} — 1. Adım davet kodunu arkadaşına gönder)`
+          );
+        } catch (err) {
+          setDiagStatus('host', 'is-error', 'Durum: Davet kodu üretilemedi: ' + (err && err.message ? err.message : 'Hata'));
+        }
+      }
+
+      async function completeHostRtcHandshake() {
+        const inputEl = document.getElementById('rtc-host-answer-input');
+        const raw = (inputEl ? inputEl.value : '').trim();
+        if (!raw.startsWith('ANS2-') || !rtcLobby.pendingPc) {
+          sound.playError();
+          showToast('Geçersiz yanıt kodu! Misafirden gelen ANS2-... kodunu eksiksiz yapıştır.', 'error');
+          return;
+        }
+
+        let parsed;
+        try {
+          parsed = rtcB64Decode(raw.slice(5));
+        } catch (_) {
+          sound.playError();
+          showToast('Yanıt kodu çözülemedi. Kodun tamamını kopyaladığından emin ol.', 'error');
+          return;
+        }
+
+        if (!parsed || !parsed.d || !parsed.d.sdp) {
+          sound.playError();
+          showToast('Yanıt kodu eksik SDP bilgisi içeriyor.', 'error');
+          return;
+        }
+
+        const usedSeats = new Set([0]);
+        rtcLobby.hostPeers.forEach((p) => usedSeats.add(p.seat));
+        let freeSeat = -1;
+        for (let s = 1; s <= 3; s++) {
+          if (!usedSeats.has(s)) {
+            freeSeat = s;
+            break;
+          }
+        }
+        if (freeSeat === -1) {
+          sound.playError();
+          showToast('Masa dolu (4/4 oyuncu)!', 'error');
+          return;
+        }
+
+        const pc = rtcLobby.pendingPc;
+        const dc = rtcLobby.pendingDc;
+        const guestPeerId = parsed.pid || 'guest_' + Math.random().toString(36).slice(2, 8);
+        const peerObj = {
+          peerId: guestPeerId,
+          seat: freeSeat,
+          name: String(parsed.n || `Oyuncu ${freeSeat + 1}`).slice(0, 18),
+          avatarText: parsed.av || String(parsed.n || 'O').charAt(0).toUpperCase(),
+          avatarBg: parsed.bg || 'linear-gradient(135deg,#0284c7,#0369a1)',
+          gold: Number(parsed.g) || 25000,
+          pc,
+          dc,
+        };
+
+        dc.onopen = () => {
+          sound.playLaunch();
+          setDiagStatus('host', 'is-connected', `Durum: Bağlandı! (${peerObj.name} masaya katıldı)`);
+          showToast(`${peerObj.name} canlı P2P ile bağlandı!`, 'success');
+          broadcastHostLobbyRoster();
+        };
+
+        dc.onmessage = (ev) => {
+          try {
+            const msg = JSON.parse(ev.data);
+            if (msg.type === 'HELLO' && msg.player) {
+              peerObj.name = String(msg.player.name || peerObj.name).slice(0, 18);
+              peerObj.avatarText = msg.player.avatarText || peerObj.avatarText;
+              peerObj.avatarBg = msg.player.avatarBg || peerObj.avatarBg;
+              peerObj.gold = Number(msg.player.gold) || peerObj.gold;
+              broadcastHostLobbyRoster();
+              return;
+            }
+            if (rtcLobby.iframeOpen) {
+              forwardToGameIframe({
+                __okeyLanBridge: true,
+                direction: 'from_peer',
+                peerId: peerObj.peerId,
+                payload: { ...msg, peerId: peerObj.peerId },
+              });
+            }
+          } catch (_) {}
+        };
+
+        dc.onclose = () => {
+          renderRtcRoster();
+        };
+
+        try {
+          setDiagStatus('host', 'is-gathering', 'Durum: Bağlantı Bekleniyor... (WebRTC el sıkışma tamamlanıyor)');
+          await pc.setRemoteDescription(new RTCSessionDescription(parsed.d));
+          rtcLobby.hostPeers.set(guestPeerId, peerObj);
+          rtcLobby.pendingPc = null;
+          rtcLobby.pendingDc = null;
+          if (inputEl) inputEl.value = '';
+          renderRtcRoster();
+          if (dc.readyState === 'open') {
+            setDiagStatus('host', 'is-connected', `Durum: Bağlandı! (${peerObj.name} masaya katıldı)`);
+            broadcastHostLobbyRoster();
+          }
+        } catch (err) {
+          setDiagStatus('host', 'is-error', 'Durum: El sıkışma hatası — yeni davet kodu üretip tekrar dene.');
+          sound.playError();
+        }
+      }
+
+      async function generateGuestRtcAnswer() {
+        const offerInput = document.getElementById('rtc-guest-offer-input');
+        const answerArea = document.getElementById('rtc-guest-answer-text');
+        const raw = (offerInput ? offerInput.value : '').trim();
+        if (!raw.startsWith('OKEY2-')) {
+          sound.playError();
+          showToast('Geçersiz davet kodu! Ev sahibinden gelen OKEY2-... kodunu eksiksiz yapıştır.', 'error');
+          return;
+        }
+
+        let parsed;
+        try {
+          parsed = rtcB64Decode(raw.slice(6));
+        } catch (_) {
+          sound.playError();
+          showToast('Davet kodu çözülemedi. Kodun tamamını kopyaladığından emin ol.', 'error');
+          return;
+        }
+        if (!parsed || !parsed.d || !parsed.d.sdp) {
+          sound.playError();
+          showToast('Davet kodu eksik SDP bilgisi içeriyor.', 'error');
+          return;
+        }
+
+        if (rtcLobby.guestPc) {
+          try {
+            rtcLobby.guestPc.close();
+          } catch (_) {}
+          rtcLobby.guestPc = null;
+          rtcLobby.guestDc = null;
+        }
+
+        rtcLobby.role = 'guest';
+        rtcLobby.roomCode = parsed.r || 'WIFI';
+        selectedLanMode = parsed.m === 'classic' ? 'classic' : 'katlamali';
+        if (answerArea) answerArea.value = '';
+        setDiagStatus('guest', 'is-gathering', 'Durum: ICE Adayları Toplanıyor...');
+
+        try {
+          const pc = new RTCPeerConnection(RTC_CONFIG);
+          rtcLobby.guestPc = pc;
+
+          pc.onconnectionstatechange = () => {
+            if (pc.connectionState === 'connected') {
+              setDiagStatus('guest', 'is-connected', 'Durum: Bağlandı! (Ev sahibinin masayı başlatması bekleniyor...)');
+            } else if (pc.connectionState === 'failed') {
+              setDiagStatus('guest', 'is-error', 'Durum: Bağlantı kurulamadı — ev sahibinden yeni davet kodu iste.');
+            }
+          };
+
+          pc.ondatachannel = (ev) => {
+            const dc = ev.channel;
+            rtcLobby.guestDc = dc;
+            dc.onopen = () => {
+              sound.playLaunch();
+              setDiagStatus('guest', 'is-connected', 'Durum: Bağlandı! (Ev sahibinin masayı başlatması bekleniyor...)');
+              showToast('Ev sahibine canlı P2P bağlantısı kuruldu!', 'success');
+              const me = getActivePlayerIdentity();
+              try {
+                dc.send(JSON.stringify({ type: 'HELLO', peerId: rtcLobby.myPeerId, player: me }));
+              } catch (_) {}
+            };
+            dc.onmessage = (mEv) => {
+              try {
+                const msg = JSON.parse(mEv.data);
+                if (msg.type === 'LOBBY_ROSTER') {
+                  rtcLobby.mySeat = msg.assignedSeat || 1;
+                  if (Array.isArray(msg.roster)) {
+                    rtcLobby.guestRoster = msg.roster;
+                    renderRtcRoster();
+                  }
+                  return;
+                }
+                if (msg.type === 'LAUNCH_GAME') {
+                  rtcLobby.roomCode = msg.roomCode || rtcLobby.roomCode;
+                  selectedLanMode = msg.katlamali ? 'katlamali' : 'classic';
+                  if (typeof msg.assignedSeat === 'number') rtcLobby.mySeat = msg.assignedSeat;
+                  openLiveGameIframe('guest');
+                  return;
+                }
+                if (rtcLobby.iframeOpen) {
+                  forwardToGameIframe({
+                    __okeyLanBridge: true,
+                    direction: 'from_peer',
+                    peerId: 'host',
+                    payload: msg,
+                  });
+                }
+              } catch (_) {}
+            };
+          };
+
+          await pc.setRemoteDescription(new RTCSessionDescription(parsed.d));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          await waitForIceGathering(pc, 2500);
+
+          const me = getActivePlayerIdentity();
+          const ansToken =
+            'ANS2-' +
+            rtcB64Encode({
+              r: rtcLobby.roomCode,
+              pid: rtcLobby.myPeerId,
+              n: me.name,
+              av: me.avatarText,
+              bg: me.avatarBg,
+              g: me.gold,
+              d: {
+                type: pc.localDescription.type,
+                sdp: pc.localDescription.sdp,
+              },
+            });
+
+          if (answerArea) answerArea.value = ansToken;
+          setDiagStatus(
+            'guest',
+            '',
+            'Durum: Bağlantı Bekleniyor... (2. Adımdaki Yanıt Kodunu kopyalayıp Ev Sahibine gönder)'
+          );
+          sound.playChipSelect();
+        } catch (err) {
+          setDiagStatus('guest', 'is-error', 'Durum: Yanıt kodu üretilemedi: ' + (err && err.message ? err.message : 'Hata'));
+          sound.playError();
+        }
+      }
+
+      function switchRtcTab(tab) {
+        const isHost = tab === 'host';
+        rtcLobby.role = isHost ? 'host' : 'guest';
+        document.getElementById('rtc-tab-host').classList.toggle('is-active', isHost);
+        document.getElementById('rtc-tab-guest').classList.toggle('is-active', !isHost);
+        document.getElementById('rtc-panel-host').classList.toggle('is-active', isHost);
+        document.getElementById('rtc-panel-guest').classList.toggle('is-active', !isHost);
+        renderRtcRoster();
+      }
+
+      function copyRtcText(textareaId, successMsg) {
+        const el = document.getElementById(textareaId);
+        const val = el ? el.value.trim() : '';
+        if (!val) {
+          sound.playError();
+          showToast('Henüz kopyalanacak bir kod oluşmadı.', 'error');
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(val).then(
+            () => showToast(successMsg, 'success'),
+            () => {
+              el.select();
+              showToast(successMsg, 'success');
+            }
+          );
+        } else {
+          el.select();
+          showToast(successMsg, 'success');
+        }
+      }
+
+      if (btnLanModeKat && btnLanModeCls) {
+        btnLanModeKat.addEventListener('click', () => {
+          selectedLanMode = 'katlamali';
+          btnLanModeKat.classList.add('is-selected');
+          btnLanModeCls.classList.remove('is-selected');
+          sound.playClick();
+          broadcastHostLobbyRoster();
+        });
+        btnLanModeCls.addEventListener('click', () => {
+          selectedLanMode = 'classic';
+          btnLanModeCls.classList.add('is-selected');
+          btnLanModeKat.classList.remove('is-selected');
+          sound.playClick();
+          broadcastHostLobbyRoster();
+        });
+      }
+
+      document.getElementById('rtc-tab-host').addEventListener('click', () => {
+        sound.playClick();
+        switchRtcTab('host');
+        if (!document.getElementById('rtc-host-offer-text').value) {
+          createHostRtcOffer();
+        }
       });
 
-      document.getElementById('btn-online-quick').addEventListener('click', () => {
+      document.getElementById('rtc-tab-guest').addEventListener('click', () => {
+        sound.playClick();
+        switchRtcTab('guest');
+      });
+
+      document.getElementById('btn-rtc-gen-offer').addEventListener('click', () => {
+        sound.playClick();
+        createHostRtcOffer();
+      });
+
+      document.getElementById('btn-rtc-copy-offer').addEventListener('click', () => {
+        sound.playClick();
+        copyRtcText('rtc-host-offer-text', '1. Adım Oda Davet Kodu kopyalandı! Arkadaşına gönder.');
+      });
+
+      document.getElementById('btn-rtc-complete-conn').addEventListener('click', () => {
+        sound.playClick();
+        completeHostRtcHandshake();
+      });
+
+      document.getElementById('btn-rtc-gen-answer').addEventListener('click', () => {
+        sound.playClick();
+        generateGuestRtcAnswer();
+      });
+
+      document.getElementById('btn-rtc-copy-answer').addEventListener('click', () => {
+        sound.playClick();
+        copyRtcText('rtc-guest-answer-text', 'Yanıt Kodu kopyalandı! Ev sahibine gönder.');
+      });
+
+      document.getElementById('btn-rtc-start-game').addEventListener('click', () => {
         sound.playLaunch();
-        window.location.href = './okey-101.html?lan=join';
+        const isKat = selectedLanMode === 'katlamali';
+        rtcLobby.hostPeers.forEach((p) => {
+          if (p.dc && p.dc.readyState === 'open') {
+            try {
+              p.dc.send(
+                JSON.stringify({
+                  type: 'LAUNCH_GAME',
+                  roomCode: rtcLobby.roomCode,
+                  katlamali: isKat,
+                  assignedSeat: p.seat,
+                })
+              );
+            } catch (_) {}
+          }
+        });
+        openLiveGameIframe('host');
       });
 
       document.getElementById('btn-online-go-games').addEventListener('click', () => {
@@ -4405,6 +5363,72 @@
       document.getElementById('btn-online-close').addEventListener('click', () => {
         sound.playClick();
         onlineModal.classList.remove('open');
+      });
+      document.getElementById('btn-online-close-guest').addEventListener('click', () => {
+        sound.playClick();
+        onlineModal.classList.remove('open');
+      });
+
+      // Live window.postMessage Bridge between index.html (WebRTC owner) and okey-101.html (iframe)
+      window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data || !data.__okeyLanBridge) return;
+
+        if (data.direction === 'bridge_ready') {
+          rtcLobby.bridgeReady = true;
+          const peersList = [];
+          rtcLobby.hostPeers.forEach((p) => {
+            if (p.dc && p.dc.readyState === 'open') {
+              peersList.push({
+                peerId: p.peerId,
+                seat: p.seat,
+                name: p.name,
+                avatarText: p.avatarText,
+                avatarBg: p.avatarBg,
+                gold: p.gold,
+              });
+            }
+          });
+          forwardToGameIframe({
+            __okeyLanBridge: true,
+            direction: 'bridge_init',
+            role: rtcLobby.role,
+            roomCode: rtcLobby.roomCode || 'WIFI',
+            katlamali: selectedLanMode === 'katlamali',
+            mySeat: rtcLobby.role === 'host' ? 0 : rtcLobby.mySeat,
+            peerId: rtcLobby.myPeerId,
+            peers: peersList,
+          });
+          while (rtcLobby.bridgeQueue.length > 0) {
+            const queued = rtcLobby.bridgeQueue.shift();
+            forwardToGameIframe(queued);
+          }
+          return;
+        }
+
+        if (data.direction === 'to_peer') {
+          const payloadStr = JSON.stringify(data.payload || {});
+          if (rtcLobby.role === 'host') {
+            const target = rtcLobby.hostPeers.get(data.targetPeerId);
+            if (target && target.dc && target.dc.readyState === 'open') {
+              try {
+                target.dc.send(payloadStr);
+              } catch (_) {}
+            }
+          } else if (rtcLobby.role === 'guest') {
+            if (rtcLobby.guestDc && rtcLobby.guestDc.readyState === 'open') {
+              try {
+                rtcLobby.guestDc.send(payloadStr);
+              } catch (_) {}
+            }
+          }
+          return;
+        }
+
+        if (data.direction === 'exit_to_lobby') {
+          sound.playClick();
+          closeLiveGameIframeAndReset();
+        }
       });
 
       const openSettingsModal = () => {
@@ -4828,6 +5852,7 @@
           if (e.key !== 'Escape') return;
         }
         if (e.key === 'Escape') {
+          if (typeof rtcLobby !== 'undefined' && rtcLobby.iframeOpen) return;
           onlineModal.classList.remove('open');
           settingsModal.classList.remove('open');
           exitModal.classList.remove('open');
